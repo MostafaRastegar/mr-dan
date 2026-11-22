@@ -5,7 +5,7 @@
  * implementations. Infrastructure adapters implement these ports.
  */
 
-import type { Chunk, DocumentRecord, RawDocument, SearchResult } from "./models";
+import type { Answer, Chunk, DocumentRecord, RawDocument, SearchResult } from "./models";
 
 /**
  * Loads a raw document from a file path or bytes.
@@ -88,3 +88,85 @@ export interface HealthProbe {
   readonly name: string;
   check(): Promise<void>;
 }
+
+/**
+ * Chat LLM: generates text from a list of messages.
+ */
+export interface LLMPort {
+  /**
+   * Generate a completion. Returns the assistant message text.
+   */
+  complete(messages: { role: string; content: string }[]): Promise<string>;
+
+  /**
+   * Stream a completion, yielding text tokens as they arrive.
+   */
+  completeStream(
+    messages: { role: string; content: string }[],
+    onToken: (token: string) => void,
+  ): Promise<void>;
+}
+
+/**
+ * Retriever: hybrid (BM25 + dense) search with RRF fusion.
+ */
+export interface RetrieverPort {
+  /**
+   * Search for chunks matching the query.
+   *
+   * @param query - Raw query text (used by BM25 side).
+   * @param queryEmbedding - Query embedding vector (used by dense side).
+   * @param topK - Number of results to return.
+   * @param fetchK - Candidate pool size per retriever (>= topK).
+   */
+  search(
+    query: string,
+    queryEmbedding: number[],
+    topK: number,
+    fetchK?: number,
+  ): Promise<SearchResult[]>;
+}
+
+/**
+ * LLM-based reranker: scores candidate passages for a query.
+ */
+export interface RerankPort {
+  /**
+   * Rerank search results for a query, returning the best `topK` first.
+   * Falls back to incoming order on failure.
+   */
+  rerank(
+    query: string,
+    results: SearchResult[],
+    topK: number,
+  ): Promise<SearchResult[]>;
+}
+
+/**
+ * RAG cache: exact (keyed by hash) and semantic (keyed by embedding cosine).
+ */
+export interface RAGCachePort {
+  /**
+   * Exact cache lookup by key. Returns null on miss or expired entry.
+   */
+  getExact(key: string): Promise<Answer | null>;
+  /**
+   * Store in exact cache with TTL (seconds).
+   */
+  setExact(key: string, value: Answer, ttlSeconds: number): Promise<void>;
+  /**
+   * Semantic cache lookup by embedding vector.
+   * Returns null on miss, expired entry, or no entry above similarity threshold.
+   */
+  getSemantic(embedding: number[]): Promise<Answer | null>;
+  /**
+   * Store in semantic cache with its embedding and TTL (seconds).
+   * Evicts oldest entry when over max size.
+   */
+  setSemantic(embedding: number[], value: Answer, ttlSeconds: number): Promise<void>;
+  /**
+   * Clear all cache entries.
+   */
+  clear(): Promise<void>;
+}
+

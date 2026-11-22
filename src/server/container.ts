@@ -7,11 +7,17 @@
  */
 
 import { ChromaVectorStore } from "@/modules/rag/infrastructure/chroma-vector-store";
+import { HybridRetriever } from "@/modules/rag/infrastructure/hybrid-retriever";
+import { LLMReranker } from "@/modules/rag/infrastructure/llm-reranker";
+import { MemoryCache } from "@/modules/rag/infrastructure/cache";
 import { OpenRouterEmbeddingProvider } from "@/modules/rag/infrastructure/openrouter-embedding";
+import { OpenRouterLLMProvider } from "@/modules/rag/infrastructure/openrouter-llm";
+import { env } from "@/shared/env";
 import { PrismaDocumentRepository } from "@/modules/rag/infrastructure/prisma-document-repository";
 import { PrismaIngestionRunRepository } from "@/modules/rag/infrastructure/prisma-ingestion-run-repository";
 import { ChromaHealthProbe } from "@/modules/rag/infrastructure/chroma-health";
 import { PostgresHealthProbe } from "@/modules/rag/infrastructure/postgres-health";
+import { AskQuestionUseCase } from "@/modules/rag/application/ask-question";
 import { IngestDocumentUseCase } from "@/modules/rag/application/ingest-document";
 import { SearchKnowledgeUseCase } from "@/modules/rag/application/search-knowledge";
 import { TextSplitter } from "@/modules/rag/application/text-splitter";
@@ -24,6 +30,7 @@ type Container = {
   };
   ingestDocument: IngestDocumentUseCase;
   searchKnowledge: SearchKnowledgeUseCase;
+  askQuestion: AskQuestionUseCase;
 };
 
 const globalForContainer = globalThis as unknown as {
@@ -40,6 +47,13 @@ function build(): Container {
     chunkOverlap: 120,
   });
 
+  const retriever = new HybridRetriever({
+    vectorStore,
+    embeddingProvider,
+    bm25Weight: env.HYBRID_BM25_WEIGHT,
+    rrfK: 60,
+  });
+
   const ingestDocument = new IngestDocumentUseCase(
     documentRepository,
     vectorStore,
@@ -50,7 +64,19 @@ function build(): Container {
 
   const searchKnowledge = new SearchKnowledgeUseCase(
     embeddingProvider,
-    vectorStore,
+    retriever,
+  );
+
+  const llm = new OpenRouterLLMProvider();
+  const reranker = new LLMReranker(llm);
+  const cache = new MemoryCache();
+
+  const askQuestion = new AskQuestionUseCase(
+    searchKnowledge,
+    embeddingProvider,
+    reranker,
+    llm,
+    cache,
   );
 
   return {
@@ -60,6 +86,7 @@ function build(): Container {
     },
     ingestDocument,
     searchKnowledge,
+    askQuestion,
   };
 }
 

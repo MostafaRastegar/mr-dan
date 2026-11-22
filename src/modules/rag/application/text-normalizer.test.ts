@@ -1,24 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { normalizeText, stripZWNJ } from "./text-normalizer";
+import { normalizeText } from "./text-normalizer";
 
 describe("normalizeText", () => {
-  it("removes BOM", () => {
-    expect(normalizeText("\uFEFFhello")).toBe("hello");
+  it("removes BOM everywhere", () => {
+    expect(normalizeText("\uFEFFhello\uFEFFworld")).toBe("helloworld");
   });
 
   it("normalizes CRLF and CR to LF", () => {
     expect(normalizeText("a\r\nb\rc\n")).toBe("a\nb\nc");
   });
 
-  it("removes vertical tab and form feed", () => {
-    expect(normalizeText("a\vb\fc")).toBe("abc");
+  it("converts vertical tab and form feed to newline", () => {
+    expect(normalizeText("a\vb\fc")).toBe("a\nb\nc");
   });
 
-  it("collapses horizontal whitespace runs", () => {
+  it("collapses runs of 2+ horizontal whitespace to one space", () => {
     expect(normalizeText("a    b\t   c")).toBe("a b c");
+    // single spaces are preserved
+    expect(normalizeText("a b c")).toBe("a b c");
   });
 
-  it("collapses 2+ blank lines into one", () => {
+  it("collapses 3+ consecutive newlines into one blank line", () => {
     expect(normalizeText("a\n\n\n\nb")).toBe("a\n\nb");
   });
 
@@ -28,11 +30,5 @@ describe("normalizeText", () => {
 
   it("handles empty string", () => {
     expect(normalizeText("")).toBe("");
-  });
-});
-
-describe("stripZWNJ", () => {
-  it("removes zero-width non-joiner", () => {
-    expect(stripZWNJ("س\u200cمن")).toBe("سمن");
   });
 });

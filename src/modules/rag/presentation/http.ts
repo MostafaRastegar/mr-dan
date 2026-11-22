@@ -54,3 +54,21 @@ export function toHttpError(error: unknown, requestId: string): Response {
 export function requestIdHeader(headers: Headers): string {
   return headers.get("x-request-id") ?? crypto.randomUUID();
 }
+
+/** Serialize a value as an SSE event. */
+export function sse(event: string, data: unknown): string {
+  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+}
+
+/** Build an SSE text/event-stream Response from a ReadableStream. */
+export function sseResponse(stream: ReadableStream): Response {
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}

@@ -15,5 +15,11 @@ export const searchRequestSchema = z.object({
   topK: z.coerce.number().int().positive().max(100).optional(),
 });
 
+export const chatRequestSchema = z.object({
+  question: z.string().min(1),
+  topK: z.coerce.number().int().positive().max(100).optional(),
+});
+
 export type IngestRequest = z.infer<typeof ingestRequestSchema>;
 export type SearchRequest = z.infer<typeof searchRequestSchema>;
+export type ChatRequest = z.infer<typeof chatRequestSchema>;

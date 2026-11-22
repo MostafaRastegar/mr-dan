@@ -13,7 +13,21 @@
 
 import type { Chunk, RawDocument } from "@/modules/rag/domain/models";
 
-const DEFAULT_SEPARATORS = ["\n\n", "\n", "۔", ".", "،", "؛", "?", "!", " ", ""];
+const DEFAULT_SEPARATORS = [
+  "\n\n",
+  "\n",
+  "۔", // Arabic full stop
+  ".",
+  "؟", // Arabic question mark
+  "?",
+  "!",
+  "؛", // Arabic semicolon
+  ";",
+  "،", // Arabic comma
+  ",",
+  " ",
+  "",
+];
 
 interface SplitOptions {
   chunkSize?: number;

@@ -4,43 +4,47 @@
  * Normalization happens BEFORE splitting and is identical for all formats.
  * Output must be byte-identical to the oracle's normalizer on the same input,
  * because downstream chunking and parity comparisons depend on it.
+ *
+ * Oracle reference: mr-rag/app/infrastructure/text_normalizer.py
+ *
+ * Steps (in order):
+ *  1. Strip UTF-8 BOM (U+FEFF) — everywhere in the string
+ *  2. Normalize line endings to \n (CRLF and lone CR)
+ *  3. Vertical tab \x0B and form feed \x0C -> \n
+ *  4. Collapse runs of 2+ horizontal whitespace (space, tab, NBSP) -> one space
+ *  5. Collapse 3+ consecutive newlines to a paragraph break \n\n
+ *  6. Strip leading/trailing whitespace
+ *
+ * Arabic/Persian letter variants are deliberately NOT unified here: that
+ * mapping is for token matching (see the BM25 preprocessor), and rewriting
+ * document text would alter quoted values such as part numbers.
  */
 
 const BOM = "\uFEFF";
-const ZWNJ = "\u200c";
 
 /**
  * Normalize raw document text.
- *
- * Steps (in order):
- * 1. Remove BOM (U+FEFF)
- * 2. Normalize line endings: \r\n and \r -> \n
- * 3. Remove vertical tab \v and form feed \f
- * 4. Collapse runs of horizontal whitespace (space, tab, non-breaking space) into one space
- * 5. Collapse 2+ blank lines into a single blank line
- * 6. Trim leading/trailing whitespace
  */
 export function normalizeText(text: string): string {
-  let result = text.replace(BOM, "");
+  if (!text) {
+    return "";
+  }
 
-  // line endings
+  // 1. BOM everywhere (Python str.replace replaces all occurrences)
+  let result = text.split(BOM).join("");
+
+  // 2. Line endings
   result = result.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
-  // vertical tab / form feed
-  result = result.replace(/\v/g, "").replace(/\f/g, "");
+  // 3. Vertical tab / form feed -> newline
+  result = result.replace(/\x0B/g, "\n").replace(/\x0C/g, "\n");
 
-  // horizontal whitespace runs -> single space (but preserve newlines)
-  result = result.replace(/[ \t\u00A0]+/g, " ");
+  // 4. Runs of 2+ horizontal whitespace -> single space
+  result = result.replace(/[ \t\u00A0]{2,}/g, " ");
 
-  // 2+ consecutive blank lines -> one blank line
+  // 5. 3+ consecutive newlines -> one blank line (paragraph break)
   result = result.replace(/\n{3,}/g, "\n\n");
 
+  // 6. Trim
   return result.trim();
-}
-
-/**
- * Strip ZWNJ characters. Used by the Persian tokenizer when comparing tokens.
- */
-export function stripZWNJ(text: string): string {
-  return text.replace(new RegExp(ZWNJ, "g"), "");
 }

@@ -1,9 +1,9 @@
 /**
- * Answer a question using dense retrieval.
+ * Answer a question using hybrid retrieval (BM25 + dense + RRF).
  *
  * Steps:
  *   1. Embed the question
- *   2. Search vector store (top K)
+ *   2. Search via retriever (hybrid: BM25 + dense + RRF)
  *   3. Filter results by min score threshold
  *   4. Return Answer with sources + cache info
  */
@@ -14,7 +14,7 @@ import type { Answer, SearchResult } from "@/modules/rag/domain/models";
 import { RetrievalError } from "@/modules/rag/domain/errors";
 import type {
   EmbeddingProviderPort,
-  VectorStorePort,
+  RetrieverPort,
 } from "@/modules/rag/domain/ports";
 
 export interface SearchKnowledgeInput {
@@ -29,7 +29,7 @@ export interface SearchKnowledgeOutput {
 export class SearchKnowledgeUseCase {
   constructor(
     private readonly embeddingProvider: EmbeddingProviderPort,
-    private readonly vectorStore: VectorStorePort,
+    private readonly retriever: RetrieverPort,
   ) {}
 
   async execute(input: SearchKnowledgeInput): Promise<SearchKnowledgeOutput> {
@@ -50,7 +50,12 @@ export class SearchKnowledgeUseCase {
 
     let results: SearchResult[];
     try {
-      results = await this.vectorStore.search(queryVector, topK);
+      results = await this.retriever.search(
+        question,
+        queryVector,
+        topK,
+        env.FETCH_K,
+      );
     } catch (error) {
       throw new RetrievalError(
         error instanceof Error ? error : new Error(String(error)),
@@ -64,7 +69,7 @@ export class SearchKnowledgeUseCase {
 
     logger.debug(
       { question, retrieved: results.length, passed: filtered.length },
-      "search: dense retrieval",
+      "search: hybrid retrieval",
     );
 
     const answer: Answer = {
