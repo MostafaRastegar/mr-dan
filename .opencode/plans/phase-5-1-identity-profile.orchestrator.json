@@ -1,0 +1,44 @@
+{
+  "feature": "phase-5-1-identity-profile",
+  "phase": "plan",
+  "plan": ".opencode/plans/phase-5-1-identity-profile.md",
+  "plan_sha256": null,
+  "review": ".opencode/reviews/phase-5-1-identity-profile.md",
+  "test_log": ".opencode/reviews/phase-5-1-identity-profile.tests.log",
+  "readme": { "path": "README.md", "state": "unchanged" },
+  "changelog": { "path": "CHANGELOG.md", "state": "pending" },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-persistence",
+    "mr-dan-api",
+    "mr-dan-frontend",
+    "mr-dan-testing-parity",
+    "mr-dan-devops",
+    "mro-project-stack",
+    "mro-data-model",
+    "mro-code-review-checklist",
+    "mro-behavior-docs"
+  ],
+  "sessions": {
+    "architect": null,
+    "implementer": null,
+    "reviewer": null,
+    "test": null
+  },
+  "acceptance": { "total": 0, "confirmed": 0, "pending": 0, "deferred": 0 },
+  "changed_files": [],
+  "test_exit_codes": [],
+  "review_round": 0,
+  "severity_history": [],
+  "approvals": { "plan": null, "final": null },
+  "budget": { "turns_per_phase": 20, "review_rounds": 3 },
+  "log": ".opencode/plans/phase-5-1-identity-profile.log.jsonl",
+  "blockers": "none",
+  "decisions": {
+    "phase5_split": "5.1 identity/profile/groups, 5.2 schedule/homework/study, 5.3 quiz/meal/books/leisure, 5.4 dashboards(echarts)+counselor panel",
+    "auth": "custom session cookie + Prisma Session table, node:crypto scrypt for passwords",
+    "telegram": "removed entirely",
+    "webrtc": "documented only, not implemented",
+    "rag_integration": "deferred; no chat wiring in phase 5"
+  }
+}
