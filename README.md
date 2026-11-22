@@ -17,9 +17,10 @@ pnpm dev                      # http://localhost:3000
 ```
 
 صفحات:
-- `/` — صفحه اصلی با لینک به چت و پنل دانش
+- `/` — صفحه اصلی با لینک به چت، پنل دانش و اسناد API
 - `/chat` — چتはري streaming با منابع و دکمه-stop
 - `/admin/knowledge` — آپلود، لیست، جستجو، حذف اسناد و آمار
+- `/api-docs` — اسناد API با Swagger UI (spec در `/api-docs`، spec خام در `/api/openapi`)
 
 بررسی سلامت:
 
@@ -46,6 +47,7 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm build
 | Method | Path | توضیح |
 |--------|------|-------|
 | GET | `/api/health` | سلامت وابستگی‌ها + نسخه |
+| GET | `/api/openapi` | spec OpenAPI 3.0 (JSON) |
 | GET | `/api/documents` | لیست اسناد |
 | POST | `/api/documents` | ingest (JSON: `filePath`, `originalFilename`, `fileType`) |
 | POST | `/api/upload` | آپلود فایل multipart (`file`) → ingest |

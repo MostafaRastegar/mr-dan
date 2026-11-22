@@ -151,6 +151,8 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 - [x] `docker compose` شامل app + postgres + chroma
 - [x] Playwright: آپلود → پرسش → citation → حذف
 - [x] `README.md` اجرا، معماری، env، عیب‌یابی
+- [x] `GET /api/openapi` سرویس‌دهندهٔ spec OpenAPI 3.0
+- [x] صفحه `/api-docs` با Swagger UI (از CDN، بدون وابستگی npm جدید)
 - [x] snapshot نهایی parity + ثبت در `parity.md`
 
 **دروازه:**

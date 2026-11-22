@@ -14,6 +14,9 @@ export default function Home() {
         <Link href="/admin/knowledge" className="px-4 py-2 border border-slate-300 text-slate-700 rounded hover:bg-slate-100 transition">
           پنل دانش
         </Link>
+        <Link href="/api-docs" className="px-4 py-2 border border-slate-300 text-slate-700 rounded hover:bg-slate-100 transition">
+          اسناد API (Swagger)
+        </Link>
       </div>
     </main>
   );
