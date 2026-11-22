@@ -17,7 +17,7 @@ const schema = z.object({
 
   OPENROUTER_API_KEY: z.string().default(""),
   OPENROUTER_BASE_URL: z.string().url().default("https://openrouter.ai/api/v1"),
-  EMBEDDING_MODEL: z.string().default("nvidia/llama-nemotron-embed-vl-1b-v2:free"),
+  EMBEDDING_MODEL: z.string().default("nvidia/nemotron-3.5-embed-8b:free"),
   LLM_MODEL: z.string().default("nvidia/nemotron-3-ultra-550b-a55b:free"),
   LLM_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(120),
   LLM_RETRY_ATTEMPTS: z.coerce.number().int().min(0).default(3),

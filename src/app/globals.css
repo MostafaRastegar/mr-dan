@@ -17,3 +17,10 @@ body {
   font-family: Vazirmatn, Tahoma, ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Swagger docs page is English/LTR, unlike the rest of the RTL project. */
+.swagger-docs,
+.swagger-docs * {
+  text-align: left;
+  direction: ltr;
+}

@@ -80,7 +80,7 @@ const Conversation = {
         type: "object",
         properties: {
           role: { type: "string", enum: ["user", "assistant", "system"], example: "user" },
-          content: { type: "string", example: "سلام" },
+          content: { type: "string", example: "Hello" },
           timestamp: { type: "string", format: "date-time" },
         },
         required: ["role", "content"],
@@ -120,25 +120,25 @@ export const openApiSpec: OpenAPI = {
     title: "mr-dan RAG API",
     version: "1.0.0",
     description:
-      "پلتفرم مشاورهٔ تحصیلی هوشمند. تمام endpointها Relative (same-origin) هستند؛ نیازی به NEXT_PUBLIC_API_BASE نیست.",
+      "Smart academic advising platform. All endpoints are relative (same-origin); no NEXT_PUBLIC_API_BASE is required.",
   },
   servers: [{ url: "/", description: "same-origin" }],
   tags: [
-    { name: "documents", description: "مدیریت اسناد (CRUD، ingest، آپلود)" },
-    { name: "conversations", description: "مکالمه‌ها" },
-    { name: "chat", description: "چت و streaming پاسخ" },
-    { name: "search", description: "جستجوی مستقیم در دانش" },
-    { name: "admin", description: "داشبورد ادمین (چانک، آمار، کش)" },
-    { name: "system", description: "سلامت، متریک" },
+    { name: "documents", description: "Document management (CRUD, ingest, upload)" },
+    { name: "conversations", description: "Conversations" },
+    { name: "chat", description: "Chat and streaming responses" },
+    { name: "search", description: "Direct knowledge search" },
+    { name: "admin", description: "Admin dashboard (chunks, stats, cache)" },
+    { name: "system", description: "Health, metrics" },
   ],
   paths: {
     "/api/documents": {
       get: {
         tags: ["documents"],
-        summary: "لیست اسناد",
+        summary: "List documents",
         responses: {
           "200": {
-            description: "لیست اسناد",
+            description: "Document list",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -152,7 +152,7 @@ export const openApiSpec: OpenAPI = {
       },
       post: {
         tags: ["documents"],
-        summary: "ingest سند (JSON)",
+        summary: "Ingest a document (JSON)",
         requestBody: {
           required: true,
           content: {
@@ -171,7 +171,7 @@ export const openApiSpec: OpenAPI = {
         },
         responses: {
           "201": {
-            description: "سند ingestion شد",
+            description: "Document ingested",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -192,31 +192,31 @@ export const openApiSpec: OpenAPI = {
     "/api/documents/{id}": {
       get: {
         tags: ["documents"],
-        summary: "جزئیات سند",
+        summary: "Document details",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
         responses: {
           "200": {
-            description: "جزئیات سند",
+            description: "Document details",
             content: {
               "application/json": {
                 schema: SuccessResponse({ $ref: "#/components/schemas/DocumentRecord" }),
               },
             },
           },
-          "404": { description: "سند یافت نشد", content: { "application/json": { schema: ErrorResponse } } },
+          "404": { description: "Document not found", content: { "application/json": { schema: ErrorResponse } } },
         },
       },
       delete: {
         tags: ["documents"],
-        summary: "حذف سند (اول Chroma، بعد Postgres)",
+        summary: "Delete document (Chroma first, then Postgres)",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
         responses: {
           "200": {
-            description: "حذف شد",
+            description: "Deleted",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -230,14 +230,14 @@ export const openApiSpec: OpenAPI = {
               },
             },
           },
-          "404": { description: "سند یافت نشد", content: { "application/json": { schema: ErrorResponse } } },
+          "404": { description: "Document not found", content: { "application/json": { schema: ErrorResponse } } },
         },
       },
     },
     "/api/upload": {
       post: {
         tags: ["documents"],
-        summary: "آپلود فایل multipart → ingest",
+        summary: "Upload file multipart → ingest",
         requestBody: {
           required: true,
           content: {
@@ -257,7 +257,7 @@ export const openApiSpec: OpenAPI = {
         },
         responses: {
           "201": {
-            description: "فایل آپلود و ingestion شد",
+            description: "File uploaded and ingested",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -272,19 +272,19 @@ export const openApiSpec: OpenAPI = {
               },
             },
           },
-          "400": { description: "فایل ارائه نشده", content: { "application/json": { schema: ErrorResponse } } },
-          "413": { description: "فایل بزرگتر از حد مجاز (۲۰ مگابایت)", content: { "application/json": { schema: ErrorResponse } } },
-          "415": { description: "فرمت فایل پشتیبانی‌نشده", content: { "application/json": { schema: ErrorResponse } } },
+          "400": { description: "No file provided", content: { "application/json": { schema: ErrorResponse } } },
+          "413": { description: "File exceeds the limit (20 MB)", content: { "application/json": { schema: ErrorResponse } } },
+          "415": { description: "Unsupported file format", content: { "application/json": { schema: ErrorResponse } } },
         },
       },
     },
     "/api/conversations": {
       get: {
         tags: ["conversations"],
-        summary: "لیست مکالمه‌ها",
+        summary: "List conversations",
         responses: {
           "200": {
-            description: "لیست مکالمه‌ها",
+            description: "Conversation list",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -298,21 +298,21 @@ export const openApiSpec: OpenAPI = {
       },
       post: {
         tags: ["conversations"],
-        summary: "ایجاد مکالمه",
+        summary: "Create conversation",
         requestBody: {
           required: true,
           content: {
             "application/json": {
               schema: {
                 type: "object",
-                properties: { title: { type: "string", example: "مکالمه جدید" } },
+                properties: { title: { type: "string", example: "New conversation" } },
               },
             },
           },
         },
         responses: {
           "201": {
-            description: "مکالمه ایجاد شد",
+            description: "Conversation created",
             content: {
               "application/json": {
                 schema: SuccessResponse({ $ref: "#/components/schemas/Conversation" }),
@@ -325,25 +325,25 @@ export const openApiSpec: OpenAPI = {
     "/api/conversations/{id}": {
       get: {
         tags: ["conversations"],
-        summary: "جزئیات مکالمه",
+        summary: "Conversation details",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
         responses: {
           "200": {
-            description: "جزئیات مکالمه",
+            description: "Conversation details",
             content: {
               "application/json": {
                 schema: SuccessResponse({ $ref: "#/components/schemas/Conversation" }),
               },
             },
           },
-          "404": { description: "مکالمه یافت نشد", content: { "application/json": { schema: ErrorResponse } } },
+          "404": { description: "Conversation not found", content: { "application/json": { schema: ErrorResponse } } },
         },
       },
       put: {
         tags: ["conversations"],
-        summary: "بروزرسانی عنوان مکالمه",
+        summary: "Update conversation title",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
@@ -353,7 +353,7 @@ export const openApiSpec: OpenAPI = {
             "application/json": {
               schema: {
                 type: "object",
-                properties: { title: { type: "string", example: "عنوان جدید" } },
+                properties: { title: { type: "string", example: "New title" } },
                 required: ["title"],
               },
             },
@@ -361,39 +361,39 @@ export const openApiSpec: OpenAPI = {
         },
         responses: {
           "200": {
-            description: "بروزرسانی شد",
+            description: "Updated",
             content: {
               "application/json": {
                 schema: SuccessResponse({ $ref: "#/components/schemas/Conversation" }),
               },
             },
           },
-          "404": { description: "مکالمه یافت نشد", content: { "application/json": { schema: ErrorResponse } } },
+          "404": { description: "Conversation not found", content: { "application/json": { schema: ErrorResponse } } },
         },
       },
       delete: {
         tags: ["conversations"],
-        summary: "حذف مکالمه",
+        summary: "Delete conversation",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
         responses: {
           "200": {
-            description: "حذف شد",
+            description: "Deleted",
             content: {
               "application/json": {
                 schema: SuccessResponse({ type: "object", properties: { id: { type: "string" } }, required: ["id"] }),
               },
             },
           },
-          "404": { description: "مکالمه یافت نشد", content: { "application/json": { schema: ErrorResponse } } },
+          "404": { description: "Conversation not found", content: { "application/json": { schema: ErrorResponse } } },
         },
       },
     },
     "/api/chat": {
       post: {
         tags: ["chat"],
-        summary: "پاسخ چت (عدم streaming)",
+        summary: "Chat answer (no streaming)",
         requestBody: {
           required: true,
           content: {
@@ -401,7 +401,7 @@ export const openApiSpec: OpenAPI = {
               schema: {
                 type: "object",
                 properties: {
-                  question: { type: "string", example: "machine learning چیست؟" },
+                  question: { type: "string", example: "What is machine learning?" },
                   topK: { type: "integer", minimum: 1, maximum: 100, example: 5 },
                 },
                 required: ["question"],
@@ -411,7 +411,7 @@ export const openApiSpec: OpenAPI = {
         },
         responses: {
           "200": {
-            description: "پاسخ چت",
+            description: "Chat answer",
             content: {
               "application/json": {
                 schema: SuccessResponse({ $ref: "#/components/schemas/Answer" }),
@@ -424,7 +424,7 @@ export const openApiSpec: OpenAPI = {
     "/api/chat/stream": {
       post: {
         tags: ["chat"],
-        summary: "پاسخ چت با streaming (SSE)",
+        summary: "Chat answer with streaming (SSE)",
         requestBody: {
           required: true,
           content: {
@@ -432,7 +432,7 @@ export const openApiSpec: OpenAPI = {
               schema: {
                 type: "object",
                 properties: {
-                  question: { type: "string", example: "machine learning چیست؟" },
+                  question: { type: "string", example: "What is machine learning?" },
                   topK: { type: "integer", minimum: 1, maximum: 100, example: 5 },
                 },
                 required: ["question"],
@@ -445,7 +445,7 @@ export const openApiSpec: OpenAPI = {
             description: "SSE event stream",
             content: {
               "text/event-stream": {
-                schema: { type: "string", example: "event: token\ndata: {\"text\":\"سلام\"}\n\n" },
+                schema: { type: "string", example: "event: token\ndata: {\"text\":\"Hello\"}\n\n" },
               },
             },
           },
@@ -455,7 +455,7 @@ export const openApiSpec: OpenAPI = {
     "/api/search": {
       post: {
         tags: ["search"],
-        summary: "جستجوی مستقیم در دانش",
+        summary: "Direct knowledge search",
         requestBody: {
           required: true,
           content: {
@@ -473,7 +473,7 @@ export const openApiSpec: OpenAPI = {
         },
         responses: {
           "200": {
-            description: "نتایج جستجو",
+            description: "Search results",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -498,10 +498,10 @@ export const openApiSpec: OpenAPI = {
     "/api/admin/chunks": {
       get: {
         tags: ["admin"],
-        summary: "لیست چانک‌ها",
+        summary: "List chunks",
         responses: {
           "200": {
-            description: "لیست چانک‌ها",
+            description: "Chunk list",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -517,13 +517,13 @@ export const openApiSpec: OpenAPI = {
     "/api/admin/chunks/{id}": {
       delete: {
         tags: ["admin"],
-        summary: "حذف چانک",
+        summary: "Delete chunk",
         parameters: [
           { name: "id", in: "path", required: true, schema: { type: "string" } },
         ],
         responses: {
           "200": {
-            description: "چانک حذف شد",
+            description: "Chunk deleted",
             content: {
               "application/json": {
                 schema: SuccessResponse({ type: "object", properties: { id: { type: "string" } }, required: ["id"] }),
@@ -536,10 +536,10 @@ export const openApiSpec: OpenAPI = {
     "/api/admin/stats": {
       get: {
         tags: ["admin"],
-        summary: "آمار سیستم",
+        summary: "System stats",
         responses: {
           "200": {
-            description: "آمار",
+            description: "Stats",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -569,10 +569,10 @@ export const openApiSpec: OpenAPI = {
     "/api/admin/cache/clear": {
       post: {
         tags: ["admin"],
-        summary: "پاک‌سازی کش",
+        summary: "Clear cache",
         responses: {
           "200": {
-            description: "کیش پاک شد",
+            description: "Cache cleared",
             content: {
               "application/json": {
                 schema: SuccessResponse({ type: "object", properties: { cleared: { type: "boolean", example: true } }, required: ["cleared"] }),
@@ -585,7 +585,7 @@ export const openApiSpec: OpenAPI = {
     "/api/admin/retrieval/debug": {
       post: {
         tags: ["admin"],
-        summary: "اشکال‌زدایی بازیابی",
+        summary: "Retrieval debugging",
         requestBody: {
           required: true,
           content: {
@@ -603,7 +603,7 @@ export const openApiSpec: OpenAPI = {
         },
         responses: {
           "200": {
-            description: "اشکال‌زدایی بازیابی",
+            description: "Retrieval debugging",
             content: {
               "application/json": {
                 schema: SuccessResponse({ type: "object" }),
@@ -616,10 +616,10 @@ export const openApiSpec: OpenAPI = {
     "/api/metrics": {
       get: {
         tags: ["system"],
-        summary: "متریک Prometheus (text format)",
+        summary: "Prometheus metrics (text format)",
         responses: {
           "200": {
-            description: "متن متریک Prometheus",
+            description: "Prometheus metrics text",
             content: { "text/plain": { schema: { type: "string" } } },
           },
         },
@@ -628,10 +628,10 @@ export const openApiSpec: OpenAPI = {
     "/api/health": {
       get: {
         tags: ["system"],
-        summary: "سلامت وابستگی‌ها",
+        summary: "Dependency health",
         responses: {
           "200": {
-            description: "وضعیت سلامت",
+            description: "Health status",
             content: {
               "application/json": {
                 schema: SuccessResponse({
@@ -646,7 +646,7 @@ export const openApiSpec: OpenAPI = {
                       },
                       required: ["postgres", "chroma"],
                     },
-                    models: { type: "object", example: { embedding: "nvidia/llama-nemotron-embed-vl-1b-v2:free", llm: "nvidia/nemotron-3-ultra-550b-a55b:free" } },
+                    models: { type: "object", example: { embedding: "nvidia/nemotron-3.5-embed-8b:free", llm: "nvidia/nemotron-3-ultra-550b-a55b:free" } },
                     version: { type: "string", example: "1.0.0" },
                   },
                   required: ["status", "dependencies", "models", "version"],

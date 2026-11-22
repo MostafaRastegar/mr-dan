@@ -13,7 +13,7 @@ export const GET = async (_req: NextRequest, { params }: { params: Promise<{ id:
     const id = (await params).id;
     const conversation = await getContainer().conversation.get(id);
     if (!conversation) throw new NotFoundError("Conversation");
-    return jsonOk({ data: conversation });
+    return jsonOk(conversation);
   } catch (error) { return toHttpError(error, requestId); }
 };
 

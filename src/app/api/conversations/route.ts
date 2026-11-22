@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest): Promise<Response> {
   const requestId = requestIdHeader(_req.headers);
   try {
     const conversations = await getContainer().conversation.list();
-    return jsonOk({ data: conversations });
+    return jsonOk(conversations);
   } catch (error) {
     return toHttpError(error, requestId);
   }
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   try {
     const body = createConversationSchema.parse(await req.json());
     const conversation = await getContainer().conversation.create(body);
-    return jsonOk({ data: conversation }, 201);
+    return jsonOk(conversation, 201);
   } catch (error) {
     return toHttpError(error, requestId);
   }

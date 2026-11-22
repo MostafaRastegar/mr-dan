@@ -9,7 +9,7 @@ export async function GET(_req: NextRequest): Promise<Response> {
   const requestId = requestIdHeader(_req.headers);
   try {
     const { chunks } = await getContainer().adminChunks.list();
-    return jsonOk({ data: chunks });
+    return jsonOk(chunks);
   } catch (error) {
     return toHttpError(error, requestId);
   }

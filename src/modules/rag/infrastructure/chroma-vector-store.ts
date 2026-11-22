@@ -15,6 +15,7 @@ import { VectorStoreError } from "@/modules/rag/domain/errors";
 import type { VectorStorePort } from "@/modules/rag/domain/ports";
 
 const COLLECTION = "mr-dan-chunks";
+const COLLECTIONS_PATH = "/tenants/default_tenant/databases/default_database/collections";
 
 function chromaURL(path: string): string {
   return `${env.CHROMA_URL.replace(/\/$/, "")}/api/v2${path}`;
@@ -43,6 +44,37 @@ async function chromaRequest(path: string, init?: RequestInit): Promise<unknown>
   }
 }
 
+/**
+ * Chroma v2 addresses collections by UUID; resolve the name once and reuse it.
+ * Create on first use so a fresh Chroma works without manual setup.
+ */
+let collectionIdPromise: Promise<string> | null = null;
+
+async function findOrCreateCollection(): Promise<string> {
+  const list = (await chromaRequest(COLLECTIONS_PATH)) as
+    | { id: string; name: string }[]
+    | null;
+  const existing = list?.find((c) => c.name === COLLECTION);
+  if (existing) return existing.id;
+
+  const created = (await chromaRequest(COLLECTIONS_PATH, {
+    method: "POST",
+    body: JSON.stringify({ name: COLLECTION, get_or_create: true }),
+  })) as { id: string };
+  logger.info({ collection: COLLECTION }, "chroma: created collection");
+  return created.id;
+}
+
+async function collectionPath(): Promise<string> {
+  collectionIdPromise ??= findOrCreateCollection();
+  try {
+    return `${COLLECTIONS_PATH}/${await collectionIdPromise}`;
+  } catch (error) {
+    collectionIdPromise = null;
+    throw error;
+  }
+}
+
 export class ChromaVectorStore implements VectorStorePort {
   async add(chunks: Chunk[], vectors: number[][]): Promise<void> {
     if (chunks.length === 0) return;
@@ -59,7 +91,7 @@ export class ChromaVectorStore implements VectorStorePort {
     const metadatas = chunks.map((c) => c.metadata);
     const embeddings = vectors;
 
-    await chromaRequest(`/collections/${COLLECTION}/add`, {
+    await chromaRequest(`${await collectionPath()}/add`, {
       method: "POST",
       body: JSON.stringify({ ids, documents, metadatas, embeddings }),
     });
@@ -69,7 +101,7 @@ export class ChromaVectorStore implements VectorStorePort {
 
   async search(queryVector: number[], topK: number): Promise<SearchResult[]> {
     const data = await chromaRequest(
-      `/collections/${COLLECTION}/query`,
+      `${await collectionPath()}/query`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -112,14 +144,14 @@ export class ChromaVectorStore implements VectorStorePort {
   }
 
   async count(): Promise<number> {
-    const data = (await chromaRequest(`/collections/${COLLECTION}/count`)) as {
+    const data = (await chromaRequest(`${await collectionPath()}/count`)) as {
       count?: number;
     };
     return data.count ?? 0;
   }
 
   async deleteByMetadata(key: string, value: unknown): Promise<void> {
-    await chromaRequest(`/collections/${COLLECTION}/delete`, {
+    await chromaRequest(`${await collectionPath()}/delete`, {
       method: "POST",
       body: JSON.stringify({ where: { [key]: value } }),
     });
@@ -127,7 +159,7 @@ export class ChromaVectorStore implements VectorStorePort {
   }
 
   async deleteChunk(id: string): Promise<void> {
-    await chromaRequest(`/collections/${COLLECTION}/delete`, {
+    await chromaRequest(`${await collectionPath()}/delete`, {
       method: "POST",
       body: JSON.stringify({ ids: [id] }),
     });
@@ -136,7 +168,7 @@ export class ChromaVectorStore implements VectorStorePort {
 
   async getAllChunks(): Promise<Chunk[]> {
     const data = (await chromaRequest(
-      `/collections/${COLLECTION}/get`,
+      `${await collectionPath()}/get`,
       {
         method: "POST",
         body: JSON.stringify({ include: ["documents", "metadatas"] }),

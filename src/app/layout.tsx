@@ -12,7 +12,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fa" dir="rtl">
+    // Browser extensions may add classes (e.g. rtl-enabled) before hydration;
+    // suppress only this element's attribute warning.
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body>
         <AntdRegistry>
           <Providers>{children}</Providers>

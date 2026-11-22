@@ -60,7 +60,7 @@ min_score 0.35 · low_relevance 0.45
 rerank on top_n 5 min 3 · hybrid on bm25 0.4 RRF k=60
 multi_query off · query_expansion off · loose_prompt off
 semantic cache on 0.97 · ttl embed 3600 · ttl llm 86400
-embedding nvidia/llama-nemotron-embed-vl-1b-v2:free
+embedding nvidia/nemotron-3.5-embed-8b:free
 chat nvidia/nemotron-3-ultra-550b-a55b:free
 ```
 

@@ -84,7 +84,7 @@ query_expansion off / count 3
 loose_prompt off
 semantic cache on / threshold 0.97 / maxsize 500
 ttl embedding 3600 / ttl llm 86400
-embedding nvidia/llama-nemotron-embed-vl-1b-v2:free
+embedding nvidia/nemotron-3.5-embed-8b:free
 chat nvidia/nemotron-3-ultra-550b-a55b:free
 ```
 

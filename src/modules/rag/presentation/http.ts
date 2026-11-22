@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { logger } from "@/shared/logger";
 
 export const ingestRequestSchema = z.object({
   filePath: z.string().min(1),
@@ -34,6 +35,10 @@ export function toHttpError(error: unknown, requestId: string): Response {
     typeof e === "object" && e !== null && "code" in e && "status" in e && "message" in e;
 
   const appErr = isAppError(error) ? error : null;
+
+  if (!appErr || appErr.status >= 500) {
+    logger.error({ err: error, requestId }, "request failed");
+  }
 
   const status = appErr?.status ?? 500;
   const code = appErr?.code ?? "internal_error";

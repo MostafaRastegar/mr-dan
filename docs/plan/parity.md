@@ -44,7 +44,7 @@ golden set در `scripts/eval_retrieval.py` تعریف شده و **باید عی
 | dense | 1.0 | 0.810 | 0.186 | 0.446 | 0.688 |
 | hybrid | 1.0 | 0.949 | 0.882 | 0.960 | 1.0 |
 
-مدل‌ها: `nvidia/llama-nemotron-embed-vl-1b-v2:free` و `nvidia/nemotron-3-ultra-550b-a55b:free`.
+مدل‌ها: `nvidia/nemotron-3.5-embed-8b:free` و `nvidia/nemotron-3-ultra-550b-a55b:free`.
 
 ## ۴. نگاشت endpointها
 

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     await fs.promises.writeFile(path, Buffer.from(await file.arrayBuffer()));
     try {
       const result = await getContainer().ingestDocument.execute({ filePath: path, originalFilename: file.name, fileType: type });
-      return jsonOk({ data: result }, 201);
+      return jsonOk(result, 201);
     } finally {
       await fs.promises.unlink(path).catch(() => {});
     }

@@ -9,7 +9,7 @@ export async function GET(_req: NextRequest): Promise<Response> {
   const requestId = requestIdHeader(_req.headers);
   try {
     const stats = await getContainer().adminStats.execute();
-    return jsonOk({ data: stats });
+    return jsonOk(stats);
   } catch (error) {
     return toHttpError(error, requestId);
   }

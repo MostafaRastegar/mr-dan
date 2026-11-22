@@ -134,7 +134,10 @@ export function KnowledgePage(): React.ReactNode {
         question: searchQuery,
         topK: 5,
       });
-      setSearchResults((data as { answer?: { sources?: SearchResultItem[] } }).answer?.sources ?? []);
+      setSearchResults(
+        (data as { data?: { answer?: { sources?: SearchResultItem[] } } }).data
+          ?.answer?.sources ?? [],
+      );
     } catch (err) {
       notification.error({ message: "خطا در جستجو: " + (err as Error).message });
     } finally {
@@ -216,7 +219,7 @@ export function KnowledgePage(): React.ReactNode {
               {loading && <div className="mt-2 text-xs text-slate-500">در حال بارگذاری…</div>}
             </Col>
             <Col lg={8} md={12}>
-              <Input.Group compact className="w-full">
+              <Space.Compact className="w-full">
                 <Input
                   placeholder="مسیر فایل برای ingestion"
                   value={searchQuery}
@@ -234,10 +237,10 @@ export function KnowledgePage(): React.ReactNode {
                 >
                   Ingest
                 </Button>
-              </Input.Group>
+              </Space.Compact>
             </Col>
             <Col lg={8} md={12}>
-              <Space direction="vertical" className="w-full" size="middle">
+              <Space orientation="vertical" className="w-full" size="middle">
                 <Button onClick={loadDocs} disabled={loading}>
                   بازخوانی لیست
                 </Button>

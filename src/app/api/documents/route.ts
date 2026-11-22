@@ -9,7 +9,7 @@ export const GET = async (_req: NextRequest): Promise<Response> => {
   const requestId = requestIdHeader(_req.headers);
   try {
     const { documents } = await getContainer().listDocuments.execute();
-    return jsonOk({ data: documents });
+    return jsonOk(documents);
   } catch (error) {
     return toHttpError(error, requestId);
   }
@@ -20,7 +20,7 @@ export const POST = async (req: NextRequest): Promise<Response> => {
   try {
     const body = await req.json();
     const result = await getContainer().ingestDocument.execute(body);
-    return jsonOk({ data: result }, 201);
+    return jsonOk(result, 201);
   } catch (error) {
     return toHttpError(error, requestId);
   }

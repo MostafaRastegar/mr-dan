@@ -35,7 +35,8 @@ export class AdminStatsUseCase {
       this.cache.size(),
     ]);
 
-    const chunks = await this.vectorStore.count();
+    // Chroma may be unavailable; stats still report what Postgres/cache know.
+    const chunks = await this.vectorStore.count().catch(() => 0);
 
     const upstream: Record<string, "ok" | "unavailable"> = {};
     await Promise.all(

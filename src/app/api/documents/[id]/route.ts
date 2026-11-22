@@ -15,7 +15,7 @@ export const GET = async (
     const id = (await params).id;
     const doc = await getContainer().manageDocuments.get(id);
     if (!doc) throw new NotFoundError("Document");
-    return jsonOk({ data: doc });
+    return jsonOk(doc);
   } catch (error) {
     return toHttpError(error, requestId);
   }
@@ -30,7 +30,7 @@ export const DELETE = async (
     const id = (await params).id;
     const result = await getContainer().manageDocuments.delete({ documentId: id });
     if (!result.document) throw new NotFoundError("Document");
-    return jsonOk({ data: { id, chunksDeleted: result.chunksDeleted } });
+    return jsonOk({ id, chunksDeleted: result.chunksDeleted });
   } catch (error) {
     return toHttpError(error, requestId);
   }

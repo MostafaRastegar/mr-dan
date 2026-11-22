@@ -20,7 +20,7 @@ export function LoadingSkeleton(): React.ReactNode {
 
 export function MessageSkeleton(): React.ReactNode {
   return (
-    <Space direction="vertical" className="w-full gap-3 p-4">
+    <Space orientation="vertical" className="w-full gap-3 p-4">
       <Skeleton paragraph={{ rows: 4 }} />
       <Skeleton paragraph={{ rows: 2 }} />
     </Space>
