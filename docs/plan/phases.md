@@ -92,14 +92,14 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 - [x] `persian-tokenizer.ts` مطابق `persian_preprocess` پایتون + تست word-level
 - [x] `hybrid-retriever.ts`: BM25 (`@langchain/community/retrievers/bm25`) + dense + RRF سفارشی (k=60، وزن ۰.۴)
 - [x] `llm-reranker.ts`: listwise، `top_n=5`, `min_score=3`, prompt یکسان، fallback بی‌خطا
-- [ ] cascade: stage 1 strict → stage 2 query expansion → stage 3 loose prompt (هر سه flag-driven)
-- [ ] multi-query retrieval (`multi_query_enabled`, count=3): تولید بازنویسی با LLM، merge با RRF
+- [x] cascade: stage 1 strict → stage 2 query expansion → stage 3 loose prompt (هر سه flag-driven)
+- [x] multi-query retrieval (`multi_query_enabled`, count=3): تولید بازنویسی با LLM، merge با RRF
 - [x] cache: exact (hash + promptVersion + model)، semantic (cosine 0.97، maxsize 500)، TTLها
 - [x] `ask-question.ts` (blocking + stream) با همان ترتیب oracle
 - [x] `POST /api/chat`, `POST /api/chat/stream` (SSE: `meta → token* → sources → done`)
-- [ ] abort با `request.signal`؛ بستن upstream stream
-- [ ] `POST /api/admin/retrieval/debug`, `POST /api/admin/cache/clear`
-- [ ] تست‌های fake LLM/embedding برای rerank، cascade، cache
+- [x] abort با `request.signal`؛ بستن upstream stream
+- [x] `POST /api/admin/retrieval/debug`, `POST /api/admin/cache/clear`
+- [x] تست‌های fake LLM/embedding برای rerank، cascade، cache
 
 **دروازه:**
 

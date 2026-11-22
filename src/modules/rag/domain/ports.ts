@@ -100,10 +100,12 @@ export interface LLMPort {
 
   /**
    * Stream a completion, yielding text tokens as they arrive.
+   * When `signal` aborts, the provider must stop streaming and resolve.
    */
   completeStream(
     messages: { role: string; content: string }[],
     onToken: (token: string) => void,
+    options?: { signal?: AbortSignal },
   ): Promise<void>;
 }
 

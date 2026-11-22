@@ -62,18 +62,20 @@ function build(): Container {
     ingestionRunRepository,
   );
 
-  const searchKnowledge = new SearchKnowledgeUseCase(
-    embeddingProvider,
-    retriever,
-  );
-
   const llm = new OpenRouterLLMProvider();
   const reranker = new LLMReranker(llm);
   const cache = new MemoryCache();
 
+  const searchKnowledge = new SearchKnowledgeUseCase(
+    embeddingProvider,
+    retriever,
+    llm,
+  );
+
   const askQuestion = new AskQuestionUseCase(
     searchKnowledge,
     embeddingProvider,
+    retriever,
     reranker,
     llm,
     cache,

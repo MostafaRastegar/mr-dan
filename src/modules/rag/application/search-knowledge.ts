@@ -14,8 +14,10 @@ import type { Answer, SearchResult } from "@/modules/rag/domain/models";
 import { RetrievalError } from "@/modules/rag/domain/errors";
 import type {
   EmbeddingProviderPort,
+  LLMPort,
   RetrieverPort,
 } from "@/modules/rag/domain/ports";
+import { expandedRetrieve } from "@/modules/rag/application/multi-query";
 
 export interface SearchKnowledgeInput {
   question: string;
@@ -30,6 +32,8 @@ export class SearchKnowledgeUseCase {
   constructor(
     private readonly embeddingProvider: EmbeddingProviderPort,
     private readonly retriever: RetrieverPort,
+    // LLM only used for multi-query retrieval (MULTI_QUERY_ENABLED).
+    private readonly llm?: LLMPort,
   ) {}
 
   async execute(input: SearchKnowledgeInput): Promise<SearchKnowledgeOutput> {
@@ -39,23 +43,29 @@ export class SearchKnowledgeUseCase {
       throw new RetrievalError(new Error("Question must not be empty"));
     }
 
-    let queryVector: number[];
-    try {
-      queryVector = await this.embeddingProvider.embedQuery(question);
-    } catch (error) {
-      throw new RetrievalError(
-        error instanceof Error ? error : new Error(String(error)),
-      );
-    }
-
     let results: SearchResult[];
     try {
-      results = await this.retriever.search(
-        question,
-        queryVector,
-        topK,
-        env.FETCH_K,
-      );
+      if (env.MULTI_QUERY_ENABLED && this.llm) {
+        results = await expandedRetrieve(
+          {
+            embeddingProvider: this.embeddingProvider,
+            retriever: this.retriever,
+            llm: this.llm,
+          },
+          question,
+          topK,
+          env.FETCH_K,
+          env.MULTI_QUERY_COUNT,
+        );
+      } else {
+        const queryVector = await this.embeddingProvider.embedQuery(question);
+        results = await this.retriever.search(
+          question,
+          queryVector,
+          topK,
+          env.FETCH_K,
+        );
+      }
     } catch (error) {
       throw new RetrievalError(
         error instanceof Error ? error : new Error(String(error)),

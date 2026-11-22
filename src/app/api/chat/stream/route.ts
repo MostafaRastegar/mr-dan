@@ -21,7 +21,7 @@ export async function POST(req: NextRequest): Promise<Response> {
             onToken: (t) => send("token", t),
             onSources: (s) => send("sources", s),
             onDone: () => send("done", {}),
-          });
+          }, { signal: req.signal });
         } catch (error) {
           send("error", { message: String(error) });
         } finally {

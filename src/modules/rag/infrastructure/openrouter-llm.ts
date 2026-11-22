@@ -41,6 +41,7 @@ export class OpenRouterLLMProvider implements LLMPort {
   async completeStream(
     messages: { role: string; content: string }[],
     onToken: (token: string) => void,
+    options?: { signal?: AbortSignal },
   ): Promise<void> {
     const url = `${this.baseURL.replace(/\/$/, "")}/chat/completions`;
     const body = JSON.stringify({
@@ -49,16 +50,29 @@ export class OpenRouterLLMProvider implements LLMPort {
       stream: true,
       temperature: 0,
     });
+    const signal = options?.signal;
 
     let lastError: unknown = null;
 
     for (let attempt = 0; attempt <= this.maxRetries; attempt += 1) {
+      if (signal?.aborted) return;
+
       try {
         const controller = new AbortController();
         const timeout = setTimeout(
           () => controller.abort(),
           env.LLM_TIMEOUT_SECONDS * 1000,
         );
+
+        // When the HTTP request aborts (client disconnected), close the
+        // upstream fetch/reader too so nothing leaks.
+        if (signal) {
+          signal.addEventListener(
+            "abort",
+            () => controller.abort(),
+            { once: true },
+          );
+        }
 
         const response = await fetch(url, {
           method: "POST",
@@ -90,6 +104,7 @@ export class OpenRouterLLMProvider implements LLMPort {
 
         try {
           while (true) {
+            if (signal?.aborted) return;
             const { done, value } = await reader.read();
             if (done) break;
 
@@ -121,6 +136,7 @@ export class OpenRouterLLMProvider implements LLMPort {
 
         return; // success
       } catch (error) {
+        if (signal?.aborted) return;
         lastError = error;
         if (attempt < this.maxRetries) {
           const backoff = Math.pow(2, attempt) * 1000;

@@ -14,9 +14,11 @@ import type {
   EmbeddingProviderPort,
   LLMPort,
   RAGCachePort,
+  RetrieverPort,
   RerankPort,
 } from "@/modules/rag/domain/ports";
 import type { SearchKnowledgeUseCase } from "@/modules/rag/application/search-knowledge";
+import { expandedRetrieve } from "@/modules/rag/application/multi-query";
 
 const PROMPT_VERSION = "v1";
 
@@ -41,11 +43,22 @@ async function exactCacheKey(question: string, model: string): Promise<string> {
   return sha256(`${question}|${PROMPT_VERSION}|${model}`);
 }
 
-function buildRagPrompt(question: string, sources: { text: string }[]): string {
+function isLowRelevance(sources: SearchResult[]): boolean {
+  // every() on an empty array is true, so an empty context is "poor" too.
+  return sources.every((s) => s.score < env.RETRIEVAL_LOW_RELEVANCE_THRESHOLD);
+}
+
+function buildRagPrompt(
+  question: string,
+  sources: { text: string }[],
+  options: { loose?: boolean } = {},
+): string {
   const context = sources.map((s, i) => `[${i + 1}] ${s.text}`).join("\n\n");
+  const instructions = options.loose
+    ? "You are a helpful educational consultant. Answer using the provided context when helpful; you may also use your general knowledge, but clearly state when information comes from outside the context."
+    : "You are a helpful educational consultant. Answer the question based ONLY on the provided context. If the answer cannot be determined from the context, say so clearly.";
   return [
-    "You are a helpful educational consultant. Answer the question based on the provided context.",
-    "If the answer cannot be determined from the context, say so.",
+    instructions,
     "",
     "Context:",
     context,
@@ -62,10 +75,15 @@ export class AskQuestionUseCase {
   constructor(
     private readonly searchKnowledge: SearchKnowledgeUseCase,
     private readonly embeddingProvider: EmbeddingProviderPort,
+    private readonly retriever: RetrieverPort,
     private readonly reranker: RerankPort,
     private readonly llm: LLMPort,
     private readonly cache: RAGCachePort,
   ) {}
+
+  async clearCache(): Promise<void> {
+    await this.cache.clear();
+  }
 
   async execute(input: AskQuestionInput): Promise<AskQuestionOutput> {
     const { question, topK = env.TOP_K } = input;
@@ -106,6 +124,31 @@ export class AskQuestionUseCase {
     });
     let sources = searchOutput.answer.sources;
 
+    // 6. Cascade: stage 2 query expansion when context is empty/low relevance.
+    //    Stage 3 (loose prompt) is applied at generation time below.
+    const poor = isLowRelevance(sources);
+    if (
+      poor &&
+      env.QUERY_EXPANSION_ENABLED &&
+      !env.MULTI_QUERY_ENABLED
+    ) {
+      try {
+        sources = await expandedRetrieve(
+          {
+            embeddingProvider: this.embeddingProvider,
+            retriever: this.retriever,
+            llm: this.llm,
+          },
+          question,
+          topK,
+          env.FETCH_K,
+          env.QUERY_EXPANSION_COUNT,
+        );
+      } catch (error) {
+        logger.warn({ err: error }, "ask: cascade stage-2 expansion failed");
+      }
+    }
+
     // 4. Rerank (LLM-based listwise)
     if (sources.length > 1) {
       try {
@@ -115,10 +158,12 @@ export class AskQuestionUseCase {
       }
     }
 
-    // 5. Generate answer text
+    // 5. Generate answer text (stage 3 loose prompt when still poor).
+    const useLoose = env.LOOSE_PROMPT_ENABLED && isLowRelevance(sources);
     const prompt = buildRagPrompt(
       question,
       sources.map((s) => ({ text: s.chunk.text })),
+      { loose: useLoose },
     );
     let answerText = "";
     try {
@@ -164,15 +209,24 @@ export class AskQuestionUseCase {
       onSources: (sources: SearchResult[]) => void;
       onDone: () => void;
     },
+    options?: { signal?: AbortSignal },
   ): Promise<void> {
     const { question, topK = env.TOP_K } = input;
     const { onMeta, onToken, onSources, onDone } = callbacks;
+    const { signal } = options ?? {};
 
     if (!question || question.trim().length === 0) {
       throw new Error("Question must not be empty");
     }
 
     const model = env.LLM_MODEL;
+    let answerText = "";
+
+    const emitToken = (token: string): void => {
+      if (signal?.aborted) return;
+      answerText += token;
+      onToken(token);
+    };
 
     // 1. Exact cache check
     const key = await exactCacheKey(question, model);
@@ -180,7 +234,7 @@ export class AskQuestionUseCase {
     if (exactHit) {
       onMeta({ question, sourceCount: exactHit.sources.length });
       for (const token of this._splitTokens(exactHit.text)) {
-        onToken(token);
+        emitToken(token);
       }
       onSources(exactHit.sources);
       onDone();
@@ -193,7 +247,7 @@ export class AskQuestionUseCase {
     if (semanticHit) {
       onMeta({ question, sourceCount: semanticHit.sources.length });
       for (const token of this._splitTokens(semanticHit.text)) {
-        onToken(token);
+        emitToken(token);
       }
       onSources(semanticHit.sources);
       onDone();
@@ -207,6 +261,30 @@ export class AskQuestionUseCase {
     });
     let sources = searchOutput.answer.sources;
 
+    // 6. Cascade: stage 2 query expansion when context is empty/low relevance.
+    const poor = isLowRelevance(sources);
+    if (
+      poor &&
+      env.QUERY_EXPANSION_ENABLED &&
+      !env.MULTI_QUERY_ENABLED
+    ) {
+      try {
+        sources = await expandedRetrieve(
+          {
+            embeddingProvider: this.embeddingProvider,
+            retriever: this.retriever,
+            llm: this.llm,
+          },
+          question,
+          topK,
+          env.FETCH_K,
+          env.QUERY_EXPANSION_COUNT,
+        );
+      } catch (error) {
+        logger.warn({ err: error }, "ask: cascade stage-2 expansion failed");
+      }
+    }
+
     // 4. Rerank (LLM-based listwise)
     if (sources.length > 1) {
       try {
@@ -219,12 +297,13 @@ export class AskQuestionUseCase {
     // 5. Meta event
     onMeta({ question, sourceCount: sources.length });
 
-    // 6. Stream LLM tokens
+    // 7. Stream LLM tokens (stage 3 loose prompt when still poor).
+    const useLoose = env.LOOSE_PROMPT_ENABLED && isLowRelevance(sources);
     const prompt = buildRagPrompt(
       question,
       sources.map((s) => ({ text: s.chunk.text })),
+      { loose: useLoose },
     );
-    let answerText = "";
     try {
       await this.llm.completeStream(
         [
@@ -234,15 +313,14 @@ export class AskQuestionUseCase {
           },
           { role: "user", content: prompt },
         ],
-        (token) => {
-          answerText += token;
-          onToken(token);
-        },
+        emitToken,
+        { signal },
       );
     } catch (error) {
+      if (signal?.aborted) return;
       logger.warn({ err: error }, "ask: LLM streaming failed");
       answerText = "متأسفان، در تولید پاسخ مشکلی پیش آمد.";
-      onToken(answerText);
+      emitToken(answerText);
     }
 
     // 7. Sources event
