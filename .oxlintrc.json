@@ -1,15 +1,10 @@
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "next", "import", "typescript", "unicorn", "oxc"],
-  "categories": {
-    "correctness": "error",
-    "suspicious": "warn",
-    "perf": "warn"
-  },
-  "env": {
-    "browser": true,
-    "node": true,
-    "es2024": true
+  "rules": {
+    "no-console": "off",
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "warn",
+    "import/no-cycle": "error",
+    "react/react-in-jsx-scope": "off"
   },
   "ignorePatterns": [
     "node_modules/**",
@@ -19,16 +14,9 @@
     "coverage/**",
     "public/**"
   ],
-  "rules": {
-    "no-console": "off",
-    "import/no-cycle": "error",
-    "typescript/no-explicit-any": "error",
-    "typescript/consistent-type-imports": "warn",
-    "react/react-in-jsx-scope": "off"
-  },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.test.tsx", "test/**"],
+      "files": ["**/*.test.ts", "**/*.test.tsx", "scripts/**/*.ts", "test/**"],
       "rules": {
         "typescript/no-explicit-any": "off"
       }

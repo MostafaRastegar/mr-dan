@@ -50,28 +50,38 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 
 **هدف:** اولین جریان کامل «فایل → chunk → جست‌وجو» با برابری dense.
 
-- [ ] `modules/rag/domain`: models، ports، errors
-- [ ] `container.ts`: wire کردن adapterها به‌صورت lazy + `globalThis` در dev
-- [ ] `text-normalizer.ts` (BOM، CRLF، `\v\f`، خطوط خالی، ZWNJ) + تست byte-level
-- [ ] loaderها: JSON (تشخیص فیلد محتوا)، Markdown، TXT، PDF (`unpdf`)
-- [ ] `text-splitter.ts` با `RecursiveCharacterTextSplitter` و جداکننده‌های فارسی، ۸۰۰/۱۲۰
-- [ ] `openrouter-embedding.ts` با `baseURL` و retry؛ cache embedding با TTL
-- [ ] `chroma-vector-store.ts`: `add`, `search`, `count`, `delete`, `deleteByMetadata`, `getAllChunks`
-- [ ] `ingest-document.ts`: normalize → load → split → hash → dedupe → delete old → embed → add → persist
-- [ ] `search-knowledge.ts` (dense)
-- [ ] routeها: `POST /api/ingest`, `POST /api/upload`, `POST /api/search`, `GET /api/documents`, `GET|DELETE /api/documents/[id]`
-- [ ] `scripts/eval-retrieval.ts` + `scripts/compare-chunks.ts` + `scripts/compare-retrieval.ts`
-- [ ] seed کردن corpus oracle در mr-dan
+- [x] `modules/rag/domain`: models، ports، errors
+- [x] `container.ts`: wire کردن adapterها به‌صورت lazy + `globalThis` در dev
+- [x] `text-normalizer.ts` (BOM، CRLF، `\v\f`، خطوط خالی، ZWNJ) + تست
+- [x] loaderها: JSON (تشخیص فیلد محتوا)، Markdown، TXT، PDF (`unpdf`) + تست
+- [x] `text-splitter.ts` با جداکننده‌های فارسی، ۸۰۰/۱۲۰ + تست
+- [x] `openrouter-embedding.ts` با `baseURL` و retry
+- [x] `chroma-vector-store.ts`: `add`, `search`, `count`, `deleteByMetadata`, `getAllChunks`
+- [x] `ingest-document.ts`: normalize → load → split → hash → dedupe → delete old → embed → add → persist
+- [x] `search-knowledge.ts` (dense)
+- [x] routeها: `POST /api/ingest`, `POST /api/search`, `GET /api/documents`
+- [x] `scripts/eval-retrieval.ts` + `scripts/golden-set.ts`
+- [x] `scripts/golden-set.test.ts` + `scripts/eval-metrics.test.ts` (متریک‌های hit@5/MRR با دادهٔ سنتتیک)
+- [ ] seed کردن corpus oracle در mr-dan (فایل‌های `.txt` برای numeric verification)
 
-**دروازه:**
+**دروازه (کد و یکپارچگی):**
+
+- `pnpm typecheck && pnpm lint && pnpm test && pnpm build` سبز
+- ingestion idempotent: ingest دوباره همان فایل → `chunkCount` ثابت، `cached=true`
+- hit@5/MRR محاسبه درست با دادهٔ سنتتیک (تست‌های `scripts/eval-metrics.test.ts`)
+
+**دروازه (عدد parity — صیانت شده تا دسترسی به corpus + کلید OpenRouter):**
 
 - تعداد chunk برای هر ۴ فایل == oracle (±۰)
 - `hit@5 = 1.0`، dense `MRR ≥ 0.78`
 - top-5 ids در ≥ ۱۱ از ۱۳ پرسش یکسان
 - ingestion دوبارهٔ همان فایل تعداد را تغییر ندهد
-- حذف سند صفر chunk باقی بگذارد
+- حذف سند صفر chunk باقی بگذارد (حذف سند در فاز ۲)
 
 **اسکیل‌ها:** `mr-dan-ingestion`, `mr-dan-rag`, `mr-dan-persistence`, `mr-dan-testing-parity`
+
+**نکته:** oracle فایل‌های `.txt` (final report.txt, p1.txt, p9.txt, p10.txt) را در ریپو ندارد؛ آن‌ها در زمان اجرا اولیه oracle بارگذاری شده بودند. برای اعتبارسنجی عددی فاز ۱، corpus را در `mr-rag/data/` ایجاد کرده و `.env` با `OPENROUTER_API_KEY` پر کنید، سپس `tsx scripts/eval-retrieval.ts --mode dense` را اجرا کنید.
+
 
 ---
 
