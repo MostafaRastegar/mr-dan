@@ -21,9 +21,9 @@ export type IngestRequest = z.infer<typeof ingestRequestSchema>;
 export type SearchRequest = z.infer<typeof searchRequestSchema>;
 
 /** Successful JSON response wrapper. */
-export function jsonOk<T>(data: T): Response {
+export function jsonOk<T>(data: T, status = 200): Response {
   return new Response(JSON.stringify({ data }), {
-    status: 200,
+    status,
     headers: { "Content-Type": "application/json; charset=utf-8" },
   });
 }

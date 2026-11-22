@@ -15,11 +15,18 @@ import { OpenRouterLLMProvider } from "@/modules/rag/infrastructure/openrouter-l
 import { env } from "@/shared/env";
 import { PrismaDocumentRepository } from "@/modules/rag/infrastructure/prisma-document-repository";
 import { PrismaIngestionRunRepository } from "@/modules/rag/infrastructure/prisma-ingestion-run-repository";
+import { PrismaConversationRepository } from "@/modules/rag/infrastructure/prisma-conversation-repository";
+import { PrismaMessageRepository } from "@/modules/rag/infrastructure/prisma-message-repository";
 import { ChromaHealthProbe } from "@/modules/rag/infrastructure/chroma-health";
 import { PostgresHealthProbe } from "@/modules/rag/infrastructure/postgres-health";
 import { AskQuestionUseCase } from "@/modules/rag/application/ask-question";
 import { IngestDocumentUseCase } from "@/modules/rag/application/ingest-document";
 import { SearchKnowledgeUseCase } from "@/modules/rag/application/search-knowledge";
+import { ListDocumentsUseCase } from "@/modules/rag/application/list-documents";
+import { ManageDocumentsUseCase } from "@/modules/rag/application/manage-documents";
+import { ConversationUseCase } from "@/modules/rag/application/conversation";
+import { AdminChunksUseCase } from "@/modules/rag/application/admin-chunks";
+import { AdminStatsUseCase } from "@/modules/rag/application/admin-stats";
 import { TextSplitter } from "@/modules/rag/application/text-splitter";
 import type { HealthProbe } from "@/modules/rag/domain/ports";
 
@@ -31,6 +38,11 @@ type Container = {
   ingestDocument: IngestDocumentUseCase;
   searchKnowledge: SearchKnowledgeUseCase;
   askQuestion: AskQuestionUseCase;
+  listDocuments: ListDocumentsUseCase;
+  manageDocuments: ManageDocumentsUseCase;
+  conversation: ConversationUseCase;
+  adminChunks: AdminChunksUseCase;
+  adminStats: AdminStatsUseCase;
 };
 
 const globalForContainer = globalThis as unknown as {
@@ -40,6 +52,8 @@ const globalForContainer = globalThis as unknown as {
 function build(): Container {
   const documentRepository = new PrismaDocumentRepository();
   const ingestionRunRepository = new PrismaIngestionRunRepository();
+  const conversationRepository = new PrismaConversationRepository();
+  const messageRepository = new PrismaMessageRepository();
   const vectorStore = new ChromaVectorStore();
   const embeddingProvider = new OpenRouterEmbeddingProvider();
   const textSplitter = new TextSplitter({
@@ -54,6 +68,10 @@ function build(): Container {
     rrfK: 60,
   });
 
+  const llm = new OpenRouterLLMProvider();
+  const reranker = new LLMReranker(llm);
+  const cache = new MemoryCache();
+
   const ingestDocument = new IngestDocumentUseCase(
     documentRepository,
     vectorStore,
@@ -61,10 +79,6 @@ function build(): Container {
     textSplitter,
     ingestionRunRepository,
   );
-
-  const llm = new OpenRouterLLMProvider();
-  const reranker = new LLMReranker(llm);
-  const cache = new MemoryCache();
 
   const searchKnowledge = new SearchKnowledgeUseCase(
     embeddingProvider,
@@ -81,6 +95,21 @@ function build(): Container {
     cache,
   );
 
+  const listDocuments = new ListDocumentsUseCase(documentRepository);
+  const manageDocuments = new ManageDocumentsUseCase(documentRepository, vectorStore);
+  const conversation = new ConversationUseCase(conversationRepository, messageRepository);
+  const adminChunks = new AdminChunksUseCase(vectorStore);
+  const adminStats = new AdminStatsUseCase(
+    documentRepository,
+    vectorStore,
+    conversationRepository,
+    cache,
+    {
+      postgres: new PostgresHealthProbe(),
+      chroma: new ChromaHealthProbe(),
+    },
+  );
+
   return {
     healthProbes: {
       postgres: new PostgresHealthProbe(),
@@ -89,6 +118,11 @@ function build(): Container {
     ingestDocument,
     searchKnowledge,
     askQuestion,
+    listDocuments,
+    manageDocuments,
+    conversation,
+    adminChunks,
+    adminStats,
   };
 }
 

@@ -23,3 +23,18 @@ export const chatRequestSchema = z.object({
 export type IngestRequest = z.infer<typeof ingestRequestSchema>;
 export type SearchRequest = z.infer<typeof searchRequestSchema>;
 export type ChatRequest = z.infer<typeof chatRequestSchema>;
+
+export const createConversationSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+});
+
+export const updateConversationSchema = z.object({
+  title: z.string().min(1).max(200),
+});
+
+export type CreateConversationRequest = z.infer<
+  typeof createConversationSchema
+>;
+export type UpdateConversationRequest = z.infer<
+  typeof updateConversationSchema
+>;

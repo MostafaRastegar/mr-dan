@@ -6,33 +6,19 @@ import { logger } from "@/shared/logger";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  const { healthProbes } = getContainer();
-
-  const results = await Promise.all(
-    Object.values(healthProbes).map(async (probe) => {
-      try {
-        await probe.check();
-        return [probe.name, "ok"] as const;
-      } catch (error) {
-        logger.warn({ err: error, probe: probe.name }, "health check failed");
-        return [probe.name, "unavailable"] as const;
-      }
-    }),
-  );
-
-  const dependencies = Object.fromEntries(results);
-  const ok = results.every(([, status]) => status === "ok");
-
+export const GET = async (): Promise<Response> => {
+  const { healthProbes, adminStats } = getContainer();
+  const dependencies: Record<string, string> = {};
+  let ok = true;
+  for (const probe of Object.values(healthProbes)) {
+    try { await probe.check(); dependencies[probe.name] = "ok"; }
+    catch { logger.warn({ probe: probe.name }, "health failed"); dependencies[probe.name] = "unavailable"; ok = false; }
+  }
+  let documents = 0;
+  let chunks = 0;
+  try { const s = await adminStats.execute(); documents = s.documents; chunks = s.chunks; } catch { /* best-effort stats */ }
   return NextResponse.json(
-    {
-      status: ok ? "ok" : "degraded",
-      dependencies,
-      models: {
-        embedding: env.EMBEDDING_MODEL,
-        llm: env.LLM_MODEL,
-      },
-    },
+    { status: ok ? "ok" : "degraded", version: "0.1.0", dependencies, counts: { documents, chunks }, models: { embedding: env.EMBEDDING_MODEL, llm: env.LLM_MODEL } },
     { status: ok ? 200 : 503 },
   );
-}
+};

@@ -9,6 +9,7 @@
 
 import { env } from "@/shared/env";
 import { logger } from "@/shared/logger";
+import { metrics } from "@/shared/metrics";
 import type { Answer, SearchResult } from "@/modules/rag/domain/models";
 import type {
   EmbeddingProviderPort,
@@ -98,6 +99,7 @@ export class AskQuestionUseCase {
     const key = await exactCacheKey(question, model);
     const exactHit = await this.cache.getExact(key);
     if (exactHit) {
+      metrics.inc("rag_cache_hits_total", { layer: "exact" });
       logger.debug({ question }, "cache: exact hit");
       return {
         answer: { ...exactHit, cache: { layer: "exact", hit: true } },
@@ -108,6 +110,7 @@ export class AskQuestionUseCase {
     const queryEmbedding = await this.embeddingProvider.embedQuery(question);
     const semanticHit = await this.cache.getSemantic(queryEmbedding);
     if (semanticHit) {
+      metrics.inc("rag_cache_hits_total", { layer: "semantic" });
       logger.debug({ question }, "cache: semantic hit");
       return {
         answer: {
@@ -116,6 +119,8 @@ export class AskQuestionUseCase {
         },
       };
     }
+
+    metrics.inc("rag_cache_misses_total");
 
     // 3. Retrieve (hybrid)
     const searchOutput = await this.searchKnowledge.execute({
@@ -232,6 +237,7 @@ export class AskQuestionUseCase {
     const key = await exactCacheKey(question, model);
     const exactHit = await this.cache.getExact(key);
     if (exactHit) {
+      metrics.inc("rag_cache_hits_total", { layer: "exact" });
       onMeta({ question, sourceCount: exactHit.sources.length });
       for (const token of this._splitTokens(exactHit.text)) {
         emitToken(token);
@@ -245,6 +251,7 @@ export class AskQuestionUseCase {
     const queryEmbedding = await this.embeddingProvider.embedQuery(question);
     const semanticHit = await this.cache.getSemantic(queryEmbedding);
     if (semanticHit) {
+      metrics.inc("rag_cache_hits_total", { layer: "semantic" });
       onMeta({ question, sourceCount: semanticHit.sources.length });
       for (const token of this._splitTokens(semanticHit.text)) {
         emitToken(token);
@@ -253,6 +260,8 @@ export class AskQuestionUseCase {
       onDone();
       return;
     }
+
+    metrics.inc("rag_cache_misses_total");
 
     // 3. Retrieve (hybrid)
     const searchOutput = await this.searchKnowledge.execute({

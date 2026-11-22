@@ -10,6 +10,7 @@
 
 import { env } from "@/shared/env";
 import { logger } from "@/shared/logger";
+import { metrics } from "@/shared/metrics";
 import type { Answer, SearchResult } from "@/modules/rag/domain/models";
 import { RetrievalError } from "@/modules/rag/domain/errors";
 import type {
@@ -73,6 +74,8 @@ export class SearchKnowledgeUseCase {
     }
 
     // Filter by minimum relevance score
+    metrics.inc("rag_retrievals_total");
+
     const filtered = results.filter(
       (r) => r.score >= env.RETRIEVAL_MIN_SCORE,
     );

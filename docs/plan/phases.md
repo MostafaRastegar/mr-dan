@@ -119,13 +119,13 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 
 **هدف:** همهٔ endpointهای باقی‌ماندهٔ oracle.
 
-- [ ] `manage-documents.ts` + delete با ترتیب Chroma→Postgres
-- [ ] `GET /api/admin/chunks`, `DELETE /api/admin/chunks/[id]`
-- [ ] `GET /api/admin/stats` (تعداد سند/chunk/مکالمه، حجم کش، وضعیت upstream)
-- [ ] مکالمه: `GET|POST /api/conversations`, `GET|PUT|DELETE /api/conversations/[id]`
-- [ ] repositoryهای Prisma برای `Document`, `Conversation`, `Message`, `IngestionRun`
-- [ ] `GET /api/metrics` (Prometheus text): latency، cache hit ratio، retrieval count، upstream errors
-- [ ] `GET /api/health` تکمیل‌شده (نسخه، مدل‌ها، شمارش)
+- [x] `manage-documents.ts` + delete با ترتیب Chroma→Postgres
+- [x] `GET /api/admin/chunks`, `DELETE /api/admin/chunks/[id]`
+- [x] `GET /api/admin/stats` (تعداد سند/chunk/مکالمه، حجم کش، وضعیت upstream)
+- [x] مکالمه: `GET|POST /api/conversations`, `GET|PUT|DELETE /api/conversations/[id]`
+- [x] repositoryهای Prisma برای `Document`, `Conversation`, `Message`, `IngestionRun`
+- [x] `GET /api/metrics` (Prometheus text): latency، cache hit ratio، retrieval count، upstream errors
+- [x] `GET /api/health` تکمیل‌شده (نسخه، مدل‌ها، شمارش)
 - [ ] تست integration با Postgres/Chroma واقعی (testcontainers یا compose profile)
 
 **دروازه:**

@@ -37,6 +37,7 @@ export interface VectorStorePort {
   search(queryVector: number[], topK: number): Promise<SearchResult[]>;
   count(): Promise<number>;
   deleteByMetadata(key: string, value: unknown): Promise<void>;
+  deleteChunk(id: string): Promise<void>;
   getAllChunks(): Promise<Chunk[]>;
 }
 
@@ -53,6 +54,62 @@ export interface EmbeddingProviderPort {
  */
 export interface TextSplitterPort {
   split(document: RawDocument): Chunk[];
+}
+
+/**
+ * Persists chat conversations.
+ */
+export interface ConversationRepositoryPort {
+  create(record: {
+    title: string;
+  }): Promise<{
+    id: string;
+    title: string;
+    createdAt: Date;
+    updatedAt: Date;
+    messageCount: number;
+  }>;
+  list(): Promise<Array<{
+    id: string;
+    title: string;
+    createdAt: Date;
+    updatedAt: Date;
+    messageCount: number;
+  }>>;
+  findById(id: string): Promise<{
+    id: string;
+    title: string;
+    messages: Array<{
+      id: string;
+      role: string;
+      content: string;
+      sources: unknown;
+      createdAt: Date;
+    }>;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null>;
+  updateTitle(id: string, title: string): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+/**
+ * Persists chat messages.
+ */
+export interface MessageRepositoryPort {
+  create(record: {
+    conversationId: string;
+    role: string;
+    content: string;
+    sources?: unknown;
+  }): Promise<{
+    id: string;
+    conversationId: string;
+    role: string;
+    content: string;
+    sources: unknown;
+    createdAt: Date;
+  }>;
 }
 
 /**
@@ -170,5 +227,10 @@ export interface RAGCachePort {
    * Clear all cache entries.
    */
   clear(): Promise<void>;
+
+  /**
+   * Number of entries currently held in each layer.
+   */
+  size(): Promise<{ exact: number; semantic: number }>;
 }
 

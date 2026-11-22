@@ -107,4 +107,8 @@ export class MemoryCache implements RAGCachePort {
     this.semantic.length = 0;
     logger.info("cache: cleared");
   }
+
+  async size(): Promise<{ exact: number; semantic: number }> {
+    return { exact: this.exact.size, semantic: this.semantic.length };
+  }
 }

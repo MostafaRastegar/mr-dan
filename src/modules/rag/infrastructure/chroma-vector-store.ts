@@ -126,6 +126,14 @@ export class ChromaVectorStore implements VectorStorePort {
     logger.debug({ key }, "chroma: deleted by metadata");
   }
 
+  async deleteChunk(id: string): Promise<void> {
+    await chromaRequest(`/collections/${COLLECTION}/delete`, {
+      method: "POST",
+      body: JSON.stringify({ ids: [id] }),
+    });
+    logger.debug({ id }, "chroma: deleted chunk");
+  }
+
   async getAllChunks(): Promise<Chunk[]> {
     const data = (await chromaRequest(
       `/collections/${COLLECTION}/get`,

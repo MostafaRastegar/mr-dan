@@ -7,6 +7,7 @@
 
 import { env } from "@/shared/env";
 import { logger } from "@/shared/logger";
+import { metrics } from "@/shared/metrics";
 import { UpstreamError } from "@/modules/rag/domain/errors";
 import type { LLMPort } from "@/modules/rag/domain/ports";
 
@@ -150,5 +151,9 @@ export class OpenRouterLLMProvider implements LLMPort {
     }
 
     throw new UpstreamError("OpenRouter chat", lastError);
+  }
+
+  private recordUpstreamError(): void {
+    metrics.inc("rag_upstream_errors_total", { service: "openrouter-chat" });
   }
 }
