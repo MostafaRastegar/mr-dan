@@ -51,7 +51,7 @@ description: Layer boundaries, composition root, domain ports, and error mapping
 
 ## Checklist
 
-- [ ] `pnpm lint` قاعدهٔ boundaries را نقض نکرده.
+- [ ] `pnpm lint` و `test/architecture.test.ts` مرزهای لایه‌ها را نقض نکرده‌اند.
 - [ ] هیچ import چرخه‌ای نیست.
 - [ ] route زیر ۴۰ خط است.
 - [ ] port جدید fake تستی دارد.

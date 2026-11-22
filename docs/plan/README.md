@@ -24,7 +24,7 @@
 
 - مخزن: `https://github.com/MostafaRastegar/mr-rag`
 - commit: `e64febbeb17c016b638112e8c11ae980404be9ee`
-- مسیر: `/home/musa/project/mr-rag-oracle` (خارج از ریپوی mr-dan)
+- مسیر: `./mr-rag` (داخل ریپو، در `.gitignore`)
 - فقط برای مقایسه؛ جزئیات در [`parity.md`](./parity.md)
 
 ## استک pin‌شده

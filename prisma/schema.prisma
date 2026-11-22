@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Document {
+  id               String         @id @default(uuid())
+  filename         String
+  originalFilename String
+  sourcePath       String
+  fileType         String // json | md | txt | pdf
+  contentHash      String         @unique
+  chunkCount       Int            @default(0)
+  ingestedAt       DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  runs             IngestionRun[]
+
+  @@index([ingestedAt])
+}
+
+model IngestionRun {
+  id         String    @id @default(uuid())
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  status     String // started | succeeded | failed
+  chunkCount Int       @default(0)
+  error      String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([documentId, startedAt])
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  title     String
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([updatedAt])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // user | assistant | system
+  content        String
+  sources        Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model CacheEntry {
+  key       String   @id
+  value     Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}

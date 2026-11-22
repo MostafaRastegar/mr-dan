@@ -6,7 +6,7 @@
 
 - مخزن: `https://github.com/MostafaRastegar/mr-rag`
 - commit قفل‌شده: `e64febbeb17c016b638112e8c11ae980404be9ee` (2026-11-04)
-- مسیر پیشنهادی روی دیسک: `/home/musa/project/mr-rag-oracle` (خارج از ریپوی `mr-dan`)
+- مسیر: `./mr-rag` (داخل ریپو، اما در `.gitignore`)
 - فایل `ORACLE.md` در ریشهٔ `mr-dan` باید شامل commit، تاریخ clone، و دستور اجرا باشد.
 - oracle هرگز در runtime محصول import یا فراخوانی نمی‌شود؛ فقط ابزار مقایسه است.
 - کلید OpenRouter در `.env.oracle` (git-ignored) نگه داشته می‌شود.
@@ -14,7 +14,7 @@
 اجرای oracle:
 
 ```bash
-cd /home/musa/project/mr-rag-oracle
+cd mr-rag
 docker compose up -d chromadb
 uv sync                       # یا pip install -r requirements.txt
 uv run uvicorn app.main:app --port 8080

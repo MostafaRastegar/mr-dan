@@ -46,3 +46,12 @@ next-env.d.ts
 .eslintcache
 .turbo
 .swc
+
+# local oracle clone (comparison only)
+/mr-rag/
+
+# generated
+/src/generated
+/coverage
+/playwright-report
+/test-results

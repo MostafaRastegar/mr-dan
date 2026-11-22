@@ -10,32 +10,34 @@
 
 **هدف:** پروژه‌ای که بالا می‌آید، تست دارد، مرزها را enforce می‌کند و oracle آمادهٔ مقایسه است.
 
-- [ ] `git clone` مخزن oracle در `/home/musa/project/mr-rag-oracle` و checkout روی `e64febb`
-- [ ] نوشتن `ORACLE.md` (commit، دستور اجرا، محل `.env.oracle`)
-- [ ] `create-next-app` با Next `16.4.6`، React `19.3.1`، TS `7.0.2`، Tailwind `4.3.5`، App Router، `src/`
-- [ ] pin کردن نسخه‌ها در `package.json` (بدون `^` برای Next/React/Prisma/TS)
-- [ ] نصب AntD `6.7.1` + `@ant-design/nextjs-registry@1.3.0` + RTL (`ConfigProvider direction="rtl"`, فونت وزیرمتن)
-- [ ] `src/shared/env.ts` با zod؛ `.env.example` کامل
-- [ ] `src/shared/logger.ts` (pino) با `requestId`
-- [ ] Prisma `7.10.1` exact + schema اولیه: `Document`, `Conversation`, `Message`, `IngestionRun`, `CacheEntry`
-- [ ] `docker-compose.yml`: `postgres:17`, `chromadb/chroma`، healthcheck، volume
-- [ ] `GET /api/health` که Postgres (`SELECT 1`) و Chroma (`heartbeat`) را چک می‌کند
-- [ ] ساختار پوشه‌ها + `src/server/container.ts` خالی
-- [ ] ESLint با `eslint-plugin-boundaries` و قاعدهٔ لایه‌ها؛ `import/no-cycle`
-- [ ] Vitest + یک تست واقعی برای `health`؛ Playwright نصب ولی بدون تست
-- [ ] CI: `typecheck`, `lint`, `test`, `build`
+- [x] `git clone` مخزن oracle در `./mr-rag` و checkout روی `e64febb` (در `.gitignore`)
+- [x] نوشتن `ORACLE.md` (commit، دستور اجرا، محل env)
+- [x] اسکلت Next `16.4.6`، React `19.3.1`، TS `7.0.2`، Tailwind `4.3.5`، App Router، `src/`
+- [x] pin کردن نسخه‌ها در `package.json` (بدون `^` برای Next/React/Prisma/TS)
+- [x] نصب AntD `6.7.1` + `@ant-design/nextjs-registry@1.3.0` + RTL (`ConfigProvider direction="rtl"`)
+- [x] `src/shared/env.ts` با zod؛ `.env.example` کامل
+- [x] `src/shared/logger.ts` (pino)
+- [x] Prisma `7.10.1` (driver adapter `@prisma/adapter-pg`) + schema اولیه و migration اول
+- [x] `docker-compose.yml`: `postgres:17`, `chromadb/chroma`، healthcheck، volume (Chroma روی پورت `8001` چون `8000` مال oracle است)
+- [x] `GET /api/health` که Postgres (`SELECT 1`) و Chroma (`heartbeat`) را چک می‌کند
+- [x] ساختار پوشه‌ها + `src/server/container.ts` (composition root، lazy)
+- [x] lint با **oxlint** + تست معماری (`test/architecture.test.ts`) به‌جای eslint-plugin-boundaries — دلیل: typescript-eslint با TS 7.0 سازگار نیست
+- [x] Vitest + تست واقعی برای env/health؛ Playwright نصب ولی بدون تست
+- [x] CI: `typecheck`, `lint`, `test`, `build`
 - [ ] نصب اسکیل‌های upstream (طبق `skills.md`)
 - [x] نوشتن ۸ اسکیل پروژه‌ای در `.opencode/skills/<id>/SKILL.md` + `.opencode/opencode.json`
-- [ ] `AGENTS.md` بر اساس `agents-md.draft.md`
+- [x] `AGENTS.md` بر اساس `agents-md.draft.md`
+- [ ] اجرای oracle و تأیید اعداد پایه (نیاز به `.env` و مدل‌های free)
 
 **دروازه:**
 
 ```bash
 pnpm install
+pnpm prisma generate
 pnpm typecheck && pnpm lint && pnpm test && pnpm build   # همه سبز
-docker compose up -d && pnpm dev
+docker compose up -d && pnpm prisma migrate dev && pnpm dev
 curl localhost:3000/api/health                            # postgres+chroma: ok
-cd /home/musa/project/mr-rag-oracle && python -m scripts.eval_retrieval --mode dense
+cd mr-rag && python -m scripts.eval_retrieval --mode dense
 ```
 
 خروجی oracle باید همان اعداد `parity.md` را بدهد؛ اگر نداد، محیط oracle مشکل دارد و نباید وارد فاز ۱ شد.

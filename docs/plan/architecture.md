@@ -79,8 +79,7 @@ app/* ──────────────► server/container ───�
 - `app/api/**/route.ts` نازک است: `parse → call use case → serialize` و حداکثر ۴۰ خط.
 - `container.ts` تنها جایی است که concrete adapter به port وصل می‌شود.
 
-اعمال با `eslint-plugin-boundaries` و یک قاعدهٔ ساده؛ استثنا فقط برای `app` و `server`.
-`import/no-cycle` هم فعال می‌شود.
+اعمال با **oxlint** (چون `typescript-eslint` هنوز از TypeScript 7 پشتیبانی نمی‌کند) به‌همراه `test/architecture.test.ts` که گراف import را می‌پیماید و همین قواعد لایه‌ها، ممنوعیت وابستگی domain و ضخامت route را assert می‌کند. `import/no-cycle` در `.oxlintrc.json` فعال است.
 
 ## ۳. Composition root
 

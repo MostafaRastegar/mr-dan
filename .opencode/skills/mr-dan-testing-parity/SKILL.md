@@ -14,6 +14,7 @@ description: Vitest, fakes, integration tests, and the oracle parity harness for
 | سطح | ابزار | چه‌چیز |
 |---|---|---|
 | unit | Vitest | normalizer، tokenizer، RRF، cache، schema، use case با fake |
+| architecture | Vitest | گراف import: مرز لایه‌ها، وابستگی صفر domain، ضخامت route |
 | integration | Vitest + Postgres/Chroma واقعی | repository، ingestion، deletion، SSE |
 | parity | `tsx scripts/*` | chunk count، top-k ids، MRR/hit@5 |
 | e2e | Playwright | آپلود → پرسش → citation → حذف |

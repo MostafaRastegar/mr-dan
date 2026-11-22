@@ -22,7 +22,7 @@ description: Environment validation, Docker Compose, CI, logging, and metrics fo
 ```yaml
 services:
   postgres:  image: postgres:17   # healthcheck pg_isready, volume
-  chromadb:  image: chromadb/chroma  # healthcheck روی 8000
+  chromadb:  image: chromadb/chroma  # healthcheck روی 8000 داخل کانتینر؛ host 8001 چون 8000 مال oracle است
   app:       build: .             # profile: full، پورت 3000
 ```
 
