@@ -3,6 +3,7 @@
 پلتفرم مشاورهٔ تحصیلی هوشمند.
 
 - پلن معماری، فازها و اسکیل‌ها: [`docs/plan/`](./docs/plan/README.md)
+- راهنمای اجرا، حساب‌های دمو و تست دستی فاز ۵.۱: [`docs/usage-phase-5-1.md`](./docs/usage-phase-5-1.md)
 - مخزن مرجع (oracle): [`mr-rag`](https://github.com/MostafaRastegar/mr-rag) — کلون محلی در `./mr-rag`، git-ignored
 
 ## اجرا
@@ -16,11 +17,25 @@ pnpm prisma generate && pnpm prisma migrate dev
 pnpm dev                      # http://localhost:3000
 ```
 
+دادهٔ دموی اختیاری (فقط dev؛ در production اجرا نمی‌شود و idempotent است):
+
+```bash
+pnpm tsx scripts/seed-advising.ts   # حساب‌های counselor و student + یک گروه نمونه
+```
+
+اسکریپت نام کاربری‌ها و رمز دمو را یک بار در stdout چاپ می‌کند.
+
+وابستگی جدید فاز ۵.۱ فقط `@tabler/icons-react@3.52.0` است (تنها icon set پروژه، pin دقیق بدون `^`). هیچ متغیر محیطی جدیدی اضافه نشده است؛ نام کوکی و TTL نشست ثابت‌اند، نه config.
+
 صفحات:
 - `/` — صفحه اصلی با لینک به چت، پنل دانش و اسناد API
 - `/chat` — چتはري streaming با منابع و دکمه-stop
 - `/admin/knowledge` — آپلود، لیست، جستجو، حذف اسناد و آمار
 - `/api-docs` — اسناد API با Swagger UI (spec در `/api-docs`، spec خام در `/api/openapi`)
+- `/login` — ورود با نام کاربری و رمز
+- `/register` — ثبت‌نام دانش‌آموز یا مشاور
+- `/profile` — مشاهده و ویرایش پروفایل تحصیلی، گروه و مشاور
+- `/counselor/students` — پنل مشاور: ساخت گروه و تخصیص دانش‌آموز (فقط مشاور)
 
 بررسی سلامت:
 
@@ -28,6 +43,23 @@ pnpm dev                      # http://localhost:3000
 curl localhost:3000/api/health
 # {"status":"ok","dependencies":{"postgres":"ok","chroma":"ok"}, ...}
 ```
+
+## احراز هویت و پروفایل
+
+- دو نقش: `student` و `counselor`. ثبت‌نام نقش را انتخاب می‌کند؛ نقش مشاور تا فاز ۵.۴ تأیید ادمین ندارد.
+- نشست در Postgres ذخیره می‌شود و مرورگر فقط توکن را در کوکی `mrdan_session` دارد: `httpOnly`، `sameSite=lax`، `path=/`، `secure` فقط در production، TTL هفت روز.
+- رمز با `node:crypto` و scrypt هش می‌شود (قالب `scrypt$...`)؛ **رمز خام هرگز ذخیره نمی‌شود**. در DB تنها SHA-256 توکن نشست می‌ماند، نه خود توکن.
+- دانش‌آموز پروفایل تحصیلی‌اش (پایه، رشته، مدرسه) را می‌بیند و ویرایش می‌کند؛ تغییر رمز نیازمند رمز فعلی است و سایر نشست‌های همان کاربر را باطل می‌کند.
+- مشاور گروه می‌سازد و دانش‌آموز را به گروه خودش تخصیص می‌دهد؛ این تخصیص در یک update اتمی انجام می‌شود (یک گروه و یک مشاور برای هر دانش‌آموز).
+
+## محدودیت‌ها
+
+- بدون rate limiting یا قفل حساب پس از تلاش‌های ناموفق ورود.
+- بدون تأیید ایمیل و بدون بازیابی رمز عبور.
+- ثبت‌نام خودکار نقش `counselor` تا فاز ۵.۴ تأیید ادمین ندارد.
+- فیلدهای فیزیکی (سن، قد، وزن، فعالیت، رژیم) در فاز ۵.۳ اضافه می‌شوند؛ فعلاً در پروفایل نیستند.
+- پاک‌سازی نشست‌های منقضی lazy است (هنگام resolve)؛ scheduler وجود ندارد.
+- اتصال RAG به دادهٔ مشاوره (مالکیت/visibility اسناد) هنوز انجام نشده است.
 
 ## دستورها
 
@@ -81,6 +113,7 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm build
 فاز ۱ (ingestion + dense retrieval) — کامل  
 فاز ۲ (hybrid + rerank + cache) — کامل  
 فاز ۳ (CRUD، مکالمه، admin، متریک) — کامل  
-فاز ۴ (RAG console UI: چت RTL، پنل دانش، e2e، Dockerfile، README) — کامل
+فاز ۴ (RAG console UI: چت RTL، پنل دانش، e2e، Dockerfile، README) — کامل  
+فاز ۵.۱ (هویت، پروفایل، گروه) — کامل
 
 جزئیات در [`docs/plan/phases.md`](./docs/plan/phases.md).

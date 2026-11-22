@@ -29,6 +29,25 @@ import { AdminChunksUseCase } from "@/modules/rag/application/admin-chunks";
 import { AdminStatsUseCase } from "@/modules/rag/application/admin-stats";
 import { TextSplitter } from "@/modules/rag/application/text-splitter";
 import type { HealthProbe } from "@/modules/rag/domain/ports";
+import {
+  LoginUserUseCase,
+  LogoutUserUseCase,
+  RegisterUserUseCase,
+} from "@/modules/advising/application/auth";
+import { ResolveSessionUseCase } from "@/modules/advising/application/session";
+import {
+  GetProfileUseCase,
+  UpdateProfileUseCase,
+} from "@/modules/advising/application/profile";
+import {
+  AssignStudentToGroupUseCase,
+  CounselorRosterUseCase,
+  CreateGroupUseCase,
+} from "@/modules/advising/application/groups";
+import { PrismaUserRepository } from "@/modules/advising/infrastructure/prisma-user-repository";
+import { PrismaSessionRepository } from "@/modules/advising/infrastructure/prisma-session-repository";
+import { PrismaGroupRepository } from "@/modules/advising/infrastructure/prisma-group-repository";
+import { ScryptAuthCrypto } from "@/modules/advising/infrastructure/auth-crypto";
 
 type Container = {
   healthProbes: {
@@ -43,6 +62,17 @@ type Container = {
   conversation: ConversationUseCase;
   adminChunks: AdminChunksUseCase;
   adminStats: AdminStatsUseCase;
+  advising: {
+    registerUser: RegisterUserUseCase;
+    loginUser: LoginUserUseCase;
+    logoutUser: LogoutUserUseCase;
+    resolveSession: ResolveSessionUseCase;
+    getProfile: GetProfileUseCase;
+    updateProfile: UpdateProfileUseCase;
+    createGroup: CreateGroupUseCase;
+    assignStudent: AssignStudentToGroupUseCase;
+    counselorRoster: CounselorRosterUseCase;
+  };
 };
 
 const globalForContainer = globalThis as unknown as {
@@ -123,6 +153,26 @@ function build(): Container {
     conversation,
     adminChunks,
     adminStats,
+    advising: buildAdvising(),
+  };
+}
+
+function buildAdvising(): Container["advising"] {
+  const users = new PrismaUserRepository();
+  const sessions = new PrismaSessionRepository();
+  const groups = new PrismaGroupRepository();
+  const crypto = new ScryptAuthCrypto();
+
+  return {
+    registerUser: new RegisterUserUseCase(users, sessions, crypto),
+    loginUser: new LoginUserUseCase(users, sessions, crypto),
+    logoutUser: new LogoutUserUseCase(sessions, crypto),
+    resolveSession: new ResolveSessionUseCase(sessions, users, crypto),
+    getProfile: new GetProfileUseCase(users),
+    updateProfile: new UpdateProfileUseCase(users, sessions, crypto),
+    createGroup: new CreateGroupUseCase(groups),
+    assignStudent: new AssignStudentToGroupUseCase(users, groups),
+    counselorRoster: new CounselorRosterUseCase(users, groups),
   };
 }
 

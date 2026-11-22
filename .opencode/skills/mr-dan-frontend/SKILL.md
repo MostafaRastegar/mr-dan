@@ -74,3 +74,53 @@ src/components/
 - رندر Markdown با `dangerouslySetInnerHTML`.
 - ذخیرهٔ مکالمه در IndexedDB وقتی Postgres منبع حقیقت است.
 - انیمیشن سنگین روی هر token.
+
+## ضمیمه — فرم‌ها، اکشن‌ها، responsive و دسترسی (append, بازنویسی‌شده از `an-front/.agents/skills/{an-front-architecture,an-front-responsive,ui-access-control}`)
+
+استک pin‌شده: next `16.4.6` · react `19.3.1` · antd `6.7.1` · tailwind `4.3.5` · typescript `7.0.2` · `@tabler/icons-react` (تنها icon set، pin دقیق).
+مرجع فقط-خواندنی: `~/project/yaftar/an-front`. هیچ کپی verbatim نیست (آن مخزن LICENSE ندارد).
+
+### تقسیم RSC / client
+
+- صفحهٔ داده `RSC` است: هویت/داده را با use case روی سرور می‌گیرد و prop سریالایز می‌دهد. `"use client"` فقط برای فرم/جدول تعاملی.
+- هیچ `fetch` در کامپوننت؛ هیچ `useEffect` برای دادهٔ اولیه؛ هیچ state سرور در کلاینت. (an-front هم client-side axios/react-query را ممنوع کرده و `/api` داخلی را استثنا گذاشته؛ ما حتی آن استثنا را هم نداریم چون داده درون‌فرایندی است.)
+- کل صفحهٔ محافظت‌شده `force-dynamic`-معادل است: هر ناوبری داده را تازه می‌خواند، پس چیزی برای invalidate کردن نیست.
+
+### فرم با Server Action (نه AntD `Form`)
+
+- `<form action={action}>` native + `useActionState(action, null)`؛ دکمه `type="submit"`.
+- ورودی‌های متنی با AntD `Input`/`Input.Password`/`Button`؛ انتخاب‌ها با `<select name>` native (AntD `Select` مقدار native submit نمی‌کند).
+- موفقیت: `state?.ok === true` → redirect یا پیام؛ خطا: `state.error.fieldErrors[field]` کنار همان فیلد + `state.error.message` بالای فرم.
+- وقتی ۵.۲ اولین `Form` واقعی AntD را آورد: submit فقط با `htmlType="submit"` و `onFinish`؛ هیچ `onClick` submit، هیچ `router.push` داخل `onFinish`، هیچ toast دستی (an-front این‌ها را در سه گلوگاه خودکار می‌کند). `rc-field-form` خودش `preventDefault` می‌زند، پس native POST ممکن نیست.
+
+### قرارداد نتیجه و revalidatePath
+
+- تنها شکل نتیجه: `{ ok: true, data } | { ok: false, error: { code, message, fieldErrors? } }`. هیچ شکل `{ status }`.
+- داخل Server Action هرگز `revalidatePath` صدا نزن (ری‌ست `useActionState`، vercel/next.js#66426).
+
+### آیکون، data-testid و حالت‌ها
+
+- فقط `@tabler/icons-react`؛ import از پکیج آیکون AntD ممنوع.
+- هر عنصر تعاملی جدید `data-testid` پایدار بگیرد (`form-input-<name>`، `form-item-<name>`، `modal-<title>`). an-front این‌ها را در `src/constants/test-ids.ts` متمرکز کرده؛ وقتی spec دوم نوشته شد، معادل `src/constants/test-ids.ts` را در ما بساز. spec فعلی `tests/e2e/advising-auth.spec.ts` با `input[name=…]` و متن دکمه کار می‌کند و بازنویسی لازم نیست.
+- هر لیست: حالت خالی فارسی (`<Empty>` یا متن)، حالت pending از `useActionState`، خطای فرم کنار فیلد با `role="alert"`.
+
+### responsive (از `an-front-responsive`)
+
+- بدون overflow افقی در ۳۶۰px؛ جدول داخل خودش اسکرول می‌کند (`scroll={{ x: 800 }}` + ستون اول `fixed: 'left'` وقتی جدول واقعی آمد).
+- چیدمان با breakpointهای Tailwind، نه store دستگاه: `grid-cols-1 lg:grid-cols-2`، `flex flex-col gap-4 lg:flex-row`.
+- انباشتن فقط در یک جهت؛ کارت در ستون موبایل عرض کامل دارد و `max-w-[…]` دسکتاپ روی خودش نمی‌ماند.
+- soft targets ≥۴۴px، ۲۰۰٪ zoom سالم، `focus-visible` حذف نمی‌شود.
+- an-front مودال را زیر `lg` به BottomSheet تبدیل می‌کند؛ ما تا وقتی مودال نداریم (۵.۴) این قاعده را وارد نمی‌کنیم.
+
+### دسترسی (از `ui-access-control`)
+
+- گارد سرور مرز امنیت است؛ پنهان‌کردن UI فقط UX است. هر اکشن دوباره authorize می‌کند.
+- یک ماپ capability در ماژول، نه `role === "counselor"` پراکنده در کامپوننت‌ها.
+- کنترل غیرمجاز **حذف** می‌شود، نه `disabled`.
+- سطح ردیف (مشاور فقط گروه/دانش‌آموز خودش) در use case چک می‌شود، نه فقط در صفحه.
+- ماتریس بررسی برای هر سطح: بدون نشست → `/login`؛ نشست بدون مجوز → ۴۰۳؛ owner → مجاز؛ مشاور دیگر → ۴۰۳؛ ادمین (۵.۴) → مجاز.
+
+### فارسی / RTL
+
+- RTL سراسری از root layout؛ چیدمان با Tailwind، ظاهر AntD با theme، بدون hard-coded style موازی.
+- برچسب/خطا فارسی؛ ارقام فارسی فقط در `username`/`email` به ASCII تبدیل می‌شوند، هرگز در رمز.

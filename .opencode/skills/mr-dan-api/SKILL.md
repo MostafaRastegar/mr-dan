@@ -99,3 +99,35 @@ data: {}
 - `cache: "no-store"` پراکنده به‌جای `dynamic`.
 - نوشتن منطق chunking داخل route آپلود.
 - دو endpoint برای یک کار (یکی برای UI، یکی برای API).
+
+## ضمیمه — route، OpenAPI و همگام‌سازی spec (append، بازنویسی‌شده؛ در `an-front` معادلی برای این بخش نیست)
+
+استک pin‌شده: next `16.4.6` · typescript `7.0.2` · zod `4` · prisma `7.10.1` · pnpm.
+
+> منبع: این ضمیمه از mr-dan می‌آید، نه از مرجع. `an-front` هیچ OpenAPI/Swagger داخلی ندارد
+> (فقط `src/papak/cli/swaggerGenerateModels` که به Django مربوط است)، پس الگویی برای
+> کپی وجود ندارد — spec ما دستی و مال خودمان است.
+
+### قاعدهٔ route
+
+- `app/api/**/route.ts` فقط `parse → use case → serialize`؛ حداکثر ۴۰ خط (تست معماری enforce می‌کند).
+- ورودی با zod از `presentation/schemas.ts`؛ `await req.json()` خام ممنوع.
+- `runtime = "nodejs"` برای هر route که Prisma/Chroma/فایل/OpenRouter می‌زند.
+- خطا از `toHttpError` عبور می‌کند: `{ error: { code, message, requestId } }`؛ جزئیات داخلی هرگز در پاسخ نمی‌آید.
+- mutation درون‌برنامه‌ای route نمی‌گیرد؛ Server Action است.
+
+### همگام‌سازی spec (در همان تغییر)
+
+- spec دستی در `src/lib/openapi.ts` است؛ هیچ ژنراتوری نداریم و نباید اضافه شود.
+- هر route جدید/حذف/تغییر امضا یا auth ⇒ همان لحظه path، schema، status و توضیح spec را هم به‌روز کن.
+- `GET /api/openapi` (JSON) و `/api-docs` (Swagger UI) باید ۲۰۰ بدهند.
+
+### نتیجهٔ اکشن و revalidatePath
+
+- اکشن‌ها (Server Action) فقط `{ ok: true, data } | { ok: false, error }` برمی‌گردانند؛ موفقیت = `state?.ok === true`.
+- `revalidatePath` داخل Server Action ممنوع (ری‌ست `useActionState`، vercel/next.js#66426).
+
+### فارسی / RTL
+
+- پاسخ‌های خطای سرور برای کاربر فارسی و بدون جزئیات داخلی؛ `requestId` برای log کافی است.
+- اعداد فارسی فقط در ورودی `username`/`email` به ASCII نرمال می‌شوند.

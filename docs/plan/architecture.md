@@ -30,38 +30,48 @@ src/
 │  ├─ layout.tsx
 │  └─ globals.css
 ├─ modules/
-│  └─ rag/
+│  ├─ rag/
+│  │  ├─ domain/                     # خالص: هیچ import خارجی
+│  │  │  ├─ models.ts                # Document, Chunk, SearchResult, Answer, Message…
+│  │  │  ├─ ports.ts                 # interfaceها
+│  │  │  └─ errors.ts                # خطاهای دامنه
+│  │  ├─ application/                # use caseها؛ فقط domain
+│  │  │  ├─ ingest-document.ts
+│  │  │  ├─ ask-question.ts
+│  │  │  ├─ search-knowledge.ts
+│  │  │  └─ manage-documents.ts
+│  │  ├─ infrastructure/            # پیاده‌سازی portها
+│  │  │  ├─ chroma-vector-store.ts
+│  │  │  ├─ openrouter-embedding.ts
+│  │  │  ├─ openrouter-llm.ts
+│  │  │  ├─ document-loaders/       # json, md, txt, pdf
+│  │  │  ├─ text-normalizer.ts
+│  │  │  ├─ text-splitter.ts
+│  │  │  ├─ hybrid-retriever.ts     # BM25 + RRF
+│  │  │  ├─ llm-reranker.ts
+│  │  │  ├─ cache/                  # exact, semantic
+│  │  │  └─ prisma/                 # repositories
+│  │  └─ presentation/              # مرز HTTP
+│  │     ├─ schemas.ts               # zod
+│  │     ├─ dto.ts                   # domain → response
+│  │     └─ errors.ts                # domain error → status/code
+│  └─ advising/                      # فاز ۵.۱: هویت، پروفایل، گروه
 │     ├─ domain/                     # خالص: هیچ import خارجی
-│     │  ├─ models.ts                # Document, Chunk, SearchResult, Answer, Message…
-│     │  ├─ ports.ts                 # interfaceها
-│     │  └─ errors.ts                # خطاهای دامنه
-│     ├─ application/                # use caseها؛ فقط domain
-│     │  ├─ ingest-document.ts
-│     │  ├─ ask-question.ts
-│     │  ├─ search-knowledge.ts
-│     │  └─ manage-documents.ts
-│     ├─ infrastructure/            # پیاده‌سازی portها
-│     │  ├─ chroma-vector-store.ts
-│     │  ├─ openrouter-embedding.ts
-│     │  ├─ openrouter-llm.ts
-│     │  ├─ document-loaders/       # json, md, txt, pdf
-│     │  ├─ text-normalizer.ts
-│     │  ├─ text-splitter.ts
-│     │  ├─ hybrid-retriever.ts     # BM25 + RRF
-│     │  ├─ llm-reranker.ts
-│     │  ├─ cache/                  # exact, semantic
-│     │  └─ prisma/                 # repositories
-│     └─ presentation/              # مرز HTTP
-│        ├─ schemas.ts               # zod
-│        ├─ dto.ts                   # domain → response
-│        └─ errors.ts                # domain error → status/code
+│     │  ├─ models.ts                # UserAccount, ProfileView, GroupSummary…
+│     │  ├─ ports.ts                 # UserRepositoryPort, SessionRepositoryPort…
+│     │  └─ errors.ts                # UsernameTakenError, ForbiddenError…
+│     ├─ application/                # auth, session, profile, groups
+│     ├─ infrastructure/            # prisma-*-repository.ts, auth-crypto.ts
+│     └─ presentation/              # schemas, cookie, messages, run-action
 ├─ shared/
 │  ├─ env.ts                        # zod-validated process.env
 │  ├─ logger.ts                     # pino
 │  ├─ result.ts                     # اگر لازم شد (اختیاری)
 │  └─ prisma.ts
 └─ server/
-   └─ container.ts                  # تنها composition root
+   ├─ container.ts                  # تنها composition root
+   ├─ advising-actions.ts           # Server Actionهای ۵.۱ (بدون منطق دامنه)
+   └─ advising-guards.ts            # گارد نشست برای app/(advising)
 ```
 
 ## ۲. قانون وابستگی
@@ -80,6 +90,12 @@ app/* ──────────────► server/container ───�
 - `container.ts` تنها جایی است که concrete adapter به port وصل می‌شود.
 
 اعمال با **oxlint** (چون `typescript-eslint` هنوز از TypeScript 7 پشتیبانی نمی‌کند) به‌همراه `test/architecture.test.ts` که گراف import را می‌پیماید و همین قواعد لایه‌ها، ممنوعیت وابستگی domain و ضخامت route را assert می‌کند. `import/no-cycle` در `.oxlintrc.json` فعال است.
+
+## ۲.۱. ماژول `advising` (فاز ۵.۱)
+
+همان چهار لایهٔ `rag` با همان قانون وابستگی: `domain` بدون import خارجی، `application` فقط domain و port، `infrastructure` قرارداد port را implement می‌کند، `presentation` فقط zod + domain + application (schemas، کوکی، `run-action`، نگاشت خطا). mutationها Server Action هستند، نه route handler.
+
+Server Actionها و گاردهای نشست بیرون از ماژول‌اند: `src/server/advising-actions.ts` و `src/server/advising-guards.ts`. دلیل: تست معماری import از `presentation` به `server` را ممنوع می‌کند، و action باید هم use case را از composition root بگیرد و هم کوکی `next/headers` را بنویسد؛ پس در `src/server/` می‌نشیند و `app/(advising)/**` فقط آن را صدا می‌زند. هیچ منطق دامنه‌ای در این دو فایل نیست.
 
 ## ۳. Composition root
 

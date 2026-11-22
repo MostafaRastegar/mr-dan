@@ -7,8 +7,14 @@ export default function Home() {
       <p className="text-slate-600">
         زیرساخت پلتفرم مشاورهٔ تحصیلی هوشمند.
       </p>
-      <div className="flex gap-3 justify-center">
-        <Link href="/chat" className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition">
+      <div className="flex flex-wrap gap-3 justify-center">
+        <Link href="/login" className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition">
+          ورود
+        </Link>
+        <Link href="/register" className="px-4 py-2 border border-teal-600 text-teal-700 rounded hover:bg-teal-50 transition">
+          ثبت‌نام
+        </Link>
+        <Link href="/chat" className="px-4 py-2 border border-slate-300 text-slate-700 rounded hover:bg-slate-100 transition">
           چت هوشمند
         </Link>
         <Link href="/admin/knowledge" className="px-4 py-2 border border-slate-300 text-slate-700 rounded hover:bg-slate-100 transition">

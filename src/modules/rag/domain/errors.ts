@@ -3,31 +3,14 @@
  *
  * Infrastructure adapters wrap their underlying errors into one of these
  * (preserving the original as `cause`). Presentation maps them to HTTP.
+ *
+ * The base kernel lives in `@/shared/errors` so product modules share one
+ * `code`/`status` shape; re-exported here to keep existing imports working.
  */
 
-export class AppError extends Error {
-  constructor(
-    public readonly code: string,
-    public readonly status: number,
-    message: string,
-    public readonly cause?: unknown,
-  ) {
-    super(message);
-    this.name = "AppError";
-  }
-}
+import { AppError, NotFoundError, ValidationError } from "@/shared/errors";
 
-export class ValidationError extends AppError {
-  constructor(message: string, cause?: unknown) {
-    super("invalid_input", 400, message, cause);
-  }
-}
-
-export class NotFoundError extends AppError {
-  constructor(resource: string, cause?: unknown) {
-    super("not_found", 404, `${resource} not found`, cause);
-  }
-}
+export { AppError, NotFoundError, ValidationError };
 
 export class UnsupportedFileError extends AppError {
   constructor(mime: string, cause?: unknown) {

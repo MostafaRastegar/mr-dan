@@ -1,0 +1,46 @@
+PHASE-5-1 TEST LOG — identity/profile/groups
+Feature: phase-5-1-identity-profile | Phase: test | Review round: 0
+Date: Sun Nov 22 2026
+
+ENVIRONMENT:
+- Postgres: UP on localhost:5432 (pg_isready accepting connections)
+- Chroma: reachable on localhost:8001 (HTTP 410 on /api/v1/heartbeat — server responded)
+- Playwright Chromium: INSTALLED at /home/mr/.cache/ms-playwright/chromium-1255
+- E2E_ENABLED: not set (will set for e2e commands)
+- NODE_ENV: not set
+
+============================================================
+--- pnpm typecheck ---
+$ tsc --noEmit
+EXIT_CODE_TYPECHECK=0
+(clean, no diagnostics)
+
+--- pnpm lint ---
+$ oxlint src test
+src/modules/rag/application/text-normalizer.ts:40:28: warning eslint(no-control-regex): Unexpected control character ... (pre-existing, rag module, unrelated to feature)
+src/modules/rag/application/text-normalizer.ts:40:51: warning eslint(no-control-regex): ... (pre-existing)
+EXIT_CODE_LINT=0
+
+============================================================
+--- pnpm test (full suite) ---
+Test Files  25 passed (25)
+   Tests  131 passed (131)
+   Duration  1.03s
+(Note: pino "down"/LLM-failure log lines are expected simulated failures inside rag unit tests; all tests pass.)
+EXIT_CODE_TEST=0
+
+============================================================
+--- pnpm build ---
+Build OK: next build compiled successfully, 10/10 static pages, routes include /login /register /profile /counselor/students.
+EXIT_CODE_BUILD=0
+
+============================================================
+--- pnpm test test/advising/integration.test.ts ---
+Integration test/advising/integration.test.ts:
+ Test Files  1 passed (1)
+   Tests  6 passed (6)
+   Duration  518ms
+EXIT_CODE_INTEGRATION=0
+
+============================================================
+--- E2E: advisings-auth.spec.ts full (--reporter=list) ---

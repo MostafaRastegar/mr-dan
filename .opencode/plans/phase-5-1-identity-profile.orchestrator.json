@@ -1,12 +1,18 @@
 {
   "feature": "phase-5-1-identity-profile",
-  "phase": "plan",
+  "phase": "verify",
   "plan": ".opencode/plans/phase-5-1-identity-profile.md",
-  "plan_sha256": null,
+  "plan_sha256": "0877c85c48a82a329d8f75ee5fc2545e38c47d63",
   "review": ".opencode/reviews/phase-5-1-identity-profile.md",
   "test_log": ".opencode/reviews/phase-5-1-identity-profile.tests.log",
-  "readme": { "path": "README.md", "state": "unchanged" },
-  "changelog": { "path": "CHANGELOG.md", "state": "pending" },
+  "readme": {
+    "path": "README.md",
+    "state": "unchanged"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "pending"
+  },
   "skills": [
     "mr-dan-architecture",
     "mr-dan-persistence",
@@ -20,25 +26,106 @@
     "mro-behavior-docs"
   ],
   "sessions": {
-    "architect": null,
-    "implementer": null,
-    "reviewer": null,
-    "test": null
+    "architect": "ses_dfc70b01cffeB2EwX9PPgjxFWG",
+    "implementer": "ses_dfc278d09ffeivv5j4bjlQgp3Y",
+    "reviewer": "ses_dfc16b778ffeuzV78Nqcx0a3mm",
+    "test": "ses_dfc16b777ffeMrPPVPqnw2skhB",
+    "implementer_prev": "ses_dfc4013beffeRygMxVgdKtQNfp",
+    "implementer_prev2": "ses_dfc3c75d8fferq9psmKlsckBFh",
+    "implementer_docs": "ses_dfc278d08ffer7PCQ0MnG6zM4z"
   },
-  "acceptance": { "total": 0, "confirmed": 0, "pending": 0, "deferred": 0 },
-  "changed_files": [],
-  "test_exit_codes": [],
+  "acceptance": {
+    "total": 31,
+    "confirmed": 30,
+    "pending": 1,
+    "deferred": 0
+  },
+  "changed_files": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "prisma/schema.prisma",
+    "prisma/migrations/20261122145638_add_advising_identity",
+    "src/shared",
+    "src/modules/advising",
+    "src/modules/rag/domain/errors.ts",
+    "src/server/advising-actions.ts",
+    "src/server/advising-guards.ts",
+    "src/server/container.ts",
+    "src/app/(auth)",
+    "src/app/(advising)",
+    "src/app/page.tsx",
+    "src/components/auth",
+    "src/components/advising",
+    "scripts/seed-advising.ts",
+    "test/advising",
+    "test/fakes/advising.ts",
+    "tests/e2e/advising-auth.spec.ts",
+    "docs/plan/frontend-conventions.md",
+    ".opencode/skills-draft",
+    "README.md",
+    "docs/contracts/phase-5-1-identity-profile.md",
+    "docs/behaviors/phase-5-1-identity-profile.md",
+    "docs/plan/phases.md",
+    "docs/plan/architecture.md"
+  ],
+  "test_exit_codes": [
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0
+    },
+    {
+      "command": "AC sweep (28 runnable verify commands)",
+      "exit": 0
+    },
+    {
+      "command": "E2E_ENABLED=true pnpm exec playwright test tests/e2e/advising-auth.spec.ts -g \"logged out\"",
+      "exit": 0
+    },
+    {
+      "command": "E2E_ENABLED=true pnpm exec playwright test tests/e2e/advising-auth.spec.ts -g \"edit profile\"",
+      "exit": 0
+    }
+  ],
   "review_round": 0,
   "severity_history": [],
-  "approvals": { "plan": null, "final": null },
-  "budget": { "turns_per_phase": 20, "review_rounds": 3 },
+  "review_level": "full",
+  "approvals": {
+    "plan": "2026-11-22T02:15:00Z",
+    "final": null
+  },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 3
+  },
   "log": ".opencode/plans/phase-5-1-identity-profile.log.jsonl",
-  "blockers": "none",
+  "blockers": "none; AC-20 manual pending, AC-28/AC-31 human-applied",
   "decisions": {
     "phase5_split": "5.1 identity/profile/groups, 5.2 schedule/homework/study, 5.3 quiz/meal/books/leisure, 5.4 dashboards(echarts)+counselor panel",
     "auth": "custom session cookie + Prisma Session table, node:crypto scrypt for passwords",
+    "counselor_signup": "allowed, documented as R1, admin approval in 5.4",
+    "grade_field": "fixed Persian enums",
+    "password_min": 8,
+    "password_change": "requires currentPassword, revokes other sessions",
+    "post_login": "/profile",
+    "demo_seed": "scripts/seed-advising.ts, dev-only idempotent",
     "telegram": "removed entirely",
     "webrtc": "documented only, not implemented",
-    "rag_integration": "deferred; no chat wiring in phase 5"
-  }
+    "rag_integration": "deferred; no chat wiring in phase 5",
+    "frontend_reference": "~/project/yaftar/aip-next read-only; doc docs/plan/frontend-conventions.md; ADOPT 2 / ADAPT 3 / DEFER 7 / REJECT 11; no verbatim copy (no LICENSE)",
+    "icons": "@tabler/icons-react only icon set, exact pin, only new dep of 5.1",
+    "skills_adoption": "adapt 4 aip-next skills; drafts in .opencode/skills-draft; human installs into .opencode/skills"
+  },
+  "acceptance_note": "AC-30/AC-31 rewritten 2026-11-22: skills now installed in .opencode/skills (drafts dir removed). Only AC-20 (manual click check) remains open."
 }

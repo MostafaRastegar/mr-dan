@@ -1,6 +1,6 @@
 # mr-dan — فازهای اجرا
 
-دامنه: **زیرساخت، استک، پورت کامل RAG**. محصول مشاورهٔ تحصیلی در فاز ۵ و بعد از تأیید نیازمندی‌ها شروع می‌شود.
+دامنه: **زیرساخت، استک، پورت کامل RAG** (فاز ۰–۴) و **محصول مشاورهٔ تحصیلی** که از فاز ۵.۱ آغاز شده است.
 
 هر فاز یک **دروازه** دارد؛ تا سبز نشود فاز بعد شروع نمی‌شود. هیچ فازی «۹۰٪ تمام» تحویل نمی‌دهد.
 
@@ -166,15 +166,58 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 
 ---
 
-## فاز ۵ — محصول مشاورهٔ تحصیلی (خارج از این پلن)
+## فاز ۵ — محصول مشاورهٔ تحصیلی
 
-بعد از تحویل نیازمندی‌ها: هویت و نقش‌ها، پروفایل دانش‌آموز، اسناد و قواعد دامنه، توصیهٔ رشته، پنل مشاور، کالیبراسیون golden set جدید.
+چهار تحویل مستقل با ترتیب اجباری ۵.۱ → ۵.۲ → ۵.۳ → ۵.۴: ۵.۲ و ۵.۳ روی `User` فاز ۵.۱ سوار می‌شوند و ۵.۴ به دادهٔ ۵.۲ و ۵.۳ نیاز دارد. همه در `src/modules/advising/**` با همان لایه‌بندی `rag` می‌نشینند. هر زیرفاز migration، تست و README خودش را دارد و دروازهٔ جدا.
 
-پیش‌نیاز فنی که در فاز ۰–۴ ساخته می‌شود:
+### فاز ۵.۱ — هویت، پروفایل، گروه (پیاده‌سازی شد)
 
-- `modules/advising` با همان قانون لایه‌ها
-- مرز `identity` که فعلاً خالی است ولی routeها و schema برایش جا دارد
-- `Document.ownerId`/`visibility` از ابتدا در schema **نیست**؛ در فاز ۵ با migration اضافه می‌شود (YAGNI).
+**هدف:** ثبت‌نام/ورود/خروج با نشست DB-backed، پروفایل تحصیلی، و گروه‌بندی دانش‌آموز توسط مشاور.
+
+- [x] `User`, `Group`, `Session` (migration `add_advising_identity`)
+- [x] نقش `student` | `counselor`؛ رمز با `node:crypto` scrypt، توکن نشست فقط SHA-256 در DB
+- [x] کوکی `mrdan_session`: `httpOnly`, `sameSite=lax`, `path=/`, TTL ۷ روز, `secure` فقط production
+- [x] پروفایل تحصیلی (`grade`, `fieldOfStudy`, `schoolName`) + تغییر رمز با باطل‌کردن سایر نشست‌ها
+- [x] ساخت گروه و تخصیص دانش‌آموز (یک گروه و یک مشاور، یک update اتمی)
+- [x] صفحات `/login`, `/register`, `/profile`, `/counselor/students`
+- [x] seed دموی dev-only و idempotent: `scripts/seed-advising.ts`
+
+**دروازه:** `pnpm typecheck && pnpm lint && pnpm test && pnpm build` سبز؛ تست‌های e2e احراز هویت با `E2E_ENABLED=true pnpm test:e2e` (نیاز به سرویس‌های زنده).
+
+**پلن:** [`.opencode/plans/phase-5-1-identity-profile.md`](../../.opencode/plans/phase-5-1-identity-profile.md)
+
+**اسکیل‌ها:** `mr-dan-persistence`, `mr-dan-api`, `mr-dan-frontend`
+
+### فاز ۵.۲ — برنامه هفتگی، تکالیف، تایمر مطالعه
+
+- `WeeklySchedule` (روز، ساعت، درس، معلم، اتاق)، `Homework` (اولویت، deadline، وضعیت انجام)
+- `StudySession` (دستهٔ مطالعه/استراحت/اتلاف، مدت، تمرکز) + پومودورو سمت کلاینت
+- تحلیل زمان و نرخ بهره‌وری؛ **بدون** scheduler یا یادآور تلگرام
+
+**دروازه:** migration سبز، تست‌های use case و صفحه‌های برنامه/تکلیف سبز.
+
+### فاز ۵.۳ — آزمون، تغذیه، کتاب، اوقات فراغت
+
+- `Question` + `QuizAttempt` با نمره‌دهی کنکور (۳ غلط = ۱ درست) و کارنامه
+- `MealPlan` + migration فیلدهای فیزیکی روی `User` (`age`, `gender`, `heightCm`, `weightKg`, `activityLevel`, `dietGoal`) و BMR/TDEE
+- پیشنهاد کتاب از `data/books.json` و پیشنهاد فراغت از قواعد خستگی/بار کاری
+
+**دروازه:** migration سبز، نمره‌دهی آزمون تست‌شده، محاسبهٔ BMR/TDEE تست‌شده.
+
+### فاز ۵.۴ — داشبورد (`echarts`) + پنل مشاور
+
+- چهار نمودار (روند مطالعه، مقایسهٔ دروس، توزیع ۲۴ ساعته، رادار تسلط) با `echarts` — تنها جای افزودن این dependency
+- `CounselorPlan` (نوشتن/ارسال برنامه)، صفحهٔ جزئیات دانش‌آموز، فهرست/فیلتر دانش‌آموزان
+- تأیید/ارتقای نقش مشاور توسط ادمین (بستن ریسک خودثبت‌نامی)
+
+**دروازه:** نمودارها با دادهٔ واقعی ۵.۲/۵.۳ رندر شوند؛ e2e پنل مشاور سبز.
+
+### خارج از فاز ۵ (ثبت‌شده)
+
+- Telegram (bot/reminder/link code) — حذف کامل
+- WebRTC video call / meeting room — فقط مستند، بدون پیاده‌سازی
+- اتصال RAG به دادهٔ مشاوره و `Document.ownerId`/`visibility` — تا فاز چت به تعویق افتاده
+- pgvector / Redis / BullMQ / scheduler / scraper
 
 ---
 

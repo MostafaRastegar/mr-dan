@@ -1,0 +1,59 @@
+/**
+ * Advising domain ports.
+ *
+ * Use cases depend only on these interfaces. Adapters live in
+ * `infrastructure/` and are wired in `src/server/container.ts`.
+ */
+
+import type {
+  GroupSummary,
+  NewGroup,
+  NewUser,
+  ProfilePatch,
+  ProfileView,
+  SessionRecord,
+  StudentSummary,
+  UserAccount,
+} from "./models";
+
+export interface UserRepositoryPort {
+  findCredentialsByUsername(
+    username: string,
+  ): Promise<{ user: UserAccount; passwordHash: string } | null>;
+  findByEmail(email: string): Promise<UserAccount | null>;
+  findById(id: string): Promise<UserAccount | null>;
+  findProfileById(id: string): Promise<ProfileView | null>;
+  create(input: NewUser & { passwordHash: string }): Promise<UserAccount>;
+  updateProfile(id: string, patch: ProfilePatch): Promise<UserAccount>;
+  updatePassword(id: string, passwordHash: string): Promise<void>;
+  listAssignableStudents(counselorId: string): Promise<StudentSummary[]>;
+  assignToGroup(input: {
+    studentId: string;
+    groupId: string | null;
+    counselorId: string;
+  }): Promise<void>;
+}
+
+export interface SessionRepositoryPort {
+  create(input: {
+    userId: string;
+    tokenHash: string;
+    expiresAt: Date;
+  }): Promise<void>;
+  findByTokenHash(tokenHash: string): Promise<SessionRecord | null>;
+  deleteByTokenHash(tokenHash: string): Promise<void>;
+  deleteManyByUserId(userId: string, exceptTokenHash?: string): Promise<void>;
+}
+
+export interface GroupRepositoryPort {
+  create(input: NewGroup): Promise<GroupSummary>;
+  findById(id: string): Promise<GroupSummary | null>;
+  listByCounselor(counselorId: string): Promise<GroupSummary[]>;
+}
+
+export interface AuthCryptoPort {
+  hashPassword(plain: string): Promise<string>;
+  verifyPassword(plain: string, stored: string): Promise<boolean>;
+  generateToken(): string;
+  hashToken(token: string): string;
+}

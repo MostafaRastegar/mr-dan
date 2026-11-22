@@ -65,3 +65,58 @@ model CacheEntry {
 
   @@index([expiresAt])
 }
+
+model User {
+  id           String  @id @default(uuid())
+  username     String  @unique
+  email        String? @unique
+  passwordHash String
+  role         String // "student" | "counselor" — validated by zod, not a PG enum
+  fullName     String
+  grade        String? // دهم | یازدهم | دوازدهم | فارغ‌التحصیل
+  fieldOfStudy String? // ریاضی فیزیک | علوم تجربی | علوم انسانی | فنی حرفه‌ای
+  schoolName   String?
+
+  groupId     String?
+  group       Group?  @relation("GroupMembers", fields: [groupId], references: [id], onDelete: SetNull)
+  counselorId String?
+  counselor   User?   @relation("CounselorStudents", fields: [counselorId], references: [id], onDelete: SetNull)
+  students    User[]  @relation("CounselorStudents")
+
+  ownedGroups Group[]   @relation("GroupOwner")
+  sessions    Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+  @@index([groupId])
+  @@index([counselorId])
+}
+
+model Group {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  targetGrade String?
+  targetField String?
+  color       String   @default("#4A90D9")
+  counselorId String
+  counselor   User     @relation("GroupOwner", fields: [counselorId], references: [id], onDelete: Cascade)
+  members     User[]   @relation("GroupMembers")
+  createdAt   DateTime @default(now())
+
+  @@index([counselorId])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
