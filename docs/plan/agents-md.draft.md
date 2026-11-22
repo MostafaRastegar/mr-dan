@@ -47,7 +47,7 @@ infrastructure → domain (implements ports)
 - `application` هرگز `infrastructure` را import نمی‌کند.
 - route handler نازک: `parse → use case → serialize`، حداکثر ۴۰ خط.
 - فقط `src/server/container.ts` adapter را به port وصل می‌کند.
-- جزئیات: `.agents/skills/mr-dan-architecture/SKILL.md`
+- جزئیات: `.opencode/skills/mr-dan-architecture/SKILL.md`
 
 ## قواعد RAG (منبع حقیقت: `src/shared/env.ts`)
 
@@ -61,7 +61,7 @@ embedding nvidia/llama-nemotron-embed-vl-1b-v2:free
 chat nvidia/nemotron-3-ultra-550b-a55b:free
 ```
 
-تغییر هر عدد = تغییر هم‌زمان در `env.ts`, `AGENTS.md`, `skills/mr-dan-rag.md` و در صورت لزوم oracle.
+تغییر هر عدد = تغییر هم‌زمان در `env.ts`, `AGENTS.md`, `.opencode/skills/mr-dan-rag/SKILL.md` و در صورت لزوم oracle.
 
 ## قواعد داده
 
@@ -83,7 +83,7 @@ chat nvidia/nemotron-3-ultra-550b-a55b:free
 
 ## اسکیل‌ها
 
-قبل از کار روی هر بخش، اسکیل مربوطه در `.agents/skills/` را بخوان:
+قبل از کار روی هر بخش، اسکیل مربوطه در `.opencode/skills/` را بخوان:
 
 | کار | اسکیل |
 |---|---|
@@ -98,7 +98,7 @@ chat nvidia/nemotron-3-ultra-550b-a55b:free
 
 ## ممنوعیت‌ها
 
-- کپی کورکورانهٔ `.agents/skills/mr-rag-*` از oracle (مقادیرش کهنه است).
+- کپی کورکورانهٔ اسکیل‌های `mr-rag-*` از oracle (مقادیرشان کهنه است).
 - scheduler / scraper / Confluence.
 - pgvector / Redis / BullMQ در این فاز.
 - تغییر آستانه‌ها برای سبز کردن تست parity.

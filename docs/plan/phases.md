@@ -24,7 +24,8 @@
 - [ ] ESLint با `eslint-plugin-boundaries` و قاعدهٔ لایه‌ها؛ `import/no-cycle`
 - [ ] Vitest + یک تست واقعی برای `health`؛ Playwright نصب ولی بدون تست
 - [ ] CI: `typecheck`, `lint`, `test`, `build`
-- [ ] نصب اسکیل‌های upstream (طبق `skills.md`) + نوشتن ۸ اسکیل پروژه‌ای در `.agents/skills/`
+- [ ] نصب اسکیل‌های upstream (طبق `skills.md`)
+- [x] نوشتن ۸ اسکیل پروژه‌ای در `.opencode/skills/<id>/SKILL.md` + `.opencode/opencode.json`
 - [ ] `AGENTS.md` بر اساس `agents-md.draft.md`
 
 **دروازه:**
@@ -174,6 +175,6 @@ cd /home/musa/project/mr-rag-oracle && python -m scripts.eval_retrieval --mode d
 ## قواعد جاری در همهٔ فازها
 
 1. هیچ فازی بدون تست و بدون به‌روزرسانی اسکیل مربوطه تمام نمی‌شود.
-2. هر تغییر پارامتر RAG → هم‌زمان در `shared/env.ts`, `AGENTS.md`, `skills/mr-dan-rag.md`, و در صورت لزوم oracle.
+2. هر تغییر پارامتر RAG → هم‌زمان در `shared/env.ts`, `AGENTS.md`, `.opencode/skills/mr-dan-rag/SKILL.md`, و در صورت لزوم oracle.
 3. هیچ کد مرده یا flag بدون تست اضافه نمی‌شود.
 4. اگر دروازهٔ parity شکست خورد، اول علت را پیدا کن؛ تغییر آستانه ممنوع.

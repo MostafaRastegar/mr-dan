@@ -54,7 +54,8 @@
 - [`phases.md`](./phases.md) — فازها، تسک‌ها، تحویل‌دادنی‌ها، دروازه‌ها
 - [`skills.md`](./skills.md) — اسکیل‌های upstream و پروژه‌ای + نگاشت به فازها
 - [`agents-md.draft.md`](./agents-md.draft.md) — پیش‌نویس `AGENTS.md` پروژه
-- [`skills/`](./skills/) — پیش‌نویس SKILL.mdهای اختصاصی پروژه
+- [`../../.opencode/skills/`](../../.opencode/skills) — SKILL.mdهای اختصاصی پروژه (توسط OpenCode شناسایی می‌شوند)
+- [`../../.opencode/opencode.json`](../../.opencode/opencode.json) — کانفیگ پروژهٔ OpenCode
 
 ## تعریف «تمام‌شدن زیرساخت»
 

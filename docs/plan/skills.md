@@ -3,7 +3,7 @@
 دو دسته اسکیل داریم:
 
 1. **Upstream** — با CLI نصب می‌شوند و دست‌نخورده می‌مانند. سفارشی‌سازی از طریق `AGENTS.md` و اسکیل‌های پروژه‌ای انجام می‌شود.
-2. **پروژه‌ای** — دست‌نویس، مخصوص همین استک و همین معماری، در `.agents/skills/`.
+2. **پروژه‌ای** — دست‌نویس، مخصوص همین استک و همین معماری، در `.opencode/skills/<id>/SKILL.md`.
 
 اسکیل‌های `mr-rag-*` در مخزن oracle **کپی نمی‌شوند**. آن‌ها Python-centric هستند و بعضی مقادیرشان کهنه است (مثلاً `min_score=0.15` و `chunk_size=512`). آن‌ها فقط مرجع تاریخی‌اند؛ نسخهٔ درست، `mr-dan-*` است.
 
@@ -56,7 +56,7 @@ npx skills list          # تأیید نصب در .agents/skills/
 `mr-rag-11` (scheduler) پورت نمی‌شود: scheduler و scraper حذف شده‌اند.
 `mr-rag-14` (code generation) به `AGENTS.md` + `clean-code` منتقل شده است.
 
-این فایل‌ها در پلن به‌صورت تخت (`skills/<name>.md`) نگه داشته می‌شوند. در Build، هر کدام به `.agents/skills/<name>/SKILL.md` کپی می‌شود؛ frontmatter بدون تغییر می‌ماند.
+این فایل‌ها در `.opencode/skills/<id>/SKILL.md` قرار دارند و OpenCode آن‌ها را به‌صورت خودکار از `.opencode/skills` کشف می‌کند. اسکیل‌های upstream که با `npx skills add` نصب می‌شوند در `.agents/skills/` می‌نشینند؛ OpenCode این مسیر را هم برای سازگاری می‌خواند.
 
 ---
 

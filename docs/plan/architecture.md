@@ -224,7 +224,7 @@ CACHE_TTL_EMBEDDING=3600, CACHE_TTL_LLM=86400
 ```
 
 - پیکربندی در یک object منجمد (`as const` + `Object.freeze`) خوانده می‌شود، نه پراکنده در `process.env`.
-- مقادیر در `skills/mr-dan-rag.md` تکرار می‌شوند؛ هر تغییر باید در هر دو جا و در `AGENTS.md` هم‌زمان به‌روز شود.
+- مقادیر در `.opencode/skills/mr-dan-rag/SKILL.md` تکرار می‌شوند؛ هر تغییر باید در هر دو جا و در `AGENTS.md` هم‌زمان به‌روز شود.
 
 ## ۹. آنچه عمداً نداریم
 
