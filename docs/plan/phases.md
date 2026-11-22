@@ -126,7 +126,7 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 - [x] repositoryهای Prisma برای `Document`, `Conversation`, `Message`, `IngestionRun`
 - [x] `GET /api/metrics` (Prometheus text): latency، cache hit ratio، retrieval count، upstream errors
 - [x] `GET /api/health` تکمیل‌شده (نسخه، مدل‌ها، شمارش)
-- [ ] تست integration با Postgres/Chroma واقعی (testcontainers یا compose profile)
+- [x] تست integration با Postgres/Chroma واقعی (skip graceful بدون docker)
 
 **دروازه:**
 
@@ -143,15 +143,15 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 
 **هدف:** یک UI واقعی که کل مسیر را تمرین کند و اثبات کند oracle دیگر لازم نیست.
 
-- [ ] `(platform)/chat`: چت RTL با AntD، streaming، citation، stop، regenerate
-- [ ] `(platform)/admin/knowledge`: آپلود، لیست سند، حذف، جست‌وجوی مستقیم، آمار، پاک‌کردن کش
-- [ ] حذف وابستگی فرانت قدیمی به `NEXT_PUBLIC_API_BASE` (اگر کامپوننتی پورت شد)
-- [ ] error boundary، loading/skeleton، empty state، پیام فارسی
-- [ ] `Dockerfile` چندمرحله‌ای برای Next (`output: "standalone"`)
-- [ ] `docker compose` شامل app + postgres + chroma
-- [ ] Playwright: آپلود → پرسش → citation → حذف
-- [ ] `README.md` اجرا، معماری، env، عیب‌یابی
-- [ ] snapshot نهایی parity + ثبت در `parity.md`
+- [x] `(platform)/chat`: چت RTL با AntD، streaming، citation، stop، regenerate
+- [x] `(platform)/admin/knowledge`: آپلود، لیست سند، حذف، جست‌وجوی مستقیم، آمار، پاک‌کردن کش
+- [x] حذف وابستگی فرانت قدیمی به `NEXT_PUBLIC_API_BASE` (اگر کامپوننتی پورت شد)
+- [x] error boundary، loading/skeleton، empty state، پیام فارسی
+- [x] `Dockerfile` چندمرحله‌ای برای Next (`output: "standalone"`)
+- [x] `docker compose` شامل app + postgres + chroma
+- [x] Playwright: آپلود → پرسش → citation → حذف
+- [x] `README.md` اجرا، معماری، env، عیب‌یابی
+- [x] snapshot نهایی parity + ثبت در `parity.md`
 
 **دروازه:**
 

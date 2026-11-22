@@ -28,6 +28,10 @@ export class ManageDocumentsUseCase {
     private readonly vectorStore: VectorStorePort,
   ) {}
 
+  async get(documentId: string): Promise<DocumentRecord | null> {
+    return this.documentRepository.findById(documentId);
+  }
+
   async delete(input: ManageDocumentsInput): Promise<ManageDocumentsOutput> {
     const { documentId } = input;
 

@@ -1,15 +1,27 @@
-import { NextResponse } from "next/server";
-import { toHttpError } from "@/modules/rag/presentation/http";
+import type { NextRequest } from "next/server";
+import { getContainer } from "@/server/container";
+import { jsonOk, toHttpError, requestIdHeader } from "@/modules/rag/presentation/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(): Promise<Response> {
-  const requestId = crypto.randomUUID();
+export const GET = async (_req: NextRequest): Promise<Response> => {
+  const requestId = requestIdHeader(_req.headers);
   try {
-    // TODO: wire ListDocumentsUseCase into container; placeholder returns empty
-    return NextResponse.json({ data: [] }, { status: 200 });
+    const { documents } = await getContainer().listDocuments.execute();
+    return jsonOk({ data: documents });
   } catch (error) {
     return toHttpError(error, requestId);
   }
-}
+};
+
+export const POST = async (req: NextRequest): Promise<Response> => {
+  const requestId = requestIdHeader(req.headers);
+  try {
+    const body = await req.json();
+    const result = await getContainer().ingestDocument.execute(body);
+    return jsonOk({ data: result }, 201);
+  } catch (error) {
+    return toHttpError(error, requestId);
+  }
+};
