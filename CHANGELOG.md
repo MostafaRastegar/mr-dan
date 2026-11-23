@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-11-23 — frontend-layout-alignment
+
+### Changed
+- Every route page now has a colocated triad under `src/app/**` (`page.tsx` + `<x>.vm.tsx` + `<x>.view.tsx`); route-private components in `src/app/(advising)/counselor/students/_components/`; `src/components/` reduced to `providers.tsx` (the three unreferenced `ui/` stubs were deleted in the same change).
+- Server actions split per area into three `"use server"` files — `src/app/(auth)/auth.actions.ts`, `src/app/(advising)/advising.actions.ts`, `src/app/(advising)/counselor/students/students.actions.ts`; `src/server/advising-actions.ts` deleted.
+- Choke points moved to `src/utils/app-error.ts`, `src/utils/server-action.ts`, `src/utils/use-form-action.ts`; `ActionResult` renamed `ActionState`; `src/shared/action-result.ts`, `src/lib/form/`, `src/modules/advising/presentation/run-action.{ts,test.ts}` removed.
+- `test/architecture.test.ts` — the 80-line client-component assertion now covers `src/app/**` as well; two assertions added (page triad with an exact count of 7; every page ≤40 lines). A negative probe (an 81-line `"use client"` file in `src/app/chat/`) was proven to fail the suite naming that file.
+
+### Docs
+- `AGENTS.md` `## معماری` (two bullets); the three skills (`mr-dan-architecture`, `mr-dan-frontend`, `mr-dan-feature-workflow`) describe the new layout; `docs/contracts/frontend-layout-alignment.md` created; README `## ساختار کد` added; `docs/plan/{architecture,frontend-conventions}.md` and `docs/behaviors/phase-5-1-identity-profile.md` updated.
+
+### Known limitations
+- AC-18 deferred — the e2e spec asserts `/register` navigation and profile persistence but not a field-level Persian validation message; verified manually only. Unused imports introduced by the move (46 warnings) were removed in a follow-up commit.
+
+### Evidence
+- `pnpm typecheck` 0 · `pnpm lint` 0 (0 unused vars) · `pnpm build` 0 · `pnpm test` 0 (28 files / 152 tests) · `pnpm vitest run test/architecture.test.ts` 0 (9 tests) · `E2E_ENABLED=true pnpm exec playwright test tests/e2e/advising-auth.spec.ts` 0 (2 passed). Paths: plan `.opencode/plans/frontend-layout-alignment.md`, review `.opencode/reviews/frontend-layout-alignment.md`, contract `docs/contracts/frontend-layout-alignment.md`.
+
+## 2026-11-23 — access-control-baseline
+
+### Added
+- `admin` role; `toRole()` moved to the domain and round-trips `"admin"` (previously anything that was not `"counselor"` became `"student"`); `CAPABILITIES.admin` = the counselor set plus `rag:manage` and `user:manage`.
+- `requireApiSession()` / `requireApiCapability()` guards; 9 data routes are session-gated and 6 admin routes are gated (`/api/admin/**` ×5 plus `/api/openapi`).
+- `/chat`, `/admin/knowledge` and `/api-docs` require a session; `GET /api/health` and `GET /api/metrics` stay public.
+- `scripts/create-admin.ts` — admins are system-created only, it refuses to run with `NODE_ENV=production`, it is idempotent and never rewrites an existing password hash, and it prints the generated password once. Registration can never mint an admin. No admin UI.
+
+### Fixed
+- `src/app/api/upload/route.ts` wrote the uploaded file to disk before the auth guard ran; the guard is now the first statement in the handler.
+
+### Docs
+- `docs/behaviors/access-control-baseline.md`, `docs/contracts/access-control-baseline.md`, README `## دسترسی و نقشها`, OpenAPI `cookieAuth` scheme, `docs/plan/architecture.md` §2.1.
+
+### Known limitations
+- Three e2e cases (counselor → 403, admin → 200, student → `/profile`) are `test.fixme` because there is no dev-seeded session helper; they are covered by static + unit evidence instead. Live knowledge-flow e2e is deferred (`OPENROUTER_API_KEY`).
+
+### Evidence
+- `pnpm typecheck` 0 · `pnpm lint` 0 · `pnpm build` 0 · `pnpm test` 0 (28 files / 150 tests at the time) · `architecture.test.ts` 0 (7 tests) · `E2E_ENABLED=true pnpm exec playwright test tests/e2e/access-control.spec.ts tests/e2e/advising-auth.spec.ts` 0 (5 passed, 3 fixme) · `secret-audit` clean. Paths: plan `.opencode/plans/access-control-baseline.md`, review `.opencode/reviews/access-control-baseline.md`, behavior doc `docs/behaviors/access-control-baseline.md`.
+
 ## 2026-11-23 — architecture-alignment
 
 ### Changed
