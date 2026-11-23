@@ -1,12 +1,12 @@
 {
   "feature": "access-control-baseline",
-  "phase": "verify",
+  "phase": "done",
   "plan": ".opencode/plans/access-control-baseline.md",
   "plan_sha256": "17c9d98c647a9ea1b01546effd44f0a870ae75f5",
   "review": ".opencode/reviews/access-control-baseline.md",
   "test_log": ".opencode/reviews/access-control-baseline.tests.log",
-  "readme": { "path": "README.md", "state": "pending" },
-  "changelog": { "path": "CHANGELOG.md", "state": "pending" },
+  "readme": { "path": "README.md", "state": "updated" },
+  "changelog": { "path": "CHANGELOG.md", "state": "written" },
   "skills": [
     "mr-dan-architecture", "mr-dan-api", "mr-dan-frontend", "mr-dan-feature-workflow",
     "mr-dan-persistence", "mr-dan-testing-parity", "mro-data-model", "mro-code-review-checklist"
@@ -29,8 +29,7 @@
     "README.md",
     "docs/behaviors/access-control-baseline.md",
     "docs/contracts/access-control-baseline.md"
-  ],
-  "test_exit_codes": [
+  ],  "test_exit_codes": [
     { "command": "pnpm typecheck (baseline)", "exit": 0 },
     { "command": "pnpm lint (baseline)", "exit": 0 },
     { "command": "pnpm test (baseline, 25 files / 133 tests)", "exit": 0 },
@@ -47,7 +46,7 @@
     { "round": 1, "critical": 0, "high": 0, "medium": 1, "low": 1 }
   ],
   "review_level": "full",
-  "approvals": { "plan": "2026-11-23T12:10:00Z", "final": null },
+  "approvals": { "plan": "2026-11-23T12:10:00Z", "final": "2026-11-23T16:05:00Z" },
   "budget": { "turns_per_phase": 20, "review_rounds": 3 },
   "log": ".opencode/plans/access-control-baseline.log.jsonl",
   "blockers": "none",
