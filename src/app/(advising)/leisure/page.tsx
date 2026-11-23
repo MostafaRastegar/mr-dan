@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getContainer } from "@/server/container";
 import { requireCapability } from "@/server/advising-guards";
 import { TEST_IDS } from "@/constants/test-ids";
@@ -24,7 +26,7 @@ export default async function LeisurePage() {
           ))}
         </ul>
       </section>
-
+      <Link href="/budget" className="text-sm text-teal-700">برنامه‌ریزی وقت آزاد</Link>
       <section className="rounded-xl border border-slate-200 bg-white p-5" data-testid={TEST_IDS.LEISURE.BOOK}>
         <h2 className="text-lg font-semibold">پیشنهاد کتاب</h2>
         <p className="mt-2 text-sm">{book.title}</p>

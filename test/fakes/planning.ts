@@ -13,20 +13,23 @@ import {
   ScheduleConflictError,
 } from "@/modules/advising/domain/errors";
 import type {
+  FreeTimeBudget,
   HomeworkFilter,
   HomeworkItem,
+  HomeworkPlanEntry,
   NewHomework,
   NewScheduleEntry,
-  NewStudySession,
   ScheduleEntryPatch,
-  StudySessionRecord,
   WeeklyScheduleEntry,
 } from "@/modules/advising/domain/models";
 import { HOMEWORK_PRIORITY_LABEL, HOMEWORK_PRIORITY_RANK } from "@/modules/advising/domain/models";
 import type {
+  FreeTimeBudgetRepositoryPort,
+  HomeworkPlanRepositoryPort,
   HomeworkRepositoryPort,
   ScheduleRepositoryPort,
-  StudySessionRepositoryPort,
+  UpsertWithinCapacityResult,
+  UpsertWithinUsedResult,
 } from "@/modules/advising/domain/ports";
 
 export class FakeScheduleRepository implements ScheduleRepositoryPort {
@@ -190,11 +193,29 @@ export class FakeHomeworkRepository implements HomeworkRepositoryPort {
   }
 }
 
-export class FakeStudySessionRepository implements StudySessionRepositoryPort {
-  private readonly rows: StudySessionRecord[] = [];
+/**
+ * One in-memory table shared by both planning fakes, so a plan row is visible
+ * to the budget guard and a budget row is visible to the plan guard.
+ */
+export interface PlanningStore {
+  budgets: Map<string, FreeTimeBudget>;
+  plans: HomeworkPlanEntry[];
+}
+
+export function createPlanningStore(): PlanningStore {
+  return { budgets: new Map(), plans: [] };
+}
+
+function budgetKey(studentId: string, dayKey: string): string {
+  return `${studentId}:${dayKey}`;
+}
+
+export class FakeFreeTimeBudgetRepository implements FreeTimeBudgetRepositoryPort {
   private sequence = 0;
   writes = 0;
   private thrower: unknown = null;
+
+  constructor(private readonly store: PlanningStore = createPlanningStore()) {}
 
   throwOnCall(next: unknown): void {
     this.thrower = next;
@@ -208,37 +229,166 @@ export class FakeStudySessionRepository implements StudySessionRepositoryPort {
     }
   }
 
-  async create(input: NewStudySession): Promise<StudySessionRecord> {
-    this.maybeThrow();
+  /** Pre-loads a budget row without going through the guarded write path. */
+  seed(studentId: string, dayKey: string, freeMinutes: number): FreeTimeBudget {
     this.sequence += 1;
-    const row: StudySessionRecord = {
-      id: `study-${this.sequence}`,
-      studentId: input.studentId,
-      category: input.category,
-      subject: input.subject ?? null,
-      durationMinutes: input.durationMinutes,
-      focusLevel: input.focusLevel ?? null,
-      startedAt: input.startedAt,
-      createdAt: new Date(2026, 10, 1),
+    const row: FreeTimeBudget = {
+      id: `budget-${this.sequence}`,
+      studentId,
+      dayKey,
+      freeMinutes,
     };
-    this.rows.push(row);
-    this.writes += 1;
+    this.store.budgets.set(budgetKey(studentId, dayKey), row);
     return row;
+  }
+
+  private usedMinutes(studentId: string, dayKey: string): number {
+    return this.store.plans
+      .filter((r) => r.studentId === studentId && r.dayKey === dayKey)
+      .reduce((sum, r) => sum + r.plannedMinutes, 0);
+  }
+
+  async findByDay(studentId: string, dayKey: string): Promise<FreeTimeBudget | null> {
+    return this.store.budgets.get(budgetKey(studentId, dayKey)) ?? null;
+  }
+
+  async listInRange(
+    studentId: string,
+    fromKey: string,
+    toKey: string,
+  ): Promise<FreeTimeBudget[]> {
+    return [...this.store.budgets.values()]
+      .filter((r) => r.studentId === studentId && r.dayKey >= fromKey && r.dayKey <= toKey)
+      .sort((a, b) => (a.dayKey < b.dayKey ? -1 : a.dayKey > b.dayKey ? 1 : 0));
+  }
+
+  async upsertWithinUsed(input: {
+    studentId: string;
+    dayKey: string;
+    freeMinutes: number;
+    allows: (usedMinutes: number) => boolean;
+  }): Promise<UpsertWithinUsedResult> {
+    this.maybeThrow();
+    const usedMinutes = this.usedMinutes(input.studentId, input.dayKey);
+    if (!input.allows(usedMinutes)) return { ok: false, usedMinutes };
+    const key = budgetKey(input.studentId, input.dayKey);
+    const existing = this.store.budgets.get(key);
+    const row: FreeTimeBudget = existing
+      ? { ...existing, freeMinutes: input.freeMinutes }
+      : this.seed(input.studentId, input.dayKey, input.freeMinutes);
+    this.store.budgets.set(key, row);
+    this.writes += 1;
+    return { ok: true, budget: row };
+  }
+}
+
+export class FakeHomeworkPlanRepository implements HomeworkPlanRepositoryPort {
+  private sequence = 0;
+  writes = 0;
+  private thrower: unknown = null;
+
+  constructor(private readonly store: PlanningStore = createPlanningStore()) {}
+
+  throwOnCall(next: unknown): void {
+    this.thrower = next;
+  }
+
+  private maybeThrow(): void {
+    if (this.thrower !== null) {
+      const err = this.thrower;
+      this.thrower = null;
+      throw err;
+    }
+  }
+
+  /** Pre-loads a plan row without going through the capacity guard. */
+  seed(
+    studentId: string,
+    dayKey: string,
+    homeworkId: string,
+    plannedMinutes: number,
+  ): HomeworkPlanEntry {
+    this.sequence += 1;
+    const row: HomeworkPlanEntry = {
+      id: `plan-${this.sequence}`,
+      studentId,
+      dayKey,
+      homeworkId,
+      plannedMinutes,
+    };
+    this.store.plans.push(row);
+    return row;
+  }
+
+  async listByDay(studentId: string, dayKey: string): Promise<HomeworkPlanEntry[]> {
+    return this.store.plans.filter((r) => r.studentId === studentId && r.dayKey === dayKey);
   }
 
   async listByStudentInRange(
     studentId: string,
-    from: Date,
-    to: Date,
-  ): Promise<StudySessionRecord[]> {
-    return this.rows
+    fromKey: string,
+    toKey: string,
+  ): Promise<HomeworkPlanEntry[]> {
+    return this.store.plans
+      .filter((r) => r.studentId === studentId && r.dayKey >= fromKey && r.dayKey <= toKey)
+      .sort((a, b) => (a.dayKey < b.dayKey ? -1 : a.dayKey > b.dayKey ? 1 : 0));
+  }
+
+  async findByHomeworkAndDay(
+    homeworkId: string,
+    dayKey: string,
+  ): Promise<HomeworkPlanEntry | null> {
+    return (
+      this.store.plans.find((r) => r.homeworkId === homeworkId && r.dayKey === dayKey) ?? null
+    );
+  }
+
+  async upsertWithinCapacity(input: {
+    studentId: string;
+    homeworkId: string;
+    dayKey: string;
+    plannedMinutes: number;
+    allows: (current: { freeMinutes: number | null; usedMinutes: number }) => boolean;
+  }): Promise<UpsertWithinCapacityResult> {
+    this.maybeThrow();
+    const budget = this.store.budgets.get(budgetKey(input.studentId, input.dayKey));
+    if (!budget) return { ok: false, freeMinutes: null, usedMinutes: 0 };
+    const usedMinutes = this.store.plans
       .filter(
         (r) =>
-          r.studentId === studentId &&
-          r.startedAt.getTime() >= from.getTime() &&
-          r.startedAt.getTime() < to.getTime(),
+          r.studentId === input.studentId &&
+          r.dayKey === input.dayKey &&
+          r.homeworkId !== input.homeworkId,
       )
-      .sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime());
+      .reduce((sum, r) => sum + r.plannedMinutes, 0);
+    if (!input.allows({ freeMinutes: budget.freeMinutes, usedMinutes })) {
+      return { ok: false, freeMinutes: budget.freeMinutes, usedMinutes };
+    }
+    const index = this.store.plans.findIndex(
+      (r) => r.homeworkId === input.homeworkId && r.dayKey === input.dayKey,
+    );
+    const entry: HomeworkPlanEntry =
+      index >= 0
+        ? { ...this.store.plans[index], plannedMinutes: input.plannedMinutes }
+        : this.seed(
+            input.studentId,
+            input.dayKey,
+            input.homeworkId,
+            input.plannedMinutes,
+          );
+    if (index >= 0) this.store.plans[index] = entry;
+    this.writes += 1;
+    return { ok: true, entry };
+  }
+
+  async delete(input: { id: string; studentId: string }): Promise<void> {
+    this.maybeThrow();
+    const index = this.store.plans.findIndex(
+      (r) => r.id === input.id && r.studentId === input.studentId,
+    );
+    if (index < 0) throw new NotFoundError("plan");
+    this.store.plans.splice(index, 1);
+    this.writes += 1;
   }
 }
 
@@ -246,13 +396,16 @@ export class FakeStudySessionRepository implements StudySessionRepositoryPort {
 export interface PlanningFakes {
   schedule: FakeScheduleRepository;
   homework: FakeHomeworkRepository;
-  study: FakeStudySessionRepository;
+  budget: FakeFreeTimeBudgetRepository;
+  plans: FakeHomeworkPlanRepository;
 }
 
 export function createPlanningFakes(): PlanningFakes {
+  const store = createPlanningStore();
   return {
     schedule: new FakeScheduleRepository(),
     homework: new FakeHomeworkRepository(),
-    study: new FakeStudySessionRepository(),
+    budget: new FakeFreeTimeBudgetRepository(store),
+    plans: new FakeHomeworkPlanRepository(store),
   };
 }

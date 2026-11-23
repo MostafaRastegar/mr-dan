@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { Table, Button, Empty } from "antd";
 import type { HomeworkItem } from "@/modules/advising/domain/models";
 import { subjectLabel } from "@/modules/advising/domain/subjects";
@@ -90,8 +91,14 @@ export function HomeworkBoardView(props: HomeworkBoardViewProps): ReactNode {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">تکالیف</h1>
+        <Link
+          href={`/budget?date=${todayKey}`}
+          className="text-sm text-teal-700"
+        >
+          برنامه‌ریزی وقت
+        </Link>
       </div>
 
       {items.length === 0 ? (

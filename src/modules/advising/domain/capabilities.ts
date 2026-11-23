@@ -17,8 +17,8 @@ export type Capability =
   | "schedule:write"
   | "homework:read"
   | "homework:write"
-  | "study:read"
-  | "study:write"
+  | "budget:read"
+  | "budget:write"
   | "nutrition:read"
   | "nutrition:write"
   | "leisure:read"
@@ -35,8 +35,8 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "schedule:write",
     "homework:read",
     "homework:write",
-    "study:read",
-    "study:write",
+    "budget:read",
+    "budget:write",
     "nutrition:read",
     "nutrition:write",
     "leisure:read",
@@ -50,8 +50,8 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "schedule:write",
     "homework:read",
     "homework:write",
-    "study:read",
-    "study:write",
+    "budget:read",
+    "budget:write",
     "nutrition:read",
     "nutrition:write",
     "leisure:read",
@@ -65,8 +65,8 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "schedule:write",
     "homework:read",
     "homework:write",
-    "study:read",
-    "study:write",
+    "budget:read",
+    "budget:write",
     "nutrition:read",
     "nutrition:write",
     "leisure:read",

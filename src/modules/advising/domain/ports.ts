@@ -6,23 +6,23 @@
  */
 
 import type {
+  FreeTimeBudget,
   GroupSummary,
   HomeworkFilter,
   HomeworkItem,
+  HomeworkPlanEntry,
   MealPlanRecord,
   NewGroup,
   NewMealPlan,
   NewUser,
   NewHomework,
   NewScheduleEntry,
-  NewStudySession,
   PhysicalProfile,
   PhysicalProfilePatch,
   ProfilePatch,
   ProfileView,
   ScheduleEntryPatch,
   SessionRecord,
-  StudySessionRecord,
   StudentSummary,
   UserAccount,
   WeeklyScheduleEntry,
@@ -88,9 +88,44 @@ export interface HomeworkRepositoryPort {
   delete(id: string): Promise<void>;
 }
 
-export interface StudySessionRepositoryPort {
-  create(input: NewStudySession): Promise<StudySessionRecord>;
-  listByStudentInRange(studentId: string, from: Date, to: Date): Promise<StudySessionRecord[]>;
+export type UpsertWithinUsedResult =
+  | { ok: true; budget: FreeTimeBudget }
+  | { ok: false; usedMinutes: number };
+
+export type UpsertWithinCapacityResult =
+  | { ok: true; entry: HomeworkPlanEntry }
+  | { ok: false; freeMinutes: number | null; usedMinutes: number };
+
+export interface FreeTimeBudgetRepositoryPort {
+  findByDay(studentId: string, dayKey: string): Promise<FreeTimeBudget | null>;
+  listInRange(studentId: string, fromKey: string, toKey: string): Promise<FreeTimeBudget[]>;
+  /** `usedMinutes` is the day's planned total; `allows` decides whether the write may proceed. */
+  upsertWithinUsed(input: {
+    studentId: string;
+    dayKey: string;
+    freeMinutes: number;
+    allows: (usedMinutes: number) => boolean;
+  }): Promise<UpsertWithinUsedResult>;
+}
+
+export interface HomeworkPlanRepositoryPort {
+  listByDay(studentId: string, dayKey: string): Promise<HomeworkPlanEntry[]>;
+  listByStudentInRange(
+    studentId: string,
+    fromKey: string,
+    toKey: string,
+  ): Promise<HomeworkPlanEntry[]>;
+  findByHomeworkAndDay(homeworkId: string, dayKey: string): Promise<HomeworkPlanEntry | null>;
+  /** `usedMinutes` excludes the row being upserted; `allows` decides whether the write may proceed. */
+  upsertWithinCapacity(input: {
+    studentId: string;
+    homeworkId: string;
+    dayKey: string;
+    plannedMinutes: number;
+    allows: (current: { freeMinutes: number | null; usedMinutes: number }) => boolean;
+  }): Promise<UpsertWithinCapacityResult>;
+  /** Student-scoped so an id from another student can never be deleted. */
+  delete(input: { id: string; studentId: string }): Promise<void>;
 }
 
 export interface MealPlanRepositoryPort {

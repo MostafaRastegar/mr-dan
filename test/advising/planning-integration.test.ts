@@ -10,16 +10,19 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { prisma } from "@/shared/prisma";
+import { dayCapacity, fitsCapacity } from "@/modules/advising/domain/free-time";
+import { PrismaFreeTimeBudgetRepository } from "@/modules/advising/infrastructure/prisma-free-time-budget-repository";
+import { PrismaHomeworkPlanRepository } from "@/modules/advising/infrastructure/prisma-homework-plan-repository";
 import { PrismaHomeworkRepository } from "@/modules/advising/infrastructure/prisma-homework-repository";
 import { PrismaScheduleRepository } from "@/modules/advising/infrastructure/prisma-schedule-repository";
-import { PrismaStudySessionRepository } from "@/modules/advising/infrastructure/prisma-study-session-repository";
 import { PrismaUserRepository } from "@/modules/advising/infrastructure/prisma-user-repository";
 import type { NewUser } from "@/modules/advising/domain/models";
 
 const users = new PrismaUserRepository();
 const schedule = new PrismaScheduleRepository();
 const homework = new PrismaHomeworkRepository();
-const study = new PrismaStudySessionRepository();
+const budgets = new PrismaFreeTimeBudgetRepository();
+const plans = new PrismaHomeworkPlanRepository();
 
 const RUN = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 const PASSWORD_HASH = `scrypt$16384$8$1$${"a".repeat(22)}$${"b".repeat(64)}`;
@@ -99,29 +102,36 @@ describe("planning integration (real Postgres)", () => {
       endMinute: 540,
       subject: "zist",
     });
-    await homework.create({
+    const task = await homework.create({
       studentId: user.id,
       title: "پrašش",
       subject: null,
       priority: 2,
       deadline: new Date("2026-12-01T20:30:00Z"),
     });
-    await study.create({
+    const dayKey = "2026-12-01";
+    await budgets.upsertWithinUsed({
       studentId: user.id,
-      category: "study",
-      subject: null,
-      durationMinutes: 30,
-      focusLevel: null,
-      startedAt: new Date("2026-11-23T08:00:00Z"),
+      dayKey,
+      freeMinutes: 120,
+      allows: () => true,
     });
+    const planned = await plans.upsertWithinCapacity({
+      studentId: user.id,
+      homeworkId: task.id,
+      dayKey,
+      plannedMinutes: 60,
+      allows: ({ freeMinutes, usedMinutes }) =>
+        fitsCapacity(dayCapacity(freeMinutes, usedMinutes), 60),
+    });
+    expect(planned.ok).toBe(true);
 
     await prisma.user.delete({ where: { id: user.id } });
 
     expect(await schedule.listByStudent(user.id)).toEqual([]);
     expect(await homework.listByStudent(user.id, "all")).toEqual([]);
-    expect(
-      await study.listByStudentInRange(user.id, new Date(0), new Date()),
-    ).toEqual([]);
+    expect(await prisma.freeTimeBudget.count({ where: { studentId: user.id } })).toBe(0);
+    expect(await prisma.homeworkPlanEntry.count({ where: { studentId: user.id } })).toBe(0);
   });
 
   it("unknown entry", async () => {
@@ -187,34 +197,5 @@ describe("planning integration (real Postgres)", () => {
 
     await homework.delete(created.id);
     expect(await homework.listByStudent(user.id, "all")).toEqual([]);
-  });
-
-  it("study session round-trip", async () => {
-    if (!live) return;
-
-    const user = await users.create(student("study-rt"));
-    const started = new Date("2026-11-23T17:00:00Z");
-    const created = await study.create({
-      studentId: user.id,
-      category: "study",
-      subject: null,
-      durationMinutes: 45,
-      focusLevel: 4,
-      startedAt: started,
-    });
-    expect(created.durationMinutes).toBe(45);
-
-    const list = await study.listByStudentInRange(
-      user.id,
-      new Date("2026-11-23T00:00:00Z"),
-      new Date("2026-11-24T00:00:00Z"),
-    );
-    expect(list).toHaveLength(1);
-    expect(list[0].id).toBe(created.id);
-
-    await prisma.studySession.delete({ where: { id: created.id } });
-    expect(
-      await study.listByStudentInRange(user.id, new Date(0), new Date()),
-    ).toEqual([]);
   });
 });

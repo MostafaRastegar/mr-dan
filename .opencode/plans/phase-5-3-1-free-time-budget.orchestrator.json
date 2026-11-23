@@ -1,0 +1,224 @@
+{
+  "feature": "phase-5-3-1-free-time-budget",
+  "phase": "implement",
+  "plan": ".opencode/plans/phase-5-3-1-free-time-budget.md",
+  "plan_sha256": "81a8d72ae350b92675b606a0055aba8ec0cb1844",
+  "review": ".opencode/reviews/phase-5-3-1-free-time-budget.md",
+  "test_log": ".opencode/reviews/phase-5-3-1-free-time-budget.tests.log",
+  "readme": {
+    "path": "README.md",
+    "state": "pending"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "pending"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-persistence",
+    "mr-dan-api",
+    "mr-dan-frontend",
+    "mr-dan-frontend-debugging",
+    "mr-dan-feature-workflow",
+    "mr-dan-testing-parity",
+    "mr-dan-devops",
+    "mro-data-model",
+    "mro-code-review-checklist",
+    "mro-behavior-docs",
+    "mro-project-stack"
+  ],
+  "sessions": {
+    "architect": null,
+    "implementer": "ses_df714356dffeJLvW2GfFoeESIi",
+    "reviewer": null,
+    "test": null
+  },
+  "acceptance": {
+    "total": 29,
+    "confirmed": 0,
+    "pending": 29,
+    "deferred": 0
+  },
+  "changed_files": [
+    "src/modules/advising/domain/day-key.ts",
+    "src/modules/advising/domain/free-time.ts",
+    "src/modules/advising/domain/day-key.test.ts",
+    "src/modules/advising/domain/free-time.test.ts",
+    "src/modules/advising/domain/leisure.ts",
+    "src/modules/advising/domain/leisure.test.ts",
+    "src/modules/advising/application/leisure.ts",
+    "src/modules/advising/application/leisure.test.ts",
+    "prisma/schema.prisma",
+    "prisma/migrations/20261123142653_phase_5_3_1_free_time_budget/migration.sql",
+    ".opencode/backups/2026-11-23-studysession.sql",
+    "src/modules/advising/domain/models.ts",
+    "src/modules/advising/domain/ports.ts",
+    "src/modules/advising/domain/errors.ts",
+    "src/modules/advising/domain/capabilities.ts",
+    "src/modules/advising/domain/capabilities.test.ts",
+    "src/modules/advising/application/planning-access.ts",
+    "src/modules/advising/infrastructure/prisma-free-time-budget-repository.ts",
+    "src/modules/advising/infrastructure/prisma-homework-plan-repository.ts",
+    "test/fakes/planning.ts",
+    "test/fakes/nutrition-leisure.ts",
+    "src/modules/advising/domain/capabilities.test.ts",
+    "src/modules/advising/application/free-time.ts",
+    "src/modules/advising/application/homework-plan.ts",
+    "src/modules/advising/application/free-time.test.ts",
+    "src/modules/advising/application/homework-plan.test.ts",
+    "src/modules/advising/domain/day-key.ts",
+    "src/modules/advising/domain/errors.ts",
+    "src/server/container.ts",
+    "src/constants/test-ids.ts",
+    "src/app/(advising)/layout.tsx",
+    "src/modules/advising/domain/ports.ts",
+    "src/modules/advising/infrastructure/prisma-homework-plan-repository.ts",
+    "src/modules/advising/application/homework-plan.ts",
+    "src/modules/advising/application/homework-plan.test.ts",
+    "test/fakes/planning.ts",
+    "test/advising/planning-integration.test.ts",
+    "src/modules/advising/presentation/time-value.ts",
+    "src/modules/advising/presentation/time-value.test.ts",
+    "src/modules/advising/presentation/free-time-schemas.ts",
+    "src/modules/advising/presentation/free-time-schemas.test.ts",
+    "src/modules/advising/presentation/messages.ts",
+    "src/modules/advising/presentation/planning-format.ts",
+    "src/app/(advising)/budget/budget.actions.ts",
+    "src/app/(advising)/budget/_components/free-time-form.vm.tsx",
+    "src/app/(advising)/budget/_components/free-time-form.view.tsx",
+    "src/app/(advising)/budget/_components/plan-form.vm.tsx",
+    "src/app/(advising)/budget/_components/plan-form.view.tsx",
+    "src/app/(advising)/budget/_components/plan-list.view.tsx",
+    "src/modules/advising/application/free-time.ts",
+    "src/app/(advising)/budget/page.tsx",
+    "src/app/(advising)/budget/budget-day.vm.tsx",
+    "src/app/(advising)/budget/budget-day.view.tsx",
+    "src/app/(advising)/homework/homework-board.view.tsx",
+    "src/app/(advising)/leisure/page.tsx",
+    "tests/e2e/advising-planning.spec.ts",
+    "src/constants/test-ids.ts",
+    "src/app/(advising)/budget/budget-day.vm.tsx"
+  ],
+  "test_exit_codes": [
+    {
+      "command": "pnpm test --run src/modules/advising/domain",
+      "exit": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/architecture.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm exec prisma migrate status",
+      "exit": 0
+    },
+    {
+      "command": "pnpm exec prisma validate",
+      "exit": 0
+    },
+    {
+      "command": "typecheck (expected RED with 3 study-surface errors until stage D)",
+      "exit": 1
+    },
+    {
+      "command": "pnpm test --run src/modules/advising/domain",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run src/modules/advising/domain/capabilities.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run src/modules/advising/domain",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run src/modules/advising/domain (50 tests)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run src/modules/advising/application",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/architecture.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 1
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run src/modules/advising/presentation",
+      "exit": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/architecture.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test (262 tests)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit": 1
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0
+    },
+    {
+      "command": "E2E_ENABLED=true pnpm test:e2e tests/e2e/advising-planning.spec.ts (6 passed)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test (262 tests)",
+      "exit": 0
+    }
+  ],
+  "review_round": 0,
+  "severity_history": [],
+  "approvals": {
+    "plan": "2026-11-23T14:20:27.011Z",
+    "final": null
+  },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 3
+  },
+  "log": ".opencode/plans/phase-5-3-1-free-time-budget.log.jsonl",
+  "blockers": "none"
+}

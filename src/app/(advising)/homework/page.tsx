@@ -2,7 +2,7 @@ import { HomeworkBoardWrapper } from "./homework-board.vm";
 import { getContainer } from "@/server/container";
 import { requireCapability } from "@/server/advising-guards";
 import { hasCapability } from "@/modules/advising/domain/capabilities";
-import { studyDayKey } from "@/modules/advising/application/study-metrics";
+import { iranDayKey } from "@/modules/advising/domain/day-key";
 
 export const metadata = { title: "تکالیف — mr-dan" };
 
@@ -16,7 +16,7 @@ export default async function HomeworkPage() {
     <HomeworkBoardWrapper
       items={items}
       canWrite={hasCapability(user.role, "homework:write")}
-      todayKey={studyDayKey(new Date())}
+      todayKey={iranDayKey(new Date())}
     />
   );
 }

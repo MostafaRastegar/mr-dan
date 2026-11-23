@@ -1,67 +1,84 @@
 import { describe, expect, it } from "vitest";
 
-import { createNutritionLeisureFakes } from "../../../../test/fakes/nutrition-leisure";
+import { createPlanningFakes } from "../../../../test/fakes/planning";
 import { GetLeisureSuggestionUseCase } from "@/modules/advising/application/leisure";
+import { iranDayKey, shiftDayKey, startOfIranDay } from "@/modules/advising/domain/day-key";
 
 const student = { id: "s1", role: "student" as const };
+const TODAY = new Date("2026-11-23T12:00:00Z"); // 2026-11-23 in Iran
+const TODAY_KEY = iranDayKey(TODAY);
 
 describe("leisure use case", () => {
-  it("leisure uses study minutes", async () => {
-    const fakes = createNutritionLeisureFakes();
-    const now = new Date("2026-11-23T12:00:00Z");
+  it("leisure reads budget rows in the last seven days", async () => {
+    const fakes = createPlanningFakes();
 
-    await fakes.study.create({
-      studentId: student.id,
-      category: "study",
-      durationMinutes: 600,
-      startedAt: new Date("2026-11-18T09:00:00Z"),
-    });
-    await fakes.study.create({
-      studentId: student.id,
-      category: "study",
-      durationMinutes: 120,
-      startedAt: new Date("2026-11-22T09:00:00Z"),
-    });
-    await fakes.study.create({
-      studentId: student.id,
-      category: "break",
-      durationMinutes: 50,
-      startedAt: new Date("2026-11-22T10:00:00Z"),
-    });
-    await fakes.study.create({
-      studentId: student.id,
-      category: "waste",
-      durationMinutes: 30,
-      startedAt: new Date("2026-11-22T11:00:00Z"),
-    });
+    fakes.budget.seed(student.id, shiftDayKey(TODAY_KEY, -6), 120);
+    fakes.budget.seed(student.id, TODAY_KEY, 300);
+    fakes.budget.seed(student.id, shiftDayKey(TODAY_KEY, -7), 999); // outside: before
+    fakes.budget.seed(student.id, shiftDayKey(TODAY_KEY, 1), 999); // outside: after
+
+    fakes.plans.seed(student.id, shiftDayKey(TODAY_KEY, -3), "hw-1", 90);
+    fakes.plans.seed(student.id, shiftDayKey(TODAY_KEY, -7), "hw-2", 555); // outside
+
+    const result = await new GetLeisureSuggestionUseCase(
+      fakes.budget,
+      fakes.plans,
+      fakes.homework,
+    ).execute({ actor: student, today: TODAY });
+
+    expect(result.inputs.freeMinutes7d).toBe(420);
+    expect(result.inputs.plannedMinutes7d).toBe(90);
+    expect(result.suggestion.code).toBe("low_activity");
+  });
+
+  it("leisure ignores missing budget days", async () => {
+    const fakes = createPlanningFakes();
+
+    fakes.budget.seed(student.id, shiftDayKey(TODAY_KEY, -3), 60);
+    fakes.budget.seed(student.id, shiftDayKey(TODAY_KEY, -1), 90);
+    fakes.plans.seed(student.id, shiftDayKey(TODAY_KEY, -4), "hw-1", 120);
+
+    const result = await new GetLeisureSuggestionUseCase(
+      fakes.budget,
+      fakes.plans,
+      fakes.homework,
+    ).execute({ actor: student, today: TODAY });
+
+    // Two seeded days only; the five absent days contribute 0, never an assumed 840.
+    expect(result.inputs.freeMinutes7d).toBe(150);
+    expect(result.inputs.plannedMinutes7d).toBe(120);
+    expect(result.suggestion.code).toBe("low_activity");
+  });
+
+  it("leisure counts overdue homework by Iran day", async () => {
+    const fakes = createPlanningFakes();
+
+    const yesterdayNoon = new Date(`${shiftDayKey(TODAY_KEY, -1)}T12:00:00Z`);
+    const tomorrowNoon = new Date(`${shiftDayKey(TODAY_KEY, 1)}T12:00:00Z`);
+    const overdueDeadline = startOfIranDay(yesterdayNoon); // Iran midnight yesterday
+    const endOfToday = new Date(startOfIranDay(tomorrowNoon).getTime() - 60_000); // 23:59 Iran today
 
     await fakes.homework.create({
       studentId: student.id,
       title: "overdue",
       priority: 2,
-      deadline: new Date("2026-11-20T00:00:00Z"),
+      deadline: overdueDeadline,
     });
     await fakes.homework.create({
       studentId: student.id,
-      title: "upcoming",
+      title: "due tonight",
       priority: 1,
-      deadline: new Date("2026-11-25T00:00:00Z"),
+      deadline: endOfToday,
     });
 
-    const useCase = new GetLeisureSuggestionUseCase(fakes.study, fakes.homework);
-    const result = await useCase.execute({
-      actor: student,
-      today: now,
-      fieldOfStudy: "ریاضی فیزیک",
-    });
+    const result = await new GetLeisureSuggestionUseCase(
+      fakes.budget,
+      fakes.plans,
+      fakes.homework,
+    ).execute({ actor: student, today: TODAY });
 
-    expect(result.inputs).toEqual({
-      studyMinutes7d: 720,
-      studyMinutes3d: 120,
-      pendingHomework: 2,
-      overdueHomework: 1,
-    });
+    expect(result.inputs.pendingHomework).toBe(2);
+    expect(result.inputs.overdueHomework).toBe(1);
     expect(result.suggestion.code).toBe("low_activity");
-    expect(result.book.id).toBe("atomic-habits");
   });
 });

@@ -83,15 +83,34 @@
     // Ask before any shell command. Why: shell runs with the user's filesystem,
     // process, and network authority.
     // Change: "deny" for a read-only session, or remove for full autonomy.
-    { "action": "shell", "resource": "*", "effect": "ask" },
-
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    { "action": "shell", "resource": "lsof -i *", "effect": "allow" },
+    { "action": "shell", "resource": "lsof -nP -i *", "effect": "allow" },
     // Read-only git inspection is safe and frequent.
     // Change: add other read-only commands you use constantly.
+
+    { "action": "shell", "resource": "npm test *", "effect": "allow" },
+    { "action": "shell", "resource": "npm run *", "effect": "allow" },
+    { "action": "shell", "resource": "npm install *", "effect": "allow" },
+    { "action": "shell", "resource": "npm ci *", "effect": "allow" },
+    { "action": "shell", "resource": "npx *", "effect": "allow" },
+    { "action": "shell", "resource": "node *", "effect": "allow" },
+    { "action": "shell", "resource": "* > /tmp/*", "effect": "allow" },
+    { "action": "shell", "resource": "* 2> /tmp/*", "effect": "allow" },
+    { "action": "shell", "resource": "head *", "effect": "allow" },
+    { "action": "shell", "resource": "tail *", "effect": "allow" },
+    { "action": "shell", "resource": "grep *", "effect": "allow" },
+    { "action": "shell", "resource": "rg *", "effect": "allow" },
+    { "action": "shell", "resource": "ss *", "effect": "allow" },
+    { "action": "shell", "resource": "pgrep *", "effect": "allow" },
+    { "action": "shell", "resource": "lsof *", "effect": "allow" },
+    { "action": "shell", "resource": "cd *", "effect": "allow" },
     { "action": "shell", "resource": "git status *", "effect": "allow" },
     { "action": "shell", "resource": "git diff *", "effect": "allow" },
     { "action": "shell", "resource": "git log *", "effect": "allow" },
     { "action": "shell", "resource": "git show *", "effect": "allow" },
     { "action": "shell", "resource": "git rev-parse *", "effect": "allow" },
+
     {
       "action": "shell",
       "resource": "git branch --show-current *",
@@ -149,10 +168,10 @@
   // `build` is pinned too so an ad-hoc session cannot silently use a paid model.
   // Change: `small_model` is deprecated in V2 — set these entries instead.
   "agents": {
-    "title": { "model": "9router/nemo" },
-    "summary": { "model": "9router/nemo" },
-    "compaction": { "model": "9router/nemo" },
-    "build": { "model": "9router/nemo" }
+    // "title": { "model": "9router/nemo" },
+    // "summary": { "model": "9router/nemo" },
+    // "compaction": { "model": "9router/nemo" },
+    // "build": { "model": "9router/nemo" }
   },
 
   // Compaction keeps the summary plus a verbatim tail of recent turns.

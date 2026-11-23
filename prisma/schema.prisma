@@ -94,7 +94,7 @@ model User {
   sessions    Session[]
   weeklySchedule WeeklySchedule[] @relation("StudentSchedule")
   homework       Homework[]       @relation("StudentHomework")
-  studySessions  StudySession[]   @relation("StudentStudySessions")
+  freeTimeBudgets FreeTimeBudget[] @relation("StudentFreeTimeBudgets")
   mealPlans      MealPlan[]       @relation("StudentMealPlans")
 
   createdAt DateTime @default(now())
@@ -133,21 +133,38 @@ model Homework {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime @updatedAt
 
+  planEntries HomeworkPlanEntry[]
+
   @@index([studentId, completedAt, priority])
 }
 
-model StudySession {
-  id              String   @id @default(uuid())
-  studentId       String
-  student         User     @relation("StudentStudySessions", fields: [studentId], references: [id], onDelete: Cascade)
-  category        String   // study | break | waste — zod-validated, not a PG enum (matches User.role)
-  subject         String?  // slug from domain/subjects.ts; null = «بدون درس»
-  durationMinutes Int
-  focusLevel      Int?     // 1..5; only meaningful for category = study
-  startedAt       DateTime
-  createdAt       DateTime @default(now())
+model FreeTimeBudget {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     User     @relation("StudentFreeTimeBudgets", fields: [studentId], references: [id], onDelete: Cascade)
+  dayKey      String // "YYYY-MM-DD" Iran day (UTC+03:30)
+  freeMinutes Int // 0..1439, validated at the boundary; never negative
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@index([studentId, startedAt])
+  planEntries HomeworkPlanEntry[]
+
+  @@unique([studentId, dayKey])
+}
+
+model HomeworkPlanEntry {
+  id             String         @id @default(uuid())
+  studentId      String // part of the composite FK to FreeTimeBudget
+  dayKey         String
+  budget         FreeTimeBudget @relation(fields: [studentId, dayKey], references: [studentId, dayKey], onDelete: Cascade, onUpdate: Cascade)
+  homeworkId     String
+  homework       Homework       @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  plannedMinutes Int // 1..1439
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([homeworkId, dayKey])
+  @@index([studentId, dayKey])
 }
 
 model MealPlan {

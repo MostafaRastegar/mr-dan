@@ -25,7 +25,7 @@ import type {
   MealPlanRepositoryPort,
   UserRepositoryPort,
 } from "@/modules/advising/domain/ports";
-import { studyDayKey } from "@/modules/advising/application/study-metrics";
+import { iranDayKey } from "@/modules/advising/domain/day-key";
 
 const EMPTY_PROFILE: PhysicalProfile = {
   age: null,
@@ -71,7 +71,7 @@ export class GetNutritionOverviewUseCase {
     const profile = stored ?? EMPTY_PROFILE;
     const energy = isPhysicalProfileComplete(profile) ? computeEnergy(profile) : null;
 
-    const todayKey = studyDayKey(input.now ?? new Date());
+    const todayKey = iranDayKey(input.now ?? new Date());
     const todayPlan = await this.mealPlans.findByDay(ownerId, todayKey);
 
     return { profile, energy, todayKey, todayPlan };
@@ -114,7 +114,7 @@ export class SaveMealPlanUseCase {
     const { targetCalories } = computeEnergy(profile);
     return this.mealPlans.upsert({
       studentId: ownerId,
-      dayKey: studyDayKey(input.now ?? new Date()),
+      dayKey: iranDayKey(input.now ?? new Date()),
       targetCalories,
       meals: mealDistribution(targetCalories),
     });

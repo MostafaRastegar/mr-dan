@@ -39,6 +39,36 @@ export class ScheduleConflictError extends AppError {
   }
 }
 
+export class PlanOverCapacityError extends AppError {
+  constructor(message: string, cause?: unknown) {
+    super("plan_over_capacity", 409, message, cause);
+  }
+}
+
+export class FreeTimeBelowPlannedError extends AppError {
+  constructor(message: string, cause?: unknown) {
+    super("free_time_below_planned", 409, message, cause);
+  }
+}
+
+export class PlanConcurrencyError extends AppError {
+  constructor(cause?: unknown) {
+    super("plan_concurrent_write", 409, "برنامه هم‌زمان تغییر کرد؛ دوباره تلاش کنید", cause);
+  }
+}
+
+export class HomeworkCompletedError extends AppError {
+  constructor(cause?: unknown) {
+    super("homework_completed", 409, "این تکلیف قبلاً تکمیل شده است", cause);
+  }
+}
+
+export class PlanAfterDeadlineError extends AppError {
+  constructor(cause?: unknown) {
+    super("plan_after_deadline", 400, "تاریخ برنامه‌ریزی بعد از مهلت تکلیف است", cause);
+  }
+}
+
 export class ProfileIncompleteError extends AppError {
   constructor(cause?: unknown) {
     super("profile_incomplete", 422, "Physical profile is incomplete", cause);

@@ -33,7 +33,7 @@ describe("CAPABILITIES student write", () => {
   const writeCaps = [
     "schedule:write",
     "homework:write",
-    "study:write",
+    "budget:write",
   ] as const;
 
   it("student has all planning write capabilities", () => {
@@ -43,7 +43,14 @@ describe("CAPABILITIES student write", () => {
   });
 
   it("counselor has planning read and write capabilities", () => {
-    for (const cap of ["schedule:read", "schedule:write", "homework:read", "homework:write", "study:read", "study:write"] as const) {
+    for (const cap of [
+      "schedule:read",
+      "schedule:write",
+      "homework:read",
+      "homework:write",
+      "budget:read",
+      "budget:write",
+    ] as const) {
       expect(hasCapability("counselor", cap)).toBe(true);
     }
   });

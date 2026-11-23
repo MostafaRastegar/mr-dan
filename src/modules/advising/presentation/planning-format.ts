@@ -5,9 +5,8 @@
  * strings where `Intl` provides them.
  */
 
+import { iranDayKey } from "../domain/day-key";
 import type { HomeworkItem } from "../domain/models";
-
-const IRAN_OFFSET_MINUTES = 210; // UTC+03:30
 
 const timeFormatter = new Intl.NumberFormat("fa-IR", {
   minimumIntegerDigits: 2,
@@ -38,11 +37,6 @@ export function formatDuration(minutes: number): string {
   return `${timeFormatter.format(m)}د`;
 }
 
-function toIranDayKey(date: Date): string {
-  const shifted = date.getTime() + IRAN_OFFSET_MINUTES * 60 * 1000;
-  return new Date(shifted).toISOString().slice(0, 10);
-}
-
 export type HomeworkStatus = "done" | "overdue" | "today" | "upcoming";
 
 export function homeworkStatus(
@@ -50,7 +44,7 @@ export function homeworkStatus(
   todayKey: string,
 ): HomeworkStatus {
   if (item.completedAt !== null) return "done";
-  const deadlineKey = toIranDayKey(item.deadline);
+  const deadlineKey = iranDayKey(item.deadline);
   if (deadlineKey < todayKey) return "overdue";
   if (deadlineKey === todayKey) return "today";
   return "upcoming";

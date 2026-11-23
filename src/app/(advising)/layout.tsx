@@ -52,13 +52,13 @@ export default async function AdvisingLayout({
                 تکالیف
               </Link>
             ) : null}
-            {hasCapability(user.role, "study:read") ? (
+            {hasCapability(user.role, "budget:read") ? (
               <Link
-                href="/study"
+                href="/budget"
                 className="flex items-center gap-1 text-slate-700"
-                data-testid={TEST_IDS.NAV.STUDY}
+                data-testid={TEST_IDS.NAV.BUDGET}
               >
-                تایمر مطالعه
+                وقت آزاد
               </Link>
             ) : null}
             {hasCapability(user.role, "nutrition:read") ? (

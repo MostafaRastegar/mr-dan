@@ -3,47 +3,72 @@ import { describe, expect, it } from "vitest";
 import { suggestLeisure, type LeisureInputs } from "./leisure";
 
 const zero: LeisureInputs = {
-  studyMinutes7d: 0,
-  studyMinutes3d: 0,
+  plannedMinutes7d: 0,
+  freeMinutes7d: 0,
   pendingHomework: 0,
   overdueHomework: 0,
 };
 
 describe("suggestLeisure", () => {
-  it("leisure critical fatigue", () => {
-    const threeDay = suggestLeisure({ ...zero, studyMinutes3d: 900 });
-    expect(threeDay.code).toBe("critical_fatigue");
-
-    const sevenDay = suggestLeisure({ ...zero, studyMinutes7d: 2100 });
-    expect(sevenDay.code).toBe("critical_fatigue");
-
-    expect(threeDay.actions.length).toBeGreaterThanOrEqual(2);
-    expect(sevenDay.actions.length).toBeGreaterThanOrEqual(2);
+  it("leisure critical fatigue at ninety percent", () => {
+    const suggestion = suggestLeisure({
+      ...zero,
+      plannedMinutes7d: 1080,
+      freeMinutes7d: 1200,
+    });
+    expect(suggestion.code).toBe("critical_fatigue");
+    expect(suggestion.actions.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("leisure heavy workload", () => {
-    const overdue = suggestLeisure({ ...zero, overdueHomework: 3 });
-    expect(overdue.code).toBe("heavy_workload");
-
-    // Satisfies branch 2 (pending 8) and branch 3 (7d 1600): precedence wins.
-    const pending = suggestLeisure({
+  it("leisure heavy workload beats utilization", () => {
+    // 900/1200 = 0.75 would be overloaded_week; the backlog branch comes first.
+    const heavy = suggestLeisure({
       ...zero,
-      studyMinutes7d: 1600,
+      plannedMinutes7d: 900,
+      freeMinutes7d: 1200,
+      overdueHomework: 3,
+    });
+    expect(heavy.code).toBe("heavy_workload");
+
+    // Both critical and heavy hold; branch order puts critical first.
+    const both = suggestLeisure({
+      ...zero,
+      plannedMinutes7d: 1080,
+      freeMinutes7d: 1200,
       pendingHomework: 8,
     });
-    expect(pending.code).toBe("heavy_workload");
+    expect(both.code).toBe("critical_fatigue");
   });
 
-  it("leisure overloaded week", () => {
-    const suggestion = suggestLeisure({ ...zero, studyMinutes7d: 1500 });
+  it("leisure overloaded week at seventy-five percent", () => {
+    const suggestion = suggestLeisure({
+      ...zero,
+      plannedMinutes7d: 900,
+      freeMinutes7d: 1100,
+    });
     expect(suggestion.code).toBe("overloaded_week");
   });
 
-  it("leisure zero input", () => {
-    const suggestion = suggestLeisure(zero);
-    expect(suggestion.code).toBe("low_activity");
-    expect(suggestion.actions.length).toBeGreaterThanOrEqual(2);
-    for (const action of suggestion.actions) {
+  it("leisure balanced week in the middle band", () => {
+    const suggestion = suggestLeisure({
+      ...zero,
+      plannedMinutes7d: 300,
+      freeMinutes7d: 600,
+    });
+    expect(suggestion.code).toBe("balanced");
+  });
+
+  it("leisure zero budget means low activity", () => {
+    expect(suggestLeisure(zero).code).toBe("low_activity");
+
+    const smallWeek = suggestLeisure({
+      ...zero,
+      plannedMinutes7d: 120,
+      freeMinutes7d: 840,
+    });
+    expect(smallWeek.code).toBe("low_activity");
+    expect(smallWeek.actions.length).toBeGreaterThanOrEqual(2);
+    for (const action of smallWeek.actions) {
       expect(action.length).toBeGreaterThan(0);
     }
   });

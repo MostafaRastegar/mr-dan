@@ -17,7 +17,7 @@ export type Actor = { id: string; role: Role };
 export type PlanCapability =
   | "schedule:write"
   | "homework:write"
-  | "study:write"
+  | "budget:write"
   | "nutrition:write";
 
 export function assertPlanWrite(

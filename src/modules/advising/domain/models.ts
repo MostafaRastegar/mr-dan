@@ -127,11 +127,6 @@ export const DAYS_OF_WEEK: readonly { day: number; label: string }[] = [
 
 export type DayOfWeek = (typeof DAYS_OF_WEEK)[number]["day"];
 
-/** study | break | waste — zod-validated at the boundary, not a PG enum. */
-export const STUDY_CATEGORIES = ["study", "break", "waste"] as const;
-
-export type StudyCategory = (typeof STUDY_CATEGORIES)[number];
-
 /** 3 = high, 2 = medium, 1 = low. Postgres orders ints, text would need in-memory sort. */
 export const HOMEWORK_PRIORITIES = { low: 1, medium: 2, high: 3 } as const;
 
@@ -205,24 +200,26 @@ export interface NewHomework {
 
 export type HomeworkFilter = "all" | "pending" | "done";
 
-export interface StudySessionRecord {
+export interface FreeTimeBudget {
   id: string;
   studentId: string;
-  category: StudyCategory;
-  subject: string | null;
-  durationMinutes: number;
-  focusLevel: number | null;
-  startedAt: Date;
-  createdAt: Date;
+  dayKey: string;
+  freeMinutes: number;
 }
 
-export interface NewStudySession {
+export interface HomeworkPlanEntry {
+  id: string;
   studentId: string;
-  category: StudyCategory;
-  subject?: string | null;
-  durationMinutes: number;
-  focusLevel?: number | null;
-  startedAt: Date;
+  dayKey: string;
+  homeworkId: string;
+  plannedMinutes: number;
+}
+
+export interface NewHomeworkPlanEntry {
+  studentId: string;
+  dayKey: string;
+  homeworkId: string;
+  plannedMinutes: number;
 }
 
 export interface MealPlanItem {

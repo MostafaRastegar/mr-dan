@@ -9,8 +9,10 @@
 
 import { FakeUserRepository } from "./advising";
 import {
+  createPlanningStore,
+  FakeFreeTimeBudgetRepository,
+  FakeHomeworkPlanRepository,
   FakeHomeworkRepository,
-  FakeStudySessionRepository,
 } from "./planning";
 import type {
   MealPlanRecord,
@@ -101,14 +103,17 @@ export interface NutritionLeisureFakes {
   users: FakeNutritionUserRepository;
   mealPlans: FakeMealPlanRepository;
   homework: FakeHomeworkRepository;
-  study: FakeStudySessionRepository;
+  budget: FakeFreeTimeBudgetRepository;
+  plans: FakeHomeworkPlanRepository;
 }
 
 export function createNutritionLeisureFakes(): NutritionLeisureFakes {
+  const store = createPlanningStore();
   return {
     users: new FakeNutritionUserRepository(),
     mealPlans: new FakeMealPlanRepository(),
     homework: new FakeHomeworkRepository(),
-    study: new FakeStudySessionRepository(),
+    budget: new FakeFreeTimeBudgetRepository(store),
+    plans: new FakeHomeworkPlanRepository(store),
   };
 }

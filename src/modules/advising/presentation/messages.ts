@@ -17,19 +17,32 @@ const MESSAGES: Record<string, string> = {
   email_taken: "این ایمیل قبلاً ثبت شده است",
   schedule_conflict: "این بازه با یک درس دیگر همان روز تداخل دارد",
   profile_incomplete: "برای محاسبهٔ کالری، ابتدا اطلاعات فیزیکی خود را کامل کنید",
+  plan_concurrent_write: "برنامه هم‌زمان تغییر کرد؛ دوباره تلاش کنید",
+  plan_after_deadline: "این برنامه بعد از مهلت تکلیف است",
+  homework_completed: "این تکلیف قبلاً انجام شده است",
   internal_error: "خطای داخلی رخ داد. لطفاً دوباره تلاش کنید.",
 };
+
+/** Contains only formatted integers and fixed Persian words: safe to pass through. */
+const PASSTHROUGH_CODES = new Set(["plan_over_capacity", "free_time_below_planned"]);
 
 const FIELD_FOR_CODE: Record<string, string> = {
   username_taken: "username",
   email_taken: "email",
   schedule_conflict: "startTime",
   profile_incomplete: "age",
+  plan_over_capacity: "plannedTime",
+  free_time_below_planned: "freeTime",
+  plan_concurrent_write: "plannedTime",
+  plan_after_deadline: "date",
+  homework_completed: "homeworkId",
 };
 
 export function toActionError(error: unknown): ActionError {
   if (error instanceof AppError) {
-    const message = MESSAGES[error.code] ?? MESSAGES.internal_error;
+    const message = PASSTHROUGH_CODES.has(error.code)
+      ? error.message
+      : MESSAGES[error.code] ?? MESSAGES.internal_error;
     const field = FIELD_FOR_CODE[error.code];
     return field
       ? { code: error.code, message, fieldErrors: { [field]: message } }
