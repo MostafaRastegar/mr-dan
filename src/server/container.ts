@@ -44,9 +44,30 @@ import {
   CounselorRosterUseCase,
   CreateGroupUseCase,
 } from "@/modules/advising/application/groups";
-import { PrismaUserRepository } from "@/modules/advising/infrastructure/prisma-user-repository";
+import {
+  ListWeeklyScheduleUseCase,
+  CreateScheduleEntryUseCase,
+  UpdateScheduleEntryUseCase,
+  DeleteScheduleEntryUseCase,
+} from "@/modules/advising/application/schedule";
+import {
+  ListHomeworkUseCase,
+  CreateHomeworkUseCase,
+  SetHomeworkCompletionUseCase,
+  DeleteHomeworkUseCase,
+} from "@/modules/advising/application/homework";
+import {
+  RecordStudySessionUseCase,
+  GetStudyAnalysisUseCase,
+} from "@/modules/advising/application/study";
+import {
+  PrismaUserRepository,
+} from "@/modules/advising/infrastructure/prisma-user-repository";
 import { PrismaSessionRepository } from "@/modules/advising/infrastructure/prisma-session-repository";
 import { PrismaGroupRepository } from "@/modules/advising/infrastructure/prisma-group-repository";
+import { PrismaScheduleRepository } from "@/modules/advising/infrastructure/prisma-schedule-repository";
+import { PrismaHomeworkRepository } from "@/modules/advising/infrastructure/prisma-homework-repository";
+import { PrismaStudySessionRepository } from "@/modules/advising/infrastructure/prisma-study-session-repository";
 import { ScryptAuthCrypto } from "@/modules/advising/infrastructure/auth-crypto";
 
 type Container = {
@@ -72,12 +93,29 @@ type Container = {
     createGroup: CreateGroupUseCase;
     assignStudent: AssignStudentToGroupUseCase;
     counselorRoster: CounselorRosterUseCase;
+    listWeeklySchedule: ListWeeklyScheduleUseCase;
+    createScheduleEntry: CreateScheduleEntryUseCase;
+    updateScheduleEntry: UpdateScheduleEntryUseCase;
+    deleteScheduleEntry: DeleteScheduleEntryUseCase;
+    listHomework: ListHomeworkUseCase;
+    createHomework: CreateHomeworkUseCase;
+    setHomeworkCompletion: SetHomeworkCompletionUseCase;
+    deleteHomework: DeleteHomeworkUseCase;
+    recordStudySession: RecordStudySessionUseCase;
+    getStudyAnalysis: GetStudyAnalysisUseCase;
   };
 };
 
 const globalForContainer = globalThis as unknown as {
   __mrDanContainer?: Container;
+  __mrDanContainerVersion?: number;
 };
+
+/**
+ * Bump when the container's shape changes: the cache lives on `globalThis`
+ * across HMR, so adding keys stays invisible to an already-running dev server.
+ */
+const CONTAINER_VERSION = 2;
 
 function build(): Container {
   const documentRepository = new PrismaDocumentRepository();
@@ -161,6 +199,9 @@ function buildAdvising(): Container["advising"] {
   const users = new PrismaUserRepository();
   const sessions = new PrismaSessionRepository();
   const groups = new PrismaGroupRepository();
+  const schedule = new PrismaScheduleRepository();
+  const homework = new PrismaHomeworkRepository();
+  const study = new PrismaStudySessionRepository();
   const crypto = new ScryptAuthCrypto();
 
   return {
@@ -173,6 +214,16 @@ function buildAdvising(): Container["advising"] {
     createGroup: new CreateGroupUseCase(groups),
     assignStudent: new AssignStudentToGroupUseCase(users, groups),
     counselorRoster: new CounselorRosterUseCase(users, groups),
+    listWeeklySchedule: new ListWeeklyScheduleUseCase(users, schedule),
+    createScheduleEntry: new CreateScheduleEntryUseCase(schedule),
+    updateScheduleEntry: new UpdateScheduleEntryUseCase(schedule),
+    deleteScheduleEntry: new DeleteScheduleEntryUseCase(schedule),
+    listHomework: new ListHomeworkUseCase(users, homework),
+    createHomework: new CreateHomeworkUseCase(homework),
+    setHomeworkCompletion: new SetHomeworkCompletionUseCase(homework),
+    deleteHomework: new DeleteHomeworkUseCase(homework),
+    recordStudySession: new RecordStudySessionUseCase(users, study),
+    getStudyAnalysis: new GetStudyAnalysisUseCase(users, study),
   };
 }
 
@@ -180,8 +231,12 @@ function buildAdvising(): Container["advising"] {
  * Lazy composition root.
  */
 export function getContainer(): Container {
-  if (!globalForContainer.__mrDanContainer) {
+  if (
+    !globalForContainer.__mrDanContainer ||
+    globalForContainer.__mrDanContainerVersion !== CONTAINER_VERSION
+  ) {
     globalForContainer.__mrDanContainer = build();
+    globalForContainer.__mrDanContainerVersion = CONTAINER_VERSION;
   }
   return globalForContainer.__mrDanContainer;
 }

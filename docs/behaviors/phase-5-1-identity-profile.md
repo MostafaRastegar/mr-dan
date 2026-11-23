@@ -103,6 +103,8 @@ spec دو تست e2e از رجیستری `src/constants/test-ids.ts` استفا�
 
 راهنمای شروع و بخش احراز هویت در [`README.md`](../../README.md) نگه داشته می‌شود (نام کوکی `mrdan_session`، عمر ۷ روزه، ذخیرهٔ scrypt و صفحه‌های جدید). در لحظهٔ نوشتن این سند، بخش مذکور در README توسط عامل دیگری در حال تکمیل بود و در این اجرا بازبینی نشد. این سند فقط جزئیات رفتاری است.
 
+فایل‌های `models.ts`، `ports.ts`، `errors.ts`، `capabilities.ts`، `container.ts` و `layout.tsx` در فاز ۵.۲ نیز تغییر یافتند و به آن‌ها موارد برنامه‌ریزی (برنامه هفتگی، تکالیف، تایمر مطالعه) اضافه شده است؛ جزئیات رفتاری در [`docs/behaviors/phase-5-2-schedule-homework-study.md`](./phase-5-2-schedule-homework-study.md). رفتار فاز ۵.۱ خود بدون تغییر است.
+
 ## قرارداد
 
 جزئیات دقیق interfaceها، کدهای خطا، invariantها و edge caseها: [`docs/contracts/phase-5-1-identity-profile.md`](../contracts/phase-5-1-identity-profile.md).

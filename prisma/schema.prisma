@@ -85,6 +85,9 @@ model User {
 
   ownedGroups Group[]   @relation("GroupOwner")
   sessions    Session[]
+  weeklySchedule WeeklySchedule[] @relation("StudentSchedule")
+  homework       Homework[]       @relation("StudentHomework")
+  studySessions  StudySession[]   @relation("StudentStudySessions")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -92,6 +95,51 @@ model User {
   @@index([role])
   @@index([groupId])
   @@index([counselorId])
+}
+
+model WeeklySchedule {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     User     @relation("StudentSchedule", fields: [studentId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int      // 0 = شنبه … 6 = جمعه (Persian week; zod-validated 0..6)
+  startMinute Int      // minutes from local midnight, 0..1439
+  endMinute   Int      // > startMinute, <= 1439
+  subject     String   // slug from domain/subjects.ts, validated at the boundary
+  teacher     String?
+  room        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, dayOfWeek, startMinute])
+}
+
+model Homework {
+  id          String    @id @default(uuid())
+  studentId   String
+  student     User      @relation("StudentHomework", fields: [studentId], references: [id], onDelete: Cascade)
+  title       String
+  subject     String?   // slug from domain/subjects.ts; null = «بدون درس»
+  priority    Int       // 3 = high, 2 = medium, 1 = low (domain exposes labels)
+  deadline    DateTime  // Iran midnight (UTC+03:30) of the due calendar day
+  completedAt DateTime? // null = pending
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([studentId, completedAt, priority])
+}
+
+model StudySession {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         User     @relation("StudentStudySessions", fields: [studentId], references: [id], onDelete: Cascade)
+  category        String   // study | break | waste — zod-validated, not a PG enum (matches User.role)
+  subject         String?  // slug from domain/subjects.ts; null = «بدون درس»
+  durationMinutes Int
+  focusLevel      Int?     // 1..5; only meaningful for category = study
+  startedAt       DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([studentId, startedAt])
 }
 
 model Group {

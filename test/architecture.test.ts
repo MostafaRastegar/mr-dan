@@ -211,7 +211,7 @@ describe("architecture", () => {
     const withLocalUi = pages.filter((p) =>
       p.imports.some((i) => i.startsWith("./") || i.startsWith("../")),
     );
-    expect(withLocalUi).toHaveLength(7);
+    expect(withLocalUi).toHaveLength(10);
     const violations = withLocalUi.flatMap((page) => {
       const dir = page.path.slice(0, page.path.lastIndexOf("/"));
       const siblings = files.filter(
@@ -237,7 +237,7 @@ describe("architecture", () => {
 
   it("keeps pages under 40 lines", () => {
     const pages = files.filter((f) => /(^|\/)page\.tsx$/.test(f.path));
-    expect(pages.length).toBeGreaterThanOrEqual(8);
+    expect(pages.length).toBeGreaterThanOrEqual(11);
     const fat = pages
       .map((p) => ({
         path: p.path,

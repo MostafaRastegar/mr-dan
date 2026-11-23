@@ -139,7 +139,9 @@ export class FakeUserRepository implements UserRepositoryPort {
     };
   }
 
-  async create(input: NewUser & { passwordHash: string }): Promise<UserAccount> {
+  async create(
+    input: NewUser & { passwordHash: string; id?: string },
+  ): Promise<UserAccount> {
     for (const row of this.rows.values()) {
       if (row.username === input.username) throw new UsernameTakenError();
       if (input.email && row.email === input.email) throw new EmailTakenError();
@@ -147,7 +149,7 @@ export class FakeUserRepository implements UserRepositoryPort {
 
     this.sequence += 1;
     const row: UserRow = {
-      id: `user-${this.sequence}`,
+      id: input.id ?? `user-${this.sequence}`,
       username: input.username,
       email: input.email,
       role: input.role,

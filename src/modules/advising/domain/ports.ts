@@ -7,13 +7,21 @@
 
 import type {
   GroupSummary,
+  HomeworkFilter,
+  HomeworkItem,
   NewGroup,
   NewUser,
+  NewHomework,
+  NewScheduleEntry,
+  NewStudySession,
   ProfilePatch,
   ProfileView,
+  ScheduleEntryPatch,
   SessionRecord,
+  StudySessionRecord,
   StudentSummary,
   UserAccount,
+  WeeklyScheduleEntry,
 } from "./models";
 
 export interface UserRepositoryPort {
@@ -56,4 +64,25 @@ export interface AuthCryptoPort {
   verifyPassword(plain: string, stored: string): Promise<boolean>;
   generateToken(): string;
   hashToken(token: string): string;
+}
+
+export interface ScheduleRepositoryPort {
+  listByStudent(studentId: string): Promise<WeeklyScheduleEntry[]>;
+  findById(id: string): Promise<WeeklyScheduleEntry | null>;
+  create(input: NewScheduleEntry): Promise<WeeklyScheduleEntry>;
+  update(id: string, patch: ScheduleEntryPatch): Promise<WeeklyScheduleEntry>;
+  delete(id: string): Promise<void>;
+}
+
+export interface HomeworkRepositoryPort {
+  listByStudent(studentId: string, filter: HomeworkFilter): Promise<HomeworkItem[]>;
+  findById(id: string): Promise<HomeworkItem | null>;
+  create(input: NewHomework): Promise<HomeworkItem>;
+  setCompletedAt(id: string, completedAt: Date | null): Promise<HomeworkItem>;
+  delete(id: string): Promise<void>;
+}
+
+export interface StudySessionRepositoryPort {
+  create(input: NewStudySession): Promise<StudySessionRecord>;
+  listByStudentInRange(studentId: string, from: Date, to: Date): Promise<StudySessionRecord[]>;
 }

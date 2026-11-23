@@ -1,0 +1,131 @@
+{
+  "feature": "phase-5-2-schedule-homework-study",
+  "phase": "done",
+  "plan": ".opencode/plans/phase-5-2-schedule-homework-study.md",
+  "plan_sha256": "673724786fb1b8a94c6291fff71635f30e939f0e",
+  "review": ".opencode/reviews/phase-5-2-schedule-homework-study.md",
+  "test_log": ".opencode/reviews/phase-5-2-schedule-homework-study.tests.log",
+  "readme": {
+    "path": "README.md",
+    "state": "updated"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "written"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-persistence",
+    "mr-dan-api",
+    "mr-dan-frontend",
+    "mr-dan-feature-workflow",
+    "mr-dan-testing-parity",
+    "mro-data-model",
+    "mro-code-review-checklist"
+  ],
+  "sessions": {
+    "architect": "ses_df8b3a03effeR6DIMf6luycZ9C",
+    "implementer": "ses_df884da98ffeUMp7GhimXsQQIh",
+    "reviewer": "ses_df817f2aeffeuQYk42W3nHYozE",
+    "test": "ses_df8589c45ffeGcKfK02tuw96ET"
+  },
+  "acceptance": {
+    "total": 22,
+    "confirmed": 22,
+    "pending": 0,
+    "deferred": 0
+  },
+  "changed_files": [
+    "prisma/schema.prisma",
+    "prisma/migrations/20261123080240_add_advising_schedule_homework_study/",
+    "src/modules/advising/domain/{models,ports,errors,capabilities,subjects,schedule}.ts",
+    "src/modules/advising/application/{planning-access,schedule,homework,study,study-metrics}.ts",
+    "src/modules/advising/infrastructure/prisma-{schedule,homework,study-session}-repository.ts",
+    "src/modules/advising/presentation/{schedule-schemas,homework-schemas,study-schemas,pomodoro-timer,planning-format,messages}.ts",
+    "src/server/container.ts",
+    "src/constants/test-ids.ts",
+    "src/app/(advising)/{schedule,homework,study}/**",
+    "src/app/(advising)/layout.tsx",
+    "test/fakes/{planning,advising}.ts",
+    "test/advising/planning-integration.test.ts",
+    "test/architecture.test.ts",
+    "tests/e2e/advising-planning.spec.ts",
+    "README.md",
+    "docs/behaviors/{phase-5-2-schedule-homework-study,access-control-baseline,phase-5-1-identity-profile}.md",
+    "docs/contracts/phase-5-2-schedule-homework-study.md",
+    "docs/plan/{phases,frontend-conventions}.md"
+  ],
+  "test_exit_codes": [
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test (40 files / 212 tests)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm exec prisma migrate status",
+      "exit": 0
+    },
+    {
+      "command": "pnpm exec prisma validate",
+      "exit": 0
+    },
+    {
+      "command": "git diff --exit-code package.json pnpm-lock.yaml",
+      "exit": 0
+    },
+    {
+      "command": "node .opencode/scripts/mro-doctor.mjs --docs",
+      "exit": 0
+    },
+    {
+      "command": "E2E_ENABLED=true pnpm test:e2e tests/e2e/advising-planning.spec.ts (3 passed)",
+      "exit": 0
+    }
+  ],
+  "review_round": 3,
+  "severity_history": [
+    {
+      "round": 1,
+      "critical": 0,
+      "high": 1,
+      "medium": 1,
+      "low": 1
+    },
+    {
+      "round": 2,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    },
+    {
+      "round": 3,
+      "critical": 0,
+      "high": 0,
+      "medium": 2,
+      "low": 3
+    }
+  ],
+  "review_level": "full",
+  "approvals": {
+    "plan": "2026-11-23T07:59:19Z",
+    "final": "2026-11-23T10:23:51Z"
+  },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 3
+  },
+  "log": ".opencode/plans/phase-5-2-schedule-homework-study.log.jsonl",
+  "blockers": "none"
+}

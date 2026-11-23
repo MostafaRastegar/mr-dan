@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-11-23 — phase-5-2-schedule-homework-study
+
+### Added
+- Three advising areas with their own route triads under `src/app/(advising)/`: `/schedule` (weekly schedule), `/homework` (homework board), `/study` (Pomodoro timer + time analysis); three `"use server"` action files alongside them.
+- Data layer: `WeeklySchedule`, `Homework`, `StudySession` models in `prisma/schema.prisma` with a single migration `20261123080240_add_advising_schedule_homework_study`; `@@unique([studentId, dayOfWeek, startMinute])` plus three indexes; `ON DELETE CASCADE`; `subject` stores a catalog slug.
+- Domain: `src/modules/advising/domain/subjects.ts` — a static, dependency-free catalog of 28 subjects in 5 groups (9 عمومی + 6 ریاضی فیزیک + 1 علوم تجربی + 8 علوم انسانی + 4 فنی حرفه‌ای) with Persian labels and `subjectsForField()`; `domain/schedule.ts` (`clockToMinutes`, `minutesToClock`, half-open `overlaps`); `ScheduleConflictError` (409); six capabilities (`schedule|homework|study` × `read|write`) on student/counselor/admin.
+- Application: `application/planning-access.ts` (capability AND row ownership; a counselor writes only their own rows and gets 403 on any other row including their own students'), then `application/schedule.ts`, `homework.ts`, `study.ts`, `study-metrics.ts`.
+- Infrastructure: three Prisma repositories under `src/modules/advising/infrastructure/`; `P2002` → `ScheduleConflictError` and `P2025` → `NotFoundError`, both keeping `cause`.
+- Presentation: three Zod schema modules (`schedule-schemas.ts`, `homework-schemas.ts`, `study-schemas.ts`), `presentation/pomodoro-timer.ts` (pure reducer, display derived from `endsAt` so a backgrounded tab cannot drift), `presentation/planning-format.ts`, and a `schedule_conflict` message.
+
+### Fixed
+- `getContainer()` cached the composition root on `globalThis` with no invalidation, so a dev server that started before `container.ts` gained keys kept the old shape and every new page threw `Cannot read properties of undefined (reading 'execute')`. Now guarded by `CONTAINER_VERSION` (`src/server/container.ts`).
+- The schedule and homework create forms never called `router.refresh()` after a successful `useActionState` result, so the success banner appeared while the server-rendered list stayed empty until a manual reload.
+- Both forms kept their values after success, so a second click re-submitted the same payload — a duplicate homework row on the homework page (no unique constraint there). Now `form.resetFields()` on success.
+- `src/app/(advising)/schedule/_components/schedule-controls.view.tsx` carried a Cyrillic word inside user-facing Persian copy (`програма`) and its icon-only delete button had no accessible name; both fixed.
+- The gated e2e spec `tests/e2e/advising-planning.spec.ts` had never been executed and did not work: antd 6 virtualizes `Select` options so `getByRole("option")` could not see them, the study form only exists in the timer's `review` phase, and the two cases collided on the same `Date.now()` username. All three fixed; the spec now runs.
+
+### Docs
+- `README.md`: new `## برنامه هفتگی، تکالیف و تایمر مطالعه` section (three pages, Pomodoro semantics, `productivityRate` with a zero denominator returning 0, fixed UTC+03:30 day boundary, calendar-day deadlines, the 28-subject catalog), plus rows in `## دسترسی و نقش‌ها`, `## محدودیت‌ها`, `## ساختار کد`, `## وضعیت`.
+- `docs/behaviors/phase-5-2-schedule-homework-study.md` and `docs/contracts/phase-5-2-schedule-homework-study.md` created (`review_level: full`); `docs/behaviors/access-control-baseline.md` and `docs/behaviors/phase-5-1-identity-profile.md` re-verified; `docs/plan/phases.md` §۵.۲ ticked; two stale `src/server/*-actions.ts` lines in `docs/plan/frontend-conventions.md` corrected.
+
+### Known limitations
+- Timer state is not persisted and there is no reminder or scheduler: a finished focus interval is saved only on explicit submit, and a reload loses an in-flight interval.
+- Deadlines are calendar days at Iran midnight — no due time-of-day, no notification.
+- The day boundary is a fixed UTC+03:30 with no per-user timezone.
+- No charts until 5.4; a counselor can read a student's rows in the use case but has no UI for it until 5.4.
+- `tests/e2e/advising-planning.spec.ts` is gated behind `E2E_ENABLED=true` and is not part of the default gate; the round-3 review capped at 3 rounds, so its two MEDIUM test-quality findings were closed by executed evidence rather than a fourth review.
+
+### Evidence
+- `pnpm typecheck` 0 · `pnpm lint` 0 (0 `no-unused-vars`; 2 intentional `no-control-regex` in `src/modules/rag/application/text-normalizer.ts`) · `pnpm test` 0 (40 files / 212 tests, architecture included) · `pnpm build` 0 · `pnpm exec prisma migrate status` 0 · `pnpm exec prisma validate` 0 · `git diff --exit-code package.json pnpm-lock.yaml` 0 (no new dependency) · `mro-doctor --docs` 0 (0 stale behavior docs) · `E2E_ENABLED=true pnpm test:e2e tests/e2e/advising-planning.spec.ts` 0 (3 passed) · all 16 per-criterion `-t` patterns matched at least one test.
+- Review: 3 rounds, final PASS — round 1 `C0 H1 M1 L1`, round 2 `0/0/0/0`, round 3 `C0 H0 M2 L3` (all closed). Paths: plan `.opencode/plans/phase-5-2-schedule-homework-study.md`, review `.opencode/reviews/phase-5-2-schedule-homework-study.md`, contract `docs/contracts/phase-5-2-schedule-homework-study.md`, behavior doc `docs/behaviors/phase-5-2-schedule-homework-study.md`.
+
 ## 2026-11-23 — frontend-layout-alignment
 
 ### Changed

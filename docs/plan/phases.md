@@ -190,11 +190,15 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 
 ### فاز ۵.۲ — برنامه هفتگی، تکالیف، تایمر مطالعه
 
-- `WeeklySchedule` (روز، ساعت، درس، معلم، اتاق)، `Homework` (اولویت، deadline، وضعیت انجام)
-- `StudySession` (دستهٔ مطالعه/استراحت/اتلاف، مدت، تمرکز) + پومودورو سمت کلاینت
-- تحلیل زمان و نرخ بهره‌وری؛ **بدون** scheduler یا یادآور تلگرام
+- [x] `WeeklySchedule` (روز، ساعت، درس، معلم، اتاق)، `Homework` (اولویت، deadline، وضعیت انجام)
+- [x] `StudySession` (دستهٔ مطالعه/استراحت/اتلاف، مدت، تمرکز) + پومودورو سمت کلاینت
+- [x] تحلیل زمان و نرخ بهره‌وری؛ **بدون** scheduler یا یادآور تلگرام
 
 **دروازه:** migration سبز، تست‌های use case و صفحه‌های برنامه/تکلیف سبز.
+
+**پلن:** [`.opencode/plans/phase-5-2-schedule-homework-study.md`](../../.opencode/plans/phase-5-2-schedule-homework-study.md)
+
+**اسکیل‌ها:** mr-dan-persistence, mr-dan-architecture, mr-dan-frontend
 
 ### فاز ۵.۳ — آزمون، تغذیه، کتاب، اوقات فراغت
 

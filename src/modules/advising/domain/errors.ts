@@ -32,3 +32,9 @@ export class ForbiddenError extends AppError {
     super("forbidden", 403, message, cause);
   }
 }
+
+export class ScheduleConflictError extends AppError {
+  constructor(cause?: unknown) {
+    super("schedule_conflict", 409, "این بازه با یک درس دیگر همان روز تداخل دارد", cause);
+  }
+}

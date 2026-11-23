@@ -87,7 +87,7 @@ stack.
 | 8 | `utils/server-action.ts` (`runAction`) | ADOPT | already ours: `src/modules/advising/presentation/run-action.ts`; no revalidation argument at all |
 | 9 | `utils/use-form-action.ts` (`useFormAction`, `useServerFormErrors`) | ADAPT | we keep native `<form>` + `useActionState`; take only the `fieldErrors` mapping rule and the success-message precedence. No AntD `FormInstance` hook, no automatic toast yet |
 | 10 | page / `.vm` / `.view` triad | ADAPT | `page.tsx` = async server fetch; one `"use client"` component owns state + markup until the markup passes ~۸۰ خط, then it splits into `*.vm.tsx` + `*.view.tsx`. `page.tsx` never becomes a client component |
-| 11 | module triad `<x>.types.ts` / `.service.ts` / `.actions.ts` | ADAPT | mapped onto domain models+ports (types), `application/*` (service), `src/server/*-actions.ts` (actions). Uses cases replace HTTP services |
+| 11 | module triad `<x>.types.ts` / `.service.ts` / `.actions.ts` | ADAPT | mapped onto domain models+ports (types), `application/*` (service), `src/app/**/<area>.actions.ts` (actions). Uses cases replace HTTP services |
 | 12 | `constants/endpoints.ts` (one endpoint registry) | REJECT | no outbound HTTP client; RAG route paths are route-handler-local and the OpenAPI spec is `src/lib/openapi.ts` |
 | 13 | `ssr-service-handler` + `queuedAuthFetch` + `RefreshQueue` | REJECT | in-process Prisma; nothing to queue, no bearer token, no 401 refresh |
 | 14 | `lib/auth/cookies.ts` flag set | ADOPT | `httpOnly`, `sameSite=lax`, `path=/`, `secure` only in production — already what `presentation/cookie.ts` writes |
@@ -170,7 +170,7 @@ Applied only to `username` and `email`, inside the zod schema via `.transform(to
 3. Mutations are Server Actions. No new route handler is added for an in-app form.
 4. Authorization is checked on the server from the session cookie; never trust a hidden
    `userId` field.
-5. Actions live in `src/server/*-actions.ts` (`"use server"`), not in `presentation/` —
+5. Actions live in `src/app/**/<area>.actions.ts` (`"use server"`), not in `presentation/` —
    the architecture test forbids `presentation → server`. `presentation/` keeps the pure
    pieces (`schemas`, `cookie`).
 

@@ -1,0 +1,60 @@
+# Test log — phase-5-2-schedule-homework-study — round 1
+
+| # | Command | Exit | Result |
+|---|---|---|---|
+| typecheck | pnpm typecheck | 0 | ran (exit 0) |
+| lint | pnpm lint | 0 | src/modules/advising/application/study.ts:17:8: warning eslint(no-unused-vars): Type 'PlanCapability' is imported but never used. help: Consider removing this import. src/modules/advising/application/study.ts:30:3: warning eslint(no-unused-vars): Type 'NewStudySession' is imported but never used. help: Consider removing this import. src/modules/advising/application/study.ts:132:44: warning eslint(no-unused-vars): Variable 'total' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration. src/modules/advising/application/study.test.ts:4:3: warning eslint(no-unused-vars): Identifier 'FakeStudySessionRepository' is imported but never used. help: Consider removing this import. |
+| test | pnpm test | 0 | {"level":40,"time":1795424822471,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:49:15)\n at LLMReranker.rerank (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.ts:100:39)\n at /home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:54:32\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n at new Promise (<anonymous>)\n at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n at new Promise (<anonymous>)"},"query":"q","msg":"llm-reranker: LLM call failed, falling back to original order"} {"level":40,"time":1795424822511,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n at Object.complete (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:26:15)\n at expandQueries (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.ts:62:32)\n at /home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:30:18\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n at new Promise (<anonymous>)\n at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n at new Promise (<anonymous>)"},"question":"q","msg":"query-expansion: LLM rewrite failed"} Test Files 40 passed (40) Tests 212 passed (212) |
+| build | pnpm build | 0 | ✓ Compiled successfully in 7.6s |
+| migrate-status | pnpm exec prisma migrate status | 0 | Prisma schema loaded from prisma/schema.prisma. Database schema is up to date! |
+| validate | pnpm exec prisma validate | 0 | Prisma schema loaded from prisma/schema.prisma. The schema at prisma/schema.prisma is valid 🚀 |
+| lockfile | git diff --exit-code package.json pnpm-lock.yaml | 0 | no changes (clean) |
+| doctor-docs | node .opencode/scripts/mro-doctor.mjs --docs | 0 |  migration pnpm exec prisma migrate status behavior docs 0 stale, 0 invalid |
+| AC | duplicate weekly slot | 0 | Tests  2 passed Test Files  2 passed |
+| AC | overlapping entry | 0 | Tests  1 passed Test Files  1 passed |
+| AC | touching intervals | 0 | Tests  2 passed Test Files  2 passed |
+| AC | another counselor's student | 0 | Tests  2 passed Test Files  2 passed |
+| AC | counselor cannot write others | 0 | Tests  1 passed Test Files  1 passed |
+| AC | counselor writes own plan | 0 | Tests  1 passed Test Files  1 passed |
+| AC | productivity rate | 0 | Tests  1 passed Test Files  1 passed |
+| AC | study day boundary | 0 | Tests  1 passed Test Files  1 passed |
+| AC | per-subject totals | 0 | Tests  1 passed Test Files  1 passed |
+| AC | pomodoro | 0 | Tests  1 passed Test Files  1 passed |
+| AC | record study session | 0 | Tests  1 passed Test Files  1 passed |
+| AC | cascades planning rows | 0 | Tests  1 passed Test Files  1 passed |
+| AC | subject catalog | 0 | Tests  3 passed Test Files  2 passed |
+| AC | deadline status | 0 | NO MATCH (FAILURE) |
+| AC | keeps pages under 40 lines | 0 | Tests  1 passed Test Files  1 passed |
+| AC | keeps the page triad next to every page | 0 | Tests  1 passed Test Files  1 passed |
+
+## Re-run after review fixes (round 2)
+
+| command | exit | result |
+|---|---|---|
+| pnpm typecheck | 0 | ok |
+| pnpm lint | 0 | 2 warnings (0 no-unused-vars) |
+| pnpm lint (no-unused-vars count) | 0 | 0 occurrences (must be 0) |
+| pnpm test | 0 |  Tests 212 passed (212) Duration 2.03s (tests 44%, import 41%, transform 11%, worker 4%) |
+| pnpm build | 0 | ✓ Compiled successfully in 3.2s |
+| pnpm exec prisma migrate status | 0 | Database schema is up to date! |
+| pnpm exec prisma validate | 0 | The schema at prisma/schema.prisma is valid 🚀 |
+| git diff --exit-code package.json pnpm-lock.yaml | 0 | ok |
+| node .opencode/scripts/mro-doctor.mjs --docs | 0 |  behavior docs 0 stale, 0 invalid OK: no placeholders remain. |
+| AC: duplicate weekly slot | 0 | 2 matched (Tests  2 passed) |
+| AC: overlapping entry | 0 | 1 matched (Tests  1 passed) |
+| AC: touching intervals | 0 | 2 matched (Tests  2 passed) |
+| AC: another counselor's student | 0 | 2 matched (Tests  2 passed) |
+| AC: counselor cannot write others | 0 | 1 matched (Tests  1 passed) |
+| AC: counselor writes own plan | 0 | 1 matched (Tests  1 passed) |
+| AC: productivity rate | 0 | 1 matched (Tests  1 passed) |
+| AC: study day boundary | 0 | 1 matched (Tests  1 passed) |
+| AC: per-subject totals | 0 | 1 matched (Tests  1 passed) |
+| AC: pomodoro | 0 | 1 matched (Tests  1 passed) |
+| AC: record study session | 0 | 1 matched (Tests  1 passed) |
+| AC: cascades planning rows | 0 | 1 matched (Tests  1 passed) |
+| AC: subject catalog | 0 | 3 matched (Tests  3 passed) |
+| AC: deadline status | 0 | 1 matched (Tests  1 passed) |
+| AC: keeps pages under 40 lines | 0 | 1 matched (Tests  1 passed) |
+| AC: keeps the page triad next to every page | 0 | 1 matched (Tests  1 passed) |
+
+VERDICT: gate [typecheck=0 lint=0 test=0 build=0 migrate=0 validate=0 lockfile=0 doctordocs=0 unused_vars=0] total_tests=212 AC=16/16 passed, 0 failed

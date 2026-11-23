@@ -34,6 +34,33 @@ export default async function AdvisingLayout({
                 دانش‌آموزان من
               </Link>
             ) : null}
+            {hasCapability(user.role, "schedule:read") ? (
+              <Link
+                href="/schedule"
+                className="flex items-center gap-1 text-slate-700"
+                data-testid={TEST_IDS.NAV.SCHEDULE}
+              >
+                برنامه هفتگی
+              </Link>
+            ) : null}
+            {hasCapability(user.role, "homework:read") ? (
+              <Link
+                href="/homework"
+                className="flex items-center gap-1 text-slate-700"
+                data-testid={TEST_IDS.NAV.HOMEWORK}
+              >
+                تکالیف
+              </Link>
+            ) : null}
+            {hasCapability(user.role, "study:read") ? (
+              <Link
+                href="/study"
+                className="flex items-center gap-1 text-slate-700"
+                data-testid={TEST_IDS.NAV.STUDY}
+              >
+                تایمر مطالعه
+              </Link>
+            ) : null}
             <Link href="/" className="text-sm text-slate-500">
               خانه
             </Link>
