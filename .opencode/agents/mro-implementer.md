@@ -1,7 +1,7 @@
 ---
 description: "Implements the Architect's plan, runs tests, fixes failures."
 mode: all
-model: 9router/deep
+model: 9router/nemo
 steps: 30
 permissions:
   # No broad edit rule: the base policy already allows edits, and omitting an
@@ -137,8 +137,8 @@ The Architect's plan has an "Acceptance Criteria" section. Before reporting comp
    - every `verify:` command must be run through the normal shell rules;
    - a `- [x]` needs an `evidence:` note naming the command and result;
    - a `- [~]` needs a `reason:` and the human's explicit agreement.
-   Update the plan with `- [x] ... evidence: ...` only after the command passed.
-   Never tick a box because the code "looks right".
+     Update the plan with `- [x] ... evidence: ...` only after the command passed.
+     Never tick a box because the code "looks right".
 2. Run `<TYPECHECK_CMD>`; it must exit 0 (skip when the profile says `-`).
 3. For every pending criterion: implement it, add a test that proves it, or ask
    the human to defer it explicitly with `- [~] ... reason: ...`.

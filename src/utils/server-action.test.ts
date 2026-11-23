@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { registerSchema } from "./schemas";
-import { runAction } from "./run-action";
+import { registerSchema } from "@/modules/advising/presentation/schemas";
+import { runAction } from "./server-action";
 import { ValidationError } from "@/shared/errors";
 
 const PERSIAN = /[\u0600-\u06FF]/;

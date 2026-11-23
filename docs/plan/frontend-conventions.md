@@ -110,7 +110,7 @@ stack.
 | 31 | `plop` generators | REJECT | pnpm + oxlint; no scaffold tool |
 | 32 | `qs` | REJECT | `URLSearchParams` is stdlib |
 | 33 | `clsx` | DEFER | adopt only if ad-hoc class merging grows past two template literals |
-| 34 | `constants/test-ids.ts` + `data-testid` discipline | ADOPT | our Playwright specs currently use `input[name=…]`/text selectors; new interactive elements get a stable `data-testid`. Central file lands with ۵.۲'s first new spec |
+| 34 | `constants/test-ids.ts` + `data-testid` discipline | ADOPT | every interactive element gets a stable `data-testid` from the registry; Playwright specs use that registry (antd `Form.Item` emits no HTML `name`) |
 | 35 | `convertToEnglishNumbers` | ADOPT | already ours: `src/shared/persian-digits.ts`; `username`/`email` only, never passwords |
 | 36 | `useDebounce` / `useLogout` / `useDeviceDetection` + detect store | DEFER | search debounce ۵.۴; device detection is replaced by Tailwind breakpoints (no store, no effect, no SSR branch) |
 | 37 | `useServerFormErrors` 422 → antd field errors | ADAPT | same idea, our shape: zod issues → `fieldErrors` → text under the input with `role="alert"` |
@@ -132,10 +132,11 @@ export interface ActionError {
   message: string; // Persian, safe to render
   fieldErrors?: Record<string, string>; // field name -> ONE Persian message
 }
-export type ActionResult<T> =
+export type ActionState<T> =
   | { ok: true; data: T }
   | { ok: false; error: ActionError };
 ```
+Lives in `src/utils/app-error.ts` (type-only module; import with `import type`).
 
 - `useActionState(action, null)`: `null` is idle. **Success is `state?.ok === true`**,
   never `data !== null`, never `state.ok` on a `null` state.
@@ -171,14 +172,16 @@ Applied only to `username` and `email`, inside the zod schema via `.transform(to
    `userId` field.
 5. Actions live in `src/server/*-actions.ts` (`"use server"`), not in `presentation/` —
    the architecture test forbids `presentation → server`. `presentation/` keeps the pure
-   pieces (`schemas`, `cookie`, `run-action`).
+   pieces (`schemas`, `cookie`).
 
 ## Page composition (binding from ۵.۲)
 
 ```text
-app/**/page.tsx            async server: guard + fetch via use case, pass serialized props
-components/**/*-form.tsx   "use client": useActionState, fieldErrors, pending state
-components/**/*-view.tsx   split out only when the client component passes ~۸۰ lines
+src/app/<route>/page.tsx            async server: guard + data via use case + serialized props (≤40 lines)
+src/app/<route>/<x>.vm.tsx          "use client": hooks only, exports <Thing>Wrapper
+src/app/<route>/<x>.view.tsx        markup only, exports <Thing>View
+src/app/<route>/<area>.actions.ts   "use server": mutations for the area
+src/app/<route>/_components/        route-private vm/view pairs
 ```
 
 - `page.tsx` never becomes `"use client"` and never imports Prisma or a repository.
@@ -213,3 +216,10 @@ components/**/*-view.tsx   split out only when the client component passes ~۸۰
   submit a native value, so plain `<select>` is used in these forms. antd v6
   `rc-field-form` calls `preventDefault()` on submit, so a native POST is never attempted.
 - All user-facing labels, validation messages and error messages are Persian.
+
+## Correction record (2026-11-23)
+
+- New choke-point paths: `src/utils/app-error.ts` (`ActionError` + `ActionState<T>`), `src/utils/server-action.ts` (`runAction(fn)`), `src/utils/use-form-action.ts` (`useFormAction` + `useServerFormErrors`).
+- Page triad location: `src/app/<route>/` holds `page.tsx` + `<x>.vm.tsx` + `<x>.view.tsx` + `<area>.actions.ts`, with route-private forms/modals in `src/app/<route>/_components/`.
+- `ActionResult` → `ActionState` (renamed, not aliased); `ActionResult` no longer exists. All importers were retargeted to `src/utils/app-error.ts`.
+- The dated `## Correction record (2026-11-22)` verdict table above is left untouched as a historical record.

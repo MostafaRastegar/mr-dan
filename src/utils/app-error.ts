@@ -3,6 +3,8 @@
  *
  * Success is detected with `ok === true`; `fieldErrors` maps one field to one
  * Persian message. See `docs/plan/frontend-conventions.md`.
+ *
+ * Type-only module: import with `import type` so no runtime reaches the client.
  */
 
 export interface ActionError {
@@ -11,6 +13,6 @@ export interface ActionError {
   fieldErrors?: Record<string, string>;
 }
 
-export type ActionResult<T> =
+export type ActionState<T> =
   | { ok: true; data: T }
   | { ok: false; error: ActionError };

@@ -1,0 +1,66 @@
+# architecture-alignment — test log
+
+| command | exit code | counts | warning / failing test (first error line) |
+|---|---:|---|---|
+| `pnpm typecheck` | 0 | — | none |
+| `pnpm lint` | 0 | 44 warnings | see `## Warnings` below |
+| `pnpm test` | 0 | Test Files 25 passed (25); Tests 135 passed (135) | none |
+| `pnpm build` | 0 | — | none |
+| `E2E_ENABLED=true pnpm exec playwright test tests/e2e/advising-auth.spec.ts` | 0 | 2 passed, 0 skipped | none |
+
+## Warnings
+
+Lint (`pnpm lint` → `oxlint src test`) exited 0 with **44 warnings**, all `eslint(no-unused-vars)` except two `eslint(no-control-regex)`.
+
+| # | file:line | rule | in this diff? |
+|---|---|---|---|
+| 1 | src/components/advising/profile-form.vm.tsx:4:10 | no-unused-vars (Button) | yes (untracked) |
+| 2 | src/components/advising/profile-form.vm.tsx:4:24 | no-unused-vars (Input) | yes (untracked) |
+| 3 | src/components/advising/profile-form.vm.tsx:4:31 | no-unused-vars (Select) | yes (untracked) |
+| 4 | src/components/advising/profile-form.vm.tsx:6:10 | no-unused-vars (TEST_IDS) | yes (untracked) |
+| 5 | src/components/advising/profile-form.vm.tsx:7:10 | no-unused-vars (FIELDS) | yes (untracked) |
+| 6 | src/components/advising/profile-form.vm.tsx:7:18 | no-unused-vars (GRADES) | yes (untracked) |
+| 7 | src/components/advising/profile-form.vm.tsx:8:51 | no-unused-vars (FormValues) | yes (untracked) |
+| 8 | src/components/advising/group-create-form.vm.tsx:5:10 | no-unused-vars (Button) | yes (untracked) |
+| 9 | src/components/advising/group-create-form.vm.tsx:5:24 | no-unused-vars (Input) | yes (untracked) |
+| 10 | src/components/advising/group-create-form.vm.tsx:5:31 | no-unused-vars (Select) | yes (untracked) |
+| 11 | src/components/advising/group-create-form.vm.tsx:6:10 | no-unused-vars (IconPlus) | yes (untracked) |
+| 12 | src/components/advising/group-create-form.vm.tsx:8:10 | no-unused-vars (TEST_IDS) | yes (untracked) |
+| 13 | src/components/advising/group-create-form.vm.tsx:9:10 | no-unused-vars (FIELDS) | yes (untracked) |
+| 14 | src/components/advising/group-create-form.vm.tsx:9:18 | no-unused-vars (GRADES) | yes (untracked) |
+| 15 | src/components/advising/group-create-form.view.tsx:18:17 | no-unused-vars (state) | yes (untracked) |
+| 16 | src/modules/rag/application/text-normalizer.ts:40:28 | no-control-regex | **no** |
+| 17 | src/modules/rag/application/text-normalizer.ts:40:51 | no-control-regex | **no** |
+| 18 | src/components/chat/chat-page.vm.tsx:4:10 | no-unused-vars (Button) | yes (untracked) |
+| 19 | src/components/chat/chat-page.vm.tsx:4:18 | no-unused-vars (Input) | yes (untracked) |
+| 20 | src/components/chat/chat-page.vm.tsx:4:25 | no-unused-vars (Card) | yes (untracked) |
+| 21 | src/components/chat/chat-page.vm.tsx:4:31 | no-unused-vars (Avatar) | yes (untracked) |
+| 22 | src/components/auth/register-form.view.tsx:29:5 | no-unused-vars (state) | yes (untracked) |
+| 23 | src/components/auth/register-form.view.tsx:33:5 | no-unused-vars (role) | yes (untracked) |
+| 24 | src/components/auth/register-form.vm.tsx:3:10 | no-unused-vars (Button) | yes (untracked) |
+| 25 | src/components/auth/register-form.vm.tsx:3:24 | no-unused-vars (Input) | yes (untracked) |
+| 26 | src/components/auth/register-form.vm.tsx:3:31 | no-unused-vars (Select) | yes (untracked) |
+| 27 | src/components/auth/register-form.vm.tsx:4:8 | no-unused-vars (Link) | yes (untracked) |
+| 28 | src/components/auth/register-form.vm.tsx:6:10 | no-unused-vars (TEST_IDS) | yes (untracked) |
+| 29 | src/components/auth/register-form.vm.tsx:7:10 | no-unused-vars (FIELDS) | yes (untracked) |
+| 30 | src/components/auth/register-form.vm.tsx:7:18 | no-unused-vars (GRADES) | yes (untracked) |
+| 31 | src/components/auth/register-form.vm.tsx:8:51 | no-unused-vars (FormValues) | yes (untracked) |
+| 32 | src/components/auth/register-form.vm.tsx:14:7 | no-unused-vars (ROLE_OPTIONS) | yes (untracked) |
+| 33 | src/components/admin/knowledge-page.vm.tsx:4:18 | no-unused-vars (Card) | yes (untracked) |
+| 34 | src/components/admin/knowledge-page.vm.tsx:4:24 | no-unused-vars (Col) | yes (untracked) |
+| 35 | src/components/admin/knowledge-page.vm.tsx:4:29 | no-unused-vars (Divider) | yes (untracked) |
+| 36 | src/components/admin/knowledge-page.vm.tsx:4:38 | no-unused-vars (Input) | yes (untracked) |
+| 37 | src/components/admin/knowledge-page.vm.tsx:4:45 | no-unused-vars (List) | yes (untracked) |
+| 38 | src/components/admin/knowledge-page.vm.tsx:4:51 | no-unused-vars (Row) | yes (untracked) |
+| 39 | src/components/admin/knowledge-page.vm.tsx:4:56 | no-unused-vars (Table) | yes (untracked) |
+| 40 | src/components/admin/knowledge-page.vm.tsx:4:63 | no-unused-vars (Space) | yes (untracked) |
+| 41 | src/components/advising/assign-student-form.vm.tsx:5:10 | no-unused-vars (Button) | yes (untracked) |
+| 42 | src/components/advising/assign-student-form.vm.tsx:5:24 | no-unused-vars (Select) | yes (untracked) |
+| 43 | src/components/advising/assign-student-form.vm.tsx:7:10 | no-unused-vars (TEST_IDS) | yes (untracked) |
+| 44 | src/components/advising/profile-form.view.tsx:5:31 | no-unused-vars (ProfileView) | yes (untracked) |
+
+42 of 44 warnings are in untracked new files created by this diff (the vm/view splits). The 2 remaining warnings are in `src/modules/rag/application/text-normalizer.ts`, which is **not** in this diff (pre-existing).
+
+## Failures attributable to this diff
+
+none

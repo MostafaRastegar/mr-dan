@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { getContainer } from "@/server/container";
+import { requireApiSession } from "@/server/advising-guards";
 import { jsonOk, toHttpError, requestIdHeader } from "@/modules/rag/presentation/http";
 import { NotFoundError } from "@/modules/rag/domain/errors";
 
@@ -11,7 +12,7 @@ export const GET = async (
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> => {
   const requestId = requestIdHeader(_req.headers);
-  try {
+  try { await requireApiSession();
     const id = (await params).id;
     const doc = await getContainer().manageDocuments.get(id);
     if (!doc) throw new NotFoundError("Document");
@@ -26,7 +27,7 @@ export const DELETE = async (
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> => {
   const requestId = requestIdHeader(_req.headers);
-  try {
+  try { await requireApiSession();
     const id = (await params).id;
     const result = await getContainer().manageDocuments.delete({ documentId: id });
     if (!result.document) throw new NotFoundError("Document");

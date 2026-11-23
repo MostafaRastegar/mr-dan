@@ -35,15 +35,13 @@ export async function seedAdvising(options: SeedOptions = {}): Promise<SeedResul
     throw new Error("seed-advising refuses to run when NODE_ENV=production");
   }
 
-  const passwordHash = await crypto.hashPassword(DEMO_PASSWORD);
-
   const counselor = await prisma.user.upsert({
     where: { username: COUNSELOR.username },
     update: {},
     create: {
       username: COUNSELOR.username,
       email: null,
-      passwordHash,
+      passwordHash: await crypto.hashPassword(DEMO_PASSWORD),
       role: "counselor",
       fullName: COUNSELOR.fullName,
       grade: null,
@@ -75,7 +73,7 @@ export async function seedAdvising(options: SeedOptions = {}): Promise<SeedResul
     create: {
       username: STUDENT.username,
       email: null,
-      passwordHash,
+      passwordHash: await crypto.hashPassword(DEMO_PASSWORD),
       role: "student",
       fullName: STUDENT.fullName,
       grade: "دوازدهم",

@@ -2,11 +2,11 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 import type { NextRequest } from "next/server";
 import { getContainer } from "@/server/container";
+import { requireApiSession } from "@/server/advising-guards";
 import { jsonOk, toHttpError, requestIdHeader } from "@/modules/rag/presentation/http";
 import { UnsupportedFileError } from "@/modules/rag/domain/errors";
 
-export const runtime = "nodejs"; export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const runtime = "nodejs"; export const dynamic = "force-dynamic"; export const maxDuration = 300;
 const MAX_MB = 20;
 const TMP_DIR = "/tmp/mr-dan-uploads";
 const TYPE_BY_EXT: Record<string, "json" | "md" | "txt" | "pdf"> = { json: "json", md: "md", markdown: "md", txt: "txt", pdf: "pdf" };
@@ -15,7 +15,7 @@ function err(s: number, c: string, m: string, rid: string): Response {
 }
 export async function POST(req: NextRequest): Promise<Response> {
   const rid = requestIdHeader(req.headers);
-  try {
+  try { await requireApiSession();
     const form = await req.formData();
     const file = form.get("file") as File | null;
     if (!file) return err(400, "missing_file", "No file provided", rid);

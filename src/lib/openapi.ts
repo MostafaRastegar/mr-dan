@@ -11,10 +11,12 @@ export type OpenAPI = {
   openapi: string;
   info: { title: string; version: string; description: string };
   servers: Array<{ url: string; description?: string }>;
+  security?: Array<Record<string, unknown>>;
   paths: Record<string, unknown>;
   components: {
     schemas: Record<string, unknown>;
     responses?: Record<string, unknown>;
+    securitySchemes?: Record<string, unknown>;
   };
   tags: Array<{ name: string; description?: string }>;
 };
@@ -123,6 +125,7 @@ export const openApiSpec: OpenAPI = {
       "Smart academic advising platform. All endpoints are relative (same-origin); no NEXT_PUBLIC_API_BASE is required.",
   },
   servers: [{ url: "/", description: "same-origin" }],
+  security: [{ cookieAuth: [] }],
   tags: [
     { name: "documents", description: "Document management (CRUD, ingest, upload)" },
     { name: "conversations", description: "Conversations" },
@@ -613,10 +616,32 @@ export const openApiSpec: OpenAPI = {
         },
       },
     },
+    "/api/openapi": {
+      get: {
+        tags: ["system"],
+        summary: "OpenAPI specification (JSON)",
+        security: [{ cookieAuth: [] }],
+        responses: {
+          "200": {
+            description: "OpenAPI 3.0 spec",
+            content: { "application/json": { schema: { type: "object" } } },
+          },
+          "401": {
+            description: "Unauthorized",
+            content: { "application/json": { schema: ErrorResponse } },
+          },
+          "403": {
+            description: "Forbidden (admin only)",
+            content: { "application/json": { schema: ErrorResponse } },
+          },
+        },
+      },
+    },
     "/api/metrics": {
       get: {
         tags: ["system"],
         summary: "Prometheus metrics (text format)",
+        security: [],
         responses: {
           "200": {
             description: "Prometheus metrics text",
@@ -629,6 +654,7 @@ export const openApiSpec: OpenAPI = {
       get: {
         tags: ["system"],
         summary: "Dependency health",
+        security: [],
         responses: {
           "200": {
             description: "Health status",
@@ -659,6 +685,9 @@ export const openApiSpec: OpenAPI = {
     },
   },
   components: {
+    securitySchemes: {
+      cookieAuth: { type: "apiKey", in: "cookie", name: "mrdan_session" },
+    },
     schemas: {
       DocumentRecord,
       Chunk,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FakeHealthProbe } from "@/test/health-probe";
+import { FakeHealthProbe } from "../../../../test/fakes/health-probe";
 
 describe("FakeHealthProbe", () => {
   it("resolves when healthy", async () => {

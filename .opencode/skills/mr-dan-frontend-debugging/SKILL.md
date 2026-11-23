@@ -1,80 +1,83 @@
 ---
 name: mr-dan-frontend-debugging
-description: failure modeهای شناخته‌شدهٔ فرم/اکشن/state و auth در mr-dan (Next 16.4.6 + AntD 6.7.1 RTL). قبل از debug کردن هر باگ submit/state/session این را بخوان.
+description: Known form/action/state and auth failure modes in mr-dan (Next 16.4.6 + AntD 6.7.1 RTL). Read this before debugging any submit/state/session bug.
 ---
 
 # mr-dan-frontend-debugging
 
-بازنویسی‌شده از `an-front/.agents/skills/an-front-debugging` برای استک ما. مرجع فقط-خواندنی:
-`~/project/yaftar/an-front` (+ `an-front/docs/ARCHITECTURE.md §12`). هیچ کپی verbatim نیست.
-
-## استک pin‌شده
+## Pinned stack (do not change without human approval)
 
 ```text
-next 16.4.6 · react 19.3.1 · antd 6.7.1 · typescript 7.0.2 · prisma 7.10.1
-zod 4 · oxlint 1.94.0 · vitest 5.1.1 · pnpm · @tabler/icons-react (pin دقیق)
+next 16.4.6 · react 19.3.1 · typescript 7.0.2 · antd 6.7.1 · prisma 7.10.1
+zod 4 · oxlint · vitest · pnpm · @tabler/icons-react (exact pin)
 ```
 
-## ۱. `state.ok` همیشه false / فرم بعد از submit ری‌ست می‌شود
+## Diagnosis order (any submit/state bug)
 
-- **علت:** `revalidatePath`/`revalidateTag` داخل Server Action. Next صفحه را داخل پاسخ اکشن دوباره رندر می‌کند، Suspense remount می‌شود و `useActionState` ری‌ست می‌شود (vercel/next.js#66426).
-- **درمان:** حذفش کن. `runAction` عمداً revalidate ندارد؛ ناوبری داده را تازه می‌کند.
-- **بررسی:** `grep -rn revalidatePath src/modules` باید خالی باشد.
+1. Does the action go through `runAction`? Does it return the `ActionResult` shape?
+2. Does the form use `useFormAction` + antd `Form onFinish`, or a hand-rolled submit path?
+3. `grep -rn "revalidatePath\|revalidateTag" src` — suspect number two.
+4. Network: look at the actual action payload and response (not a guess).
+5. Restart the dev server before trusting a repro.
 
-## ۲. success با `data !== null` چک می‌شود
+## 1. `state.ok` is always false / the form resets after submit
 
-- **علت:** شکل دیگری از نتیجه فرض شده. قرارداد فقط `{ ok: true, data } | { ok: false, error }` است.
-- **درمان:** `if (state?.ok) ...`؛ state اولیه `null` است، پس `state.ok` بدون optional chaining خطا می‌دهد.
+- **Cause:** `revalidatePath` or `revalidateTag` inside the Server Action. Next re-renders the page inside the action response, the Suspense boundary remounts, and `useActionState` resets (vercel/next.js#66426).
+- **Fix:** remove it. Data refreshes on navigation; use `router.refresh()` after `state?.ok` for lists.
+- **Check:** `grep -rn "revalidatePath" src/modules` must be empty.
 
-## ۳. فرم بدون `useActionState` یا با `onClick` submit
+## 2. Success is checked with `data !== null`
 
-- **علت:** الگوی کلاینت‌محور اشتباه. ما `useActionState(action, null)` + `<form action={action}>` native داریم.
-- **درمان:** submit را به form بسپار؛ دکمه `type="submit"`. هیچ `router.push` داخل handler فرم برای success لازم نیست مگر redirect سرور.
+- **Cause:** a different result shape is assumed.
+- **Fix:** `state.ok` is the only success signal; write `if (state?.ok) …` because the initial state is `null`.
 
-## ۴. مقدار `<select>` در FormData نیست
+## 3. Form does not submit / submits twice
 
-- **علت:** AntD `Select` یک کامپوننت کنترل‌شده است و input مخفی native submit نمی‌کند.
-- **درمان:** برای role/grade/field از `<select name="...">` ساده استفاده کن. اگر AntD `Select` لازم شد، `<input type="hidden" name>` هم‌زمان بگذار.
+- **Cause:** the button lacks `htmlType="submit"`, is outside `Form`, an extra `onClick` also submits, or a native `<form action>` wraps `Form`.
+- **Fix:** one path only — `Form onFinish={submit}` + `<Button htmlType="submit">` inside that same `Form`. No `onClick`, no hand-written `<form action>`.
 
-## ۵. `fieldErrors` روی فرم ظاهر نمی‌شود
+## 4. `Select` value never reaches the action
 
-- **بررسی:** کلید `fieldErrors` با `name` همان input یکی است؟ zod path (اولین segment) با نام فیلد مطابقت دارد؟ همان `form`/همان state به هر دو سمت (فرم و پیام) رسیده؟
-- **درمان:** نام فیلد در `registerSchema`/`updateProfileSchema` و `name` input را هم‌تراز کن؛ پیام فارسی از `toFieldErrors` می‌آید. (an-front این را در `useServerFormErrors` متمرکز کرده؛ اگر ۵.۲ فرم AntD آورد، نگاشت `error.fieldErrors` → `form.setFields` باید فقط یک‌جا باشد.)
+- **Cause:** `Select` is outside `Form.Item`, or uses manual `value/onChange` instead of `name`.
+- **Fix:** put `Select` inside `Form.Item name="…"`; the value travels from form state to `onFinish` and `toFormData` sends it. `allowClear` yields `undefined`, which `toFormData` drops — correct for an optional field.
 
-## ۶. ۴۰۱/۴۰۳ در Server Action
+## 5. `fieldErrors` do not appear on the form
 
-- **علت:** اکشن به hidden field یا ورودی کلاینت تکیه کرده. هویت باید از کوکی session سمت سرور خوانده شود.
-- **درمان:** `requireSessionUser()` / `requireCounselor()` در اکشن؛ role و ownership روی سرور چک شود. پنهان‌کردن دکمه دلیل کافی نیست (IDOR).
+- **Check:** is `useServerFormErrors(state, form)` called unconditionally? Does each `fieldErrors` key match a `Form.Item` `name`? Does the zod path match the field name? Is the same `form` instance passed to both `useServerFormErrors` and `Form`?
+- **Fix:** align the names; keep mapping only in the bridge, not in a duplicated `useEffect` per form. Persian messages come from `toFieldErrors`/`messages.ts`.
 
-## ۷. ری‌دایرکت بی‌دلیل به `/login`
+## 6. The global form error is invisible
 
-- **بررسی:** نام کوکی `mrdan_session`؛ `httpOnly` پس کلاینت نمی‌تواند بخواند (طبیعی است)؛ `secure` فقط در production؛ session ردیف منقضی باید lazy حذف شود.
-- **درمان:** `ResolveSessionUseCase` را مستقیم با توکن کوکی تست کن؛ کوکی replay بعد از logout باید `null` بدهد.
+- **Cause:** `formError` is not rendered, or is out of view.
+- **Fix:** `{formError ? <p role="alert">{formError}</p> : null}` above the button; the success message is separate, with `role="status"`, and only when `state?.ok`.
 
-## ۸. submit هیچ کاری نمی‌کند / native POST تلاش شده
+## 7. 401/403 inside a Server Action
 
-- **علت:** دکمه `type` ندارد یا بیرون فرم است. antd v6 (`rc-field-form`) روی submit خودش `preventDefault` می‌زند، پس native POST هرگز جواب نمی‌دهد.
-- **درمان:** دکمه `type="submit"` داخل همان `<form>`؛ در فرم‌های AntD (از ۵.۲) `htmlType="submit"` + `onFinish`. هیچ `method`/`action` روی `<form>` ننویس.
+- **Cause:** the action trusts a hidden field or client input.
+- **Fix:** `requireSessionUser()` / `requireCapability()` inside the action; check role and ownership on the server. Hiding a button is not enough (IDOR).
 
-## ۹. success با پیام پیش‌فرض فارسی
+## 8. Redirect to `/login` for no reason
 
-- **علت:** پیام از سرور خالی آمده و پیش‌فرض نمایش داده می‌شود.
-- **قاعدهٔ اولویت (از an-front):** `data.message ?? data.detail ?? 'عملیات با موفقیت انجام شد'`. اگر پیام پیش‌فرض دیدی، مشکل در پیام فارسی سمت اکشن است، نه در کامپوننت.
+- **Check:** cookie name is `mrdan_session`; it is `httpOnly`, so the client cannot read it (expected); `secure` only in production; an expired session row is lazily deleted.
+- **Fix:** test `ResolveSessionUseCase` directly with the cookie token; a replayed cookie after logout must return `null`.
 
-## ۱۰. باگ بعد از تغییر نامرتبط «ناپدید» شد
+## 9. `redirect()` does nothing
 
-- **علت:** bundle کهنهٔ dev-server بعد از تغییر فایل‌های server/shared.
-- **درمان:** `pnpm dev` را restart کن، دوباره repro کن، بعد نتیجه بگیر.
+- **Cause:** it was called inside `try/catch`, so `NEXT_REDIRECT` was swallowed.
+- **Fix:** call `redirect()` outside `runAction` and outside any `try/catch`.
 
-## ترتیب تشخیص (هر باگ submit/state)
+## 10. The success message is empty or a generic default
 
-1. اکشن از `runAction` رد می‌شود؟ فرم از `useActionState` استفاده می‌کند؟
-2. `grep -rn revalidatePath src` — مظنون شمارهٔ دو.
-3. Network: payload/response اکشن واقعی را ببین.
-4. قبل از باور کردن repro، dev server را restart کن.
+- **Cause:** the server message was empty and the component substituted a default — or nothing renders at all.
+- **Rule:** the success message comes from `state?.ok` or a server redirect; if you see a generic default, the bug is in the server action / `messages.ts`, not the component.
 
-## فارسی / RTL
+## 11. A bug "disappears" after an unrelated change
 
-- `dir="rtl"` + `ConfigProvider direction="rtl"` سراسری؛ اگر چیدمان فرم شکست، اول theme/layout را چک کن نه hard-coded style.
-- پیام‌های خطا فارسی و کوتاه؛ هیچ stack/SQL/توکن داخل `ActionError.message` یا `fieldErrors` نمی‌رود.
-- اعداد فارسی فقط برای `username`/`email` نرمال می‌شوند؛ رمز هرگز.
+- **Cause:** a stale dev-server bundle after editing server/shared files.
+- **Fix:** restart `pnpm dev`, reproduce again, then conclude.
+
+## Persian / RTL
+
+- `dir="rtl"` + `ConfigProvider direction="rtl"` + `locale={faIR}` are global; if form layout breaks, check theme/layout first, not hard-coded styles.
+- Error messages are Persian and short; no stack/SQL/token ever goes into `ActionError.message` or `fieldErrors`.
+- Persian digits are normalized only for `username`/`email`; never for passwords.

@@ -71,7 +71,7 @@ model User {
   username     String  @unique
   email        String? @unique
   passwordHash String
-  role         String // "student" | "counselor" — validated by zod, not a PG enum
+  role         String // "student" | "counselor" | "admin" — validated by zod, not a PG enum
   fullName     String
   grade        String? // دهم | یازدهم | دوازدهم | فارغ‌التحصیل
   fieldOfStudy String? // ریاضی فیزیک | علوم تجربی | علوم انسانی | فنی حرفه‌ای

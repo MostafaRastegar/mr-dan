@@ -211,7 +211,7 @@ export class FakeUserRepository implements UserRepositoryPort {
   async assignToGroup(input: {
     studentId: string;
     groupId: string | null;
-    counselorId: string;
+    counselorId?: string;
   }): Promise<void> {
     const row = this.rows.get(input.studentId);
     if (!row) throw new Error("user not found");
@@ -222,7 +222,7 @@ export class FakeUserRepository implements UserRepositoryPort {
     }
 
     row.groupId = input.groupId;
-    row.counselorId = input.counselorId;
+    if (input.counselorId !== undefined) row.counselorId = input.counselorId;
 
     if (input.groupId) {
       const next = this.state.groupCounts.get(input.groupId) ?? 0;

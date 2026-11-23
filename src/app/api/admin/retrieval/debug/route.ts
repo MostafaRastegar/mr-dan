@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { getContainer } from "@/server/container";
+import { requireApiCapability } from "@/server/advising-guards";
 import { jsonOk, toHttpError } from "@/modules/rag/presentation/http";
 
 const debugSchema = z.object({
@@ -12,7 +13,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest): Promise<Response> {
-  try {
+  try { await requireApiCapability("rag:manage");
     const body = debugSchema.parse(await req.json());
     const { answer } = await getContainer().searchKnowledge.execute({
       question: body.question,

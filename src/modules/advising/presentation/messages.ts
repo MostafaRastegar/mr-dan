@@ -5,7 +5,7 @@
  * unknown error always becomes `internal_error`.
  */
 
-import type { ActionError } from "@/shared/action-result";
+import type { ActionError } from "@/utils/app-error";
 import { AppError } from "@/shared/errors";
 
 const MESSAGES: Record<string, string> = {

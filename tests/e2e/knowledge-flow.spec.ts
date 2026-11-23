@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 
+import { TEST_IDS } from "@/constants/test-ids";
+
 // E2E tests require a running dev server + Postgres + Chroma.
 // Skip unless explicitly enabled.
 const e2eEnabled = process.env.E2E_ENABLED === "true";
@@ -9,6 +11,22 @@ test.describe("knowledge flow (upload → chat → citation → delete)", () => 
 
   test("upload a document, chat with citation, then delete", async ({ page }) => {
     const testContent = "mr-dan e2e test document. Machine learning is a branch of AI.";
+    const username = `kf-${Date.now()}`;
+    const password = `kf-pass-${Date.now()}`;
+
+    // /admin/knowledge is admin-only: register and log in first.
+    await page.goto("/register");
+    await page.getByTestId(TEST_IDS.FORM.INPUT("fullName")).fill("E2E Tester");
+    await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
+    await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
+    await page.getByTestId(TEST_IDS.FORM.SUBMIT("register")).click();
+    await expect(page).toHaveURL(/\/profile/);
+
+    await page.goto("/login");
+    await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
+    await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
+    await page.getByTestId(TEST_IDS.FORM.SUBMIT("login")).click();
+    await expect(page).toHaveURL(/\/profile/);
 
     // Go to admin knowledge page and upload via the file input
     await page.goto("/admin/knowledge");

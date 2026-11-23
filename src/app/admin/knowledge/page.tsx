@@ -1,5 +1,8 @@
-import { KnowledgePage } from "@/components/admin/knowledge-page";
+import { requireCapability } from "@/server/advising-guards";
 
-export default function AdminKnowledgePage(): React.ReactNode {
-  return <KnowledgePage />;
+import { KnowledgePageWrapper } from "./knowledge-page.vm";
+
+export default async function AdminKnowledgePage(): Promise<React.ReactNode> {
+  await requireCapability("rag:manage");
+  return <KnowledgePageWrapper />;
 }

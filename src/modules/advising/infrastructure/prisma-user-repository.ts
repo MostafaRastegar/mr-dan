@@ -17,6 +17,7 @@ import type {
   StudentSummary,
   UserAccount,
 } from "@/modules/advising/domain/models";
+import { toRole } from "@/modules/advising/domain/models";
 import type { UserRepositoryPort } from "@/modules/advising/domain/ports";
 import { EmailTakenError, UsernameTakenError } from "@/modules/advising/domain/errors";
 
@@ -62,10 +63,6 @@ function mapUser(row: UserRow): UserAccount {
     counselorId: row.counselorId,
     createdAt: row.createdAt,
   };
-}
-
-function toRole(value: string): Role {
-  return value === "counselor" ? "counselor" : "student";
 }
 
 function isUniqueViolation(
@@ -236,11 +233,16 @@ export class PrismaUserRepository implements UserRepositoryPort {
   async assignToGroup(input: {
     studentId: string;
     groupId: string | null;
-    counselorId: string;
+    counselorId?: string;
   }): Promise<void> {
     await this.client.user.update({
       where: { id: input.studentId },
-      data: { groupId: input.groupId, counselorId: input.counselorId },
+      data: {
+        groupId: input.groupId,
+        ...(input.counselorId === undefined
+          ? {}
+          : { counselorId: input.counselorId }),
+      },
       select: { id: true },
     });
   }

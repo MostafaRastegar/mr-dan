@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { IconLogout, IconUser, IconUsers } from "@tabler/icons-react";
 
-import { logoutAction } from "@/server/advising-actions";
+import { TEST_IDS } from "@/constants/test-ids";
+import { hasCapability } from "@/modules/advising/domain/capabilities";
+import { logoutAction } from "./advising.actions";
 import { requireSessionUser } from "@/server/advising-guards";
 
 export default async function AdvisingLayout({
@@ -14,14 +16,19 @@ export default async function AdvisingLayout({
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-6 py-3">
           <div className="flex items-center gap-4">
-            <Link href="/profile" className="flex items-center gap-1 text-teal-700">
+            <Link
+              href="/profile"
+              className="flex items-center gap-1 text-teal-700"
+              data-testid={TEST_IDS.NAV.PROFILE}
+            >
               <IconUser size={18} stroke={1.8} />
               پروفایل
             </Link>
-            {user.role === "counselor" ? (
+            {hasCapability(user.role, "group:manage") ? (
               <Link
                 href="/counselor/students"
                 className="flex items-center gap-1 text-slate-700"
+                data-testid={TEST_IDS.NAV.STUDENTS}
               >
                 <IconUsers size={18} stroke={1.8} />
                 دانش‌آموزان من
@@ -37,6 +44,7 @@ export default async function AdvisingLayout({
               <button
                 type="submit"
                 className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
+                data-testid={TEST_IDS.NAV.LOGOUT}
               >
                 <IconLogout size={16} stroke={1.8} />
                 خروج

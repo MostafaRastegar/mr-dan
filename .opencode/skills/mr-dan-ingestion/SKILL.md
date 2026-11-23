@@ -7,7 +7,7 @@ description: File ingestion for JSON/MD/TXT/PDF with Persian normalization, chun
 
 ## Usage
 
-هنگام تغییر loader، نرمال‌سازی متن، اندازهٔ chunk، metadata، یا منطق حذف/بازنویسی سند.
+Use when changing a loader, text normalization, chunk size, metadata, or document delete/rewrite logic.
 
 ## Pipeline
 
@@ -26,64 +26,64 @@ bytes/file
 
 ## Rules
 
-1. نرمال‌سازی **قبل** از split انجام می‌شود و برای همهٔ فرمت‌ها یکسان است.
-2. خروجی نرمال‌سازی باید با oracle byte-identical باشد؛ تغییر آن یک تغییر parity است.
-3. chunk id قطعی است: `${documentId}:${index}`.
-4. ingestion دوبارهٔ همان فایل باید تعداد chunk را تغییر ندهد.
-5. hash محتوا SHA-256 روی متن نرمال‌شده + نام فایل است؛ تغییر نام = سند جدید.
-6. metadata حداقل: `document_id`, `original_filename`, `file_type`, `chunk_index`؛ برای PDF `page` و برای Markdown `section`.
-7. خطای میانی ingestion باید `IngestionRun` را `failed` بگذارد، نه اینکه رکورد سند را نصفه ذخیره کند.
-8. فایل موقت در `os.tmpdir()` ساخته و در `finally` پاک می‌شود.
+1. Normalization runs **before** split and is identical for every format.
+2. Normalization output must match the oracle byte-for-byte; changing it is a parity change.
+3. Chunk id is deterministic: `${documentId}:${index}`.
+4. Re-ingesting the same file must not change the chunk count.
+5. The content hash is SHA-256 over the normalized text plus the filename; renaming produces a new document.
+6. Minimum metadata: `document_id`, `original_filename`, `file_type`, `chunk_index`; `page` for PDF and `section` for Markdown.
+7. A mid-ingestion failure marks the `IngestionRun` as `failed` instead of leaving a half-written document.
+8. Temporary files are created in `os.tmpdir()` and removed in `finally`.
 
-## Normalization (به ترتیب)
+## Normalization (in order)
 
-1. حذف BOM (`\uFEFF`)
-2. یکسان‌سازی خط پایان: `\r\n` و `\r` → `\n`
-3. حذف `\v`, `\f`
-4. فشرده‌سازی فاصله‌های افقی تکراری
-5. کاهش دو یا چند خط خالی به یک خط خالی
-6. trim نهایی
+1. Strip the BOM (`\uFEFF`)
+2. Unify line endings: `\r\n` and `\r` → `\n`
+3. Remove `\v`, `\f`
+4. Collapse repeated horizontal whitespace
+5. Collapse two or more blank lines into one
+6. Final trim
 
 ## Chunking
 
-- `RecursiveCharacterTextSplitter` از `@langchain/textsplitters`
+- `RecursiveCharacterTextSplitter` from `@langchain/textsplitters`
 - `chunkSize=800`, `chunkOverlap=120`
-- جداکننده‌ها به ترتیب: `\n\n`, `\n`, `۔`, `.`, `،`, `؛`, `?`, `!`, ` `, `""`
-- متن کوتاه‌تر از اندازه → یک chunk؛ chunk خالی حذف می‌شود.
-- هیچ splitter سفارشی جدیدی بدون تست parity اضافه نکن.
+- Separators in order: `\n\n`, `\n`, `۔`, `.`, `،`, `؛`, `?`, `!`, ` `, `""`
+- Text shorter than the size becomes one chunk; empty chunks are dropped.
+- Do not add a new custom splitter without a parity test.
 
 ## Loaders
 
-| پسوند | قاعده |
+| Extension | Rule |
 |---|---|
-| `.json` | آرایه یا object؛ اولین کلید محتوا از `content`, `text`, `body`, `description`, `question/answer` |
-| `.md` | متن خام + استخراج heading به‌عنوان `section` |
-| `.txt` | متن خام |
-| `.pdf` | `unpdf`؛ یک Document به‌ازای هر صفحه + `page` |
+| `.json` | array or object; the first content key among `content`, `text`, `body`, `description`, `question/answer` |
+| `.md` | raw text + heading extracted as `section` |
+| `.txt` | raw text |
+| `.pdf` | `unpdf`; one Document per page + `page` |
 
-- فرمت ناشناخته → `UnsupportedFileError` (415).
-- PDF اسکن‌شده (بدون لایهٔ متنی) → خطای صریح، نه chunk خالی.
-- حداکثر حجم آپلود از env؛ پیش‌فرض ۲۰MB.
+- Unknown format → `UnsupportedFileError` (415).
+- A scanned PDF (no text layer) → an explicit error, never an empty chunk.
+- Maximum upload size comes from env; default 20 MB.
 
-## Steps — افزودن فرمت جدید
+## Steps — adding a new format
 
-1. loader را در `infrastructure/document-loaders/` اضافه کن و در registry ثبت کن.
-2. metadata contract را مستند کن.
-3. تست: فایل نمونه → تعداد chunk و metadata مورد انتظار.
-4. اگر oracle معادل دارد، parity test اضافه کن؛ اگر ندارد، در `parity.md` به‌عنوان divergence ثبت کن.
+1. Add the loader in `infrastructure/document-loaders/` and register it.
+2. Document the metadata contract.
+3. Test: sample file → expected chunk count and metadata.
+4. If the oracle has an equivalent, add a parity test; if not, record the divergence in `parity.md`.
 
 ## Checklist
 
-- [ ] نرمال‌سازی unit test دارد (BOM, CRLF, ZWNJ, blank lines).
-- [ ] chunk count با oracle برابر است.
-- [ ] ingestion تکراری idempotent است.
-- [ ] حذف سند → صفر chunk یتیم.
-- [ ] فایل موقت پاک می‌شود.
-- [ ] خطای loader پیام قابل‌فهم فارسی دارد.
+- [ ] Normalization has unit tests (BOM, CRLF, ZWNJ, blank lines).
+- [ ] Chunk count matches the oracle.
+- [ ] Re-ingestion is idempotent.
+- [ ] Deleting a document leaves zero orphan chunks.
+- [ ] Temporary files are removed.
+- [ ] Loader errors carry a clear Persian message.
 
 ## Anti-patterns
 
-- split روی متن نرمال‌نشده.
-- UUID تصادفی برای chunk.
-- ذخیرهٔ فایل آپلودشده در repo یا مسیر عمومی.
-- metadata با `any` یا کلیدهای پراکنده (`file`, `filename`, `name`).
+- Splitting unnnormalized text.
+- Random UUIDs for chunks.
+- Storing an uploaded file in the repo or a public path.
+- Metadata typed as `any` or with scattered keys (`file`, `filename`, `name`).

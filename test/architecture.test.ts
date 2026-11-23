@@ -120,4 +120,130 @@ describe("architecture", () => {
 
     expect(fat).toEqual([]);
   });
+
+  it("splits client components past 80 lines", () => {
+    const clientFiles = files.filter(
+      (file) =>
+        (file.path.startsWith("components/") ||
+          file.path.startsWith("app/")) &&
+        file.path.endsWith(".tsx"),
+    );
+
+    const largeClient = clientFiles.filter((file) => {
+      const code = readFileSync(join(SRC, file.path), "utf8");
+      return code.startsWith('"use client"') && code.split("\n").length > 80;
+    });
+
+    const violations = largeClient.flatMap((file) => {
+      const isVm = file.path.endsWith(".vm.tsx");
+      const base = file.path.replace(/\.vm\.tsx$/, "");
+      const viewExists = files.some((f) => f.path === `${base}.view.tsx`);
+      return isVm && viewExists ? [] : [`${file.path} lacks .vm.tsx/.view.tsx pair`];
+    });
+
+    expect(violations).toEqual([]);
+  });
+
+  const TEST = join(process.cwd(), "test");
+
+  it("test doubles live under test/fakes/", () => {
+    const testFiles = walk(TEST).map((p) =>
+      relative(join(process.cwd(), "test"), p).replaceAll("\\", "/"),
+    );
+    const fakes = testFiles.filter((p) => p.startsWith("fakes/"));
+    // non-vacuous positive: at least one fake exists under test/fakes/
+    expect(fakes.length).toBeGreaterThan(0);
+    // no test double lives under src/test/ (that directory must not exist)
+    const underSrcTest = files.some((f) => f.path.startsWith("test/"));
+    expect(underSrcTest).toBe(false);
+    // every file under test/ that looks like a double lives under test/fakes/
+    const doublesOutside = testFiles.filter(
+      (p) => !p.startsWith("fakes/") && /(fake|probe|stub|mock)/i.test(p),
+    );
+    expect(doublesOutside).toEqual([]);
+  });
+
+  it("every data route is session- or admin-gated", () => {
+    const sessionGated = [
+      "app/api/documents/route.ts",
+      "app/api/documents/[id]/route.ts",
+      "app/api/conversations/route.ts",
+      "app/api/conversations/[id]/route.ts",
+      "app/api/ingest/route.ts",
+      "app/api/upload/route.ts",
+      "app/api/search/route.ts",
+      "app/api/chat/route.ts",
+      "app/api/chat/stream/route.ts",
+    ];
+    const adminGated = [
+      "app/api/admin/chunks/route.ts",
+      "app/api/admin/chunks/[id]/route.ts",
+      "app/api/admin/stats/route.ts",
+      "app/api/admin/cache/clear/route.ts",
+      "app/api/admin/retrieval/debug/route.ts",
+      "app/api/openapi/route.ts",
+    ];
+
+    const verifiedSession: string[] = [];
+    const verifiedAdmin: string[] = [];
+
+    for (const rel of sessionGated) {
+      const file = files.find((f) => f.path === rel);
+      if (!file) throw new Error(`missing route file: ${rel}`);
+      if (file.imports.some((i) => i.includes("advising-guards")) && readFileSync(join(SRC, file.path), "utf8").includes("requireApiSession")) {
+        verifiedSession.push(rel);
+      }
+    }
+    for (const rel of adminGated) {
+      const file = files.find((f) => f.path === rel);
+      if (!file) throw new Error(`missing route file: ${rel}`);
+      if (readFileSync(join(SRC, file.path), "utf8").includes('requireApiCapability("rag:manage")')) {
+        verifiedAdmin.push(rel);
+      }
+    }
+
+    expect(verifiedSession).toHaveLength(9);
+    expect(verifiedAdmin).toHaveLength(6);
+  });
+
+  it("keeps the page triad next to every page", () => {
+    const pages = files.filter((f) => /^app\/(.+\/)?page\.tsx$/.test(f.path));
+    const withLocalUi = pages.filter((p) =>
+      p.imports.some((i) => i.startsWith("./") || i.startsWith("../")),
+    );
+    expect(withLocalUi).toHaveLength(7);
+    const violations = withLocalUi.flatMap((page) => {
+      const dir = page.path.slice(0, page.path.lastIndexOf("/"));
+      const siblings = files.filter(
+        (f) =>
+          f.path.startsWith(`${dir}/`) &&
+          f.path.split("/").length === page.path.split("/").length,
+      );
+      const vms = siblings.filter((f) => f.path.endsWith(".vm.tsx"));
+      const out: string[] = [];
+      if (vms.length === 0) out.push(`${page.path} has no sibling .vm.tsx`);
+      for (const vm of vms) {
+        const base = vm.path.replace(/\.vm\.tsx$/, "");
+        if (!files.some((f) => f.path === `${base}.view.tsx`))
+          out.push(`${vm.path} lacks sibling .view.tsx`);
+        const spec = `./${vm.path.slice(vm.path.lastIndexOf("/") + 1).replace(/\.tsx$/, "")}`;
+        if (!page.imports.includes(spec))
+          out.push(`${page.path} does not import ${spec}`);
+      }
+      return out;
+    });
+    expect(violations).toEqual([]);
+  });
+
+  it("keeps pages under 40 lines", () => {
+    const pages = files.filter((f) => /(^|\/)page\.tsx$/.test(f.path));
+    expect(pages.length).toBeGreaterThanOrEqual(8);
+    const fat = pages
+      .map((p) => ({
+        path: p.path,
+        lines: readFileSync(join(SRC, p.path), "utf8").split("\n").length,
+      }))
+      .filter(({ lines }) => lines > 40);
+    expect(fat).toEqual([]);
+  });
 });

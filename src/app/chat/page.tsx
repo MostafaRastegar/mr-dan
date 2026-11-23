@@ -1,5 +1,8 @@
-import { ChatPage } from "@/components/chat/chat-page";
+import { requireSessionUser } from "@/server/advising-guards";
 
-export default function ChatPageRoute(): React.ReactNode {
-  return <ChatPage />;
+import { ChatPageWrapper } from "./chat-page.vm";
+
+export default async function ChatPageRoute(): Promise<React.ReactNode> {
+  await requireSessionUser();
+  return <ChatPageWrapper />;
 }

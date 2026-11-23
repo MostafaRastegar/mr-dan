@@ -10,6 +10,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "../domain/errors";
+import { hasCapability, type Capability } from "../domain/capabilities";
 import type {
   GroupSummary,
   Role,
@@ -22,8 +23,8 @@ import type {
 
 type Actor = { id: string; role: Role };
 
-function assertCounselor(actor: Actor): void {
-  if (actor.role !== "counselor") throw new ForbiddenError();
+function assertCapability(actor: Actor, capability: Capability): void {
+  if (!hasCapability(actor.role, capability)) throw new ForbiddenError();
 }
 
 export class CreateGroupUseCase {
@@ -37,7 +38,7 @@ export class CreateGroupUseCase {
     targetField?: string;
     color?: string;
   }): Promise<GroupSummary> {
-    assertCounselor(input.actor);
+    assertCapability(input.actor, "group:manage");
 
     const name = input.name.trim();
     if (!name) throw new ValidationError("نام گروه الزامی است");
@@ -64,7 +65,7 @@ export class AssignStudentToGroupUseCase {
     studentId: string;
     groupId: string | null;
   }): Promise<void> {
-    assertCounselor(input.actor);
+    assertCapability(input.actor, "group:manage");
 
     if (input.groupId) {
       const group = await this.groups.findById(input.groupId);
@@ -77,11 +78,16 @@ export class AssignStudentToGroupUseCase {
     if (student.role !== "student") {
       throw new ValidationError("فقط دانش‌آموز را می‌توان به گروه تخصیص داد");
     }
+    if (student.counselorId && student.counselorId !== input.actor.id) {
+      throw new ForbiddenError();
+    }
 
     await this.users.assignToGroup({
       studentId: input.studentId,
       groupId: input.groupId,
-      counselorId: input.actor.id,
+      // Unassigning never transfers ownership: only a group assignment by the
+      // authorized counselor writes `counselorId`.
+      counselorId: input.groupId ? input.actor.id : undefined,
     });
   }
 }
@@ -95,7 +101,7 @@ export class CounselorRosterUseCase {
   async execute(input: {
     actor: Actor;
   }): Promise<{ groups: GroupSummary[]; students: StudentSummary[] }> {
-    assertCounselor(input.actor);
+    assertCapability(input.actor, "group:manage");
 
     const [groups, students] = await Promise.all([
       this.groups.listByCounselor(input.actor.id),

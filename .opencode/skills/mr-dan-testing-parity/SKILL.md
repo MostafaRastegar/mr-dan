@@ -7,27 +7,27 @@ description: Vitest, fakes, integration tests, and the oracle parity harness for
 
 ## Usage
 
-هنگام نوشتن تست، تغییر golden set، یا بررسی اینکه پورت TS با oracle برابر است.
+Use when writing tests, changing the golden set, or checking that the TypeScript port matches the oracle.
 
 ## Test pyramid
 
-| سطح | ابزار | چه‌چیز |
+| Level | Tool | What |
 |---|---|---|
-| unit | Vitest | normalizer، tokenizer، RRF، cache، schema، use case با fake |
-| architecture | Vitest | گراف import: مرز لایه‌ها، وابستگی صفر domain، ضخامت route |
-| integration | Vitest + Postgres/Chroma واقعی | repository، ingestion، deletion، SSE |
-| parity | `tsx scripts/*` | chunk count، top-k ids، MRR/hit@5 |
-| e2e | Playwright | آپلود → پرسش → citation → حذف |
+| unit | Vitest | normalizer, tokenizer, RRF, cache, schema, use case with a fake |
+| architecture | Vitest | import graph: layer boundaries, zero domain deps, route thickness |
+| integration | Vitest + real Postgres/Chroma | repository, ingestion, deletion, SSE |
+| parity | `tsx scripts/*` | chunk count, top-k ids, MRR/hit@5 |
+| e2e | Playwright | upload → question → citation → delete |
 
 ## Rules
 
-1. هیچ تست واحد به شبکه، OpenRouter یا Chroma واقعی وابسته نیست. fake صریح در `test/fakes/`.
-2. fakeها رفتار قرارداد را شبیه‌سازی می‌کنند (embedding ثابت برای متن ثابت، LLM پاسخ قابل‌پیش‌بینی).
-3. تست integration با دیتابیس واقعی و پاک‌سازی بین تست‌ها.
-4. golden set **عیناً** از `scripts/eval_retrieval.py` پورت می‌شود؛ پرسش جدید بدون به‌روزرسانی oracle اضافه نمی‌شود.
-5. عدد parity در CI ثبت می‌شود تا رگرسیون دیده شود.
-6. تست برای رفتار است، نه برای implementation detail.
-7. هر باگ → اول تست failing، بعد fix.
+1. No unit test depends on the network, the real OpenRouter, or the real Chroma. Fakes are explicit in `test/fakes/`.
+2. Fakes simulate the contract (deterministic embedding for identical text, predictable LLM output).
+3. Integration tests use a real database and clean up between tests.
+4. The golden set is ported **verbatim** from `scripts/eval_retrieval.py`; a new question is not added without updating the oracle.
+5. Parity numbers are recorded in CI so regressions are visible.
+6. Tests target behavior, not implementation details.
+7. Every bug starts with a failing test, then the fix.
 
 ## Parity gates
 
@@ -39,38 +39,38 @@ top-5 ids: dense ≥ 11/13 · hybrid ≥ 12/13
 orphan chunks after delete = 0
 ```
 
-- تغییر آستانه برای سبز شدن ممنوع.
-- اگر عدد مدل free در طول روز نوسان کرد، تست را با snapshot همان روز مقایسه کن و در گزارش ذکر کن.
+- Tuning a threshold to green a test is banned.
+- If the free model's output drifts during the day, compare against a same-day snapshot and say so in the report.
 
 ## Fakes
 
 ```text
-FakeEmbedding    → deterministic vector از hash متن
-FakeLLM          → پاسخ ثابت / پاسخ stream قابل‌تنظیم
-FakeVectorStore  → Map در حافظه با همان port
-FakeCache        → Map با TTL قابل‌کنترل
+FakeEmbedding    → deterministic vector from a text hash
+FakeLLM          → fixed answer / configurable stream
+FakeVectorStore  → in-memory Map implementing the same port
+FakeCache        → Map with a controllable TTL
 ```
 
-- fake باید `cause` و خطاهای واقعی را هم بتواند شبیه‌سازی کند (`throwOnCall`).
+- A fake must also be able to simulate real failures and `cause` (`throwOnCall`).
 
-## Steps — افزودن parity برای قابلیت جدید
+## Steps — adding parity for a new feature
 
-1. رفتار oracle را با یک اسکریپت snapshot کن (JSON).
-2. همان سناریو را در TS بنویس.
-3. diff معنادار: ids، score با تلورانس، ordering.
-4. اگر تفاوت عمدی است، در `parity.md` ثبت کن و تست را skip با دلیل.
+1. Snapshot the oracle behavior with a script (JSON).
+2. Write the same scenario in TypeScript.
+3. Compare meaningfully: ids, scores within a tolerance, ordering.
+4. If the difference is intentional, record it in `parity.md` and skip the test with a reason.
 
 ## Checklist
 
-- [ ] `pnpm test` بدون شبکه سبز است.
-- [ ] تست integration در CI با compose profile اجرا می‌شود.
-- [ ] هر gate عددی در تست assert شده.
-- [ ] هیچ snapshot انسانی‌نوشته بدون توضیح نیست.
-- [ ] تست abort و خطای upstream وجود دارد.
+- [ ] `pnpm test` is green without network access.
+- [ ] Integration tests run in CI with the compose profile.
+- [ ] Every numeric gate is asserted in a test.
+- [ ] No hand-written snapshot without an explanation.
+- [ ] Abort and upstream-error tests exist.
 
 ## Anti-patterns
 
-- mock کردن `fetch` برای همه‌چیز.
-- snapshot تست برای خروجی LLM.
-- تستی که به ترتیب تصادفی Map وابسته است.
-- `test.skip` دائمی بدون دلیل مکتوب.
+- Mocking `fetch` for everything.
+- Snapshot tests on LLM output.
+- Tests that depend on random Map ordering.
+- A permanent `test.skip` with no written reason.

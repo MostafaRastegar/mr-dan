@@ -30,7 +30,7 @@ export interface UserRepositoryPort {
   assignToGroup(input: {
     studentId: string;
     groupId: string | null;
-    counselorId: string;
+    counselorId?: string;
   }): Promise<void>;
 }
 

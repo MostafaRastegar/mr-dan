@@ -46,6 +46,8 @@ app → presentation → application → domain
 infrastructure → domain (implements ports)
 ```
 
+- فرانت: تریاد `page.tsx` + `<x>.vm.tsx` + `<x>.view.tsx` کنار هم داخل `src/app/**`؛ کامپوننت‌های خصوصی روت در `_components/`؛ Server Action هر ناحیه در `src/app/**/<area>.actions.ts` با `'use server'`.
+- چوک‌پوینت‌های action: `src/utils/app-error.ts`، `src/utils/server-action.ts`، `src/utils/use-form-action.ts` — تنها مسیر mutation و تنها پل فرم.
 - `src/modules/rag/domain` هیچ import خارجی ندارد.
 - `application` هرگز `infrastructure` را import نمی‌کند.
 - route handler نازک: `parse → use case → serialize`، حداکثر ۴۰ خط.
@@ -88,16 +90,20 @@ chat nvidia/nemotron-3-ultra-550b-a55b:free
 
 قبل از کار روی هر بخش، اسکیل مربوطه در `.opencode/skills/` را بخوان:
 
-| کار | اسکیل |
-|---|---|
-| ساختار، لایه، خطا | `mr-dan-architecture` |
-| loader/chunk/آپلود | `mr-dan-ingestion` |
-| retrieval/cache/prompt | `mr-dan-rag` |
-| route/SSE/اعتبارسنجی | `mr-dan-api` |
-| Prisma/repository | `mr-dan-persistence` |
-| UI | `mr-dan-frontend` |
-| تست و parity | `mr-dan-testing-parity` |
-| env/docker/CI | `mr-dan-devops` |
+| کار                                                         | اسکیل                       |
+| ----------------------------------------------------------- | --------------------------- |
+| ساختار، لایه، خطا                                           | `mr-dan-architecture`       |
+| loader/chunk/آپلود                                          | `mr-dan-ingestion`          |
+| retrieval/cache/prompt                                      | `mr-dan-rag`                |
+| route/SSE/اعتبارسنجی                                        | `mr-dan-api`                |
+| Prisma/repository                                           | `mr-dan-persistence`        |
+| UI                                                          | `mr-dan-frontend`           |
+| تست و parity                                                | `mr-dan-testing-parity`     |
+| env/docker/CI                                               | `mr-dan-devops`             |
+| فیچر جدید (schema → use case → action → RSC → form → tests) | `mr-dan-feature-workflow`   |
+| باگ فرم/اکشن/session                                        | `mr-dan-frontend-debugging` |
+
+**Skill language: English.** Every `.opencode/skills/*/SKILL.md` (body and front matter) must be in English. The user-facing answer is Persian, but skill text is never written in Persian. Data characters only (Persian separators, tokenizer letter mappings) are exempt.
 
 ## ممنوعیت‌ها
 
@@ -107,6 +113,7 @@ chat nvidia/nemotron-3-ultra-550b-a55b:free
 - تغییر آستانه‌ها برای سبز کردن تست parity.
 - نوشتن منطق دامنه داخل `route.ts` یا کامپوننت React.
 - کامیت کردن `.env`، `.env.oracle` یا کلید OpenRouter.
+- ~/project/yaftar/aip-next is a read-only frontend reference — no import, no dependency, no submodule; it is comparison-only and never imported into this project
 
 ## تعریف «تمام شد»
 

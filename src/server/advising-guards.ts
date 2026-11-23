@@ -9,6 +9,14 @@
 
 import { redirect } from "next/navigation";
 
+import {
+  UnauthorizedError,
+  ForbiddenError,
+} from "@/modules/advising/domain/errors";
+import {
+  hasCapability,
+  type Capability,
+} from "@/modules/advising/domain/capabilities";
 import type { UserAccount } from "@/modules/advising/domain/models";
 import { readSessionToken } from "@/modules/advising/presentation/session-cookie";
 import { getContainer } from "./container";
@@ -36,9 +44,29 @@ export async function requireSessionUser(): Promise<SessionContext> {
   return session;
 }
 
-/** Role gate for counselor-only pages. */
-export async function requireCounselor(): Promise<SessionContext> {
+/** Capability gate for a route segment. Unauthorized users never see the page. */
+export async function requireCapability(
+  capability: Capability,
+): Promise<SessionContext> {
   const session = await requireSessionUser();
-  if (session.user.role !== "counselor") redirect("/profile");
+  if (!hasCapability(session.user.role, capability)) redirect("/profile");
+  return session;
+}
+
+/** API guard: throw 401 Unauthorized when there is no live session. */
+export async function requireApiSession(): Promise<SessionContext> {
+  const session = await getSessionContext();
+  if (!session) throw new UnauthorizedError();
+  return session;
+}
+
+/** API gate: session then capability, else 403 Forbidden. */
+export async function requireApiCapability(
+  capability: Capability,
+): Promise<SessionContext> {
+  const session = await requireApiSession();
+  if (!hasCapability(session.user.role, capability)) {
+    throw new ForbiddenError();
+  }
   return session;
 }

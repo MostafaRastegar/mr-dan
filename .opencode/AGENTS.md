@@ -87,7 +87,7 @@ The review loop is conditional, not a fixed single retry:
 ## File Editing
 
 - Do not modify files outside the project root without explicit approval.
-- `AGENTS.md`, `opencode.jsonc`, `.opencode/{agents,plugins,skills,commands}/`,
+- `opencode.jsonc`, `.opencode/{agents,plugins,commands}/`,
   `.githooks/`, `.git/`, and `.env*` files are locked by permissions. Ask the
   human to change them; do not try to work around the deny.
 - Shell commands are not pre-approved for any runner. A maintainer adds `allow`

@@ -7,13 +7,13 @@
 
 import { ZodError } from "zod";
 
-import type { ActionResult } from "@/shared/action-result";
-import { toActionError } from "./messages";
-import { toFieldErrors } from "./schemas";
+import type { ActionState } from "@/utils/app-error";
+import { toActionError } from "@/modules/advising/presentation/messages";
+import { toFieldErrors } from "@/modules/advising/presentation/schemas";
 
 export async function runAction<T>(
   fn: () => Promise<T>,
-): Promise<ActionResult<T>> {
+): Promise<ActionState<T>> {
   try {
     return { ok: true, data: await fn() };
   } catch (error) {

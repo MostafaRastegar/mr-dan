@@ -1,0 +1,8 @@
+[WebServer] $ next dev
+
+Running 2 tests using 2 workers
+
+  ✓  2 [chromium] › tests/e2e/advising-auth.spec.ts:12:3 › advising auth (identity, profile) › logged out visitor cannot see profile (5.2s)
+  ✓  1 [chromium] › tests/e2e/advising-auth.spec.ts:25:3 › advising auth (identity, profile) › edit profile persists and survives logout and login (7.5s)
+
+  2 passed (9.1s)

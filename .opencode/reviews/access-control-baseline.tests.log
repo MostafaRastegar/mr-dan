@@ -1,0 +1,157 @@
+TEST LOG — access-control-baseline (test phase)
+Review round: 1 of max 3
+Plan: .opencode/plans/access-control-baseline.md
+State: .opencode/plans/access-control-baseline.orchestrator.json
+Started: Mon Nov 23 2026
+
+======================================================================
+1. pnpm typecheck
+======================================================================
+$ tsc --noEmit
+EXIT_CODE=0
+
+======================================================================
+2. pnpm lint
+======================================================================
+$ oxlint src test
+src/components/advising/profile-form.view.tsx:5:31: warning eslint(no-unused-vars): Type 'ProfileView' is imported but never used. help: Consider removing this import.
+src/components/advising/assign-student-form.vm.tsx:5:10: warning eslint(no-unused-vars): Identifier 'Button' is imported but never used. help: Consider removing this import.
+src/components/advising/assign-student-form.vm.tsx:5:24: warning eslint(no-unused-vars): Identifier 'Select' is imported but never used. help: Consider removing this import.
+src/components/advising/assign-student-form.vm.tsx:7:10: warning eslint(no-unused-vars): Identifier 'TEST_IDS' is imported but never used. help: Consider removing this import.
+src/components/advising/profile-form.vm.tsx:4:10: warning eslint(no-unused-vars): Identifier 'Button' is imported but never used. help: Consider removing this import.
+src/components/advising/profile-form.vm.tsx:4:24: warning eslint(no-unused-vars): Identifier 'Input' is imported but never used. help: Consider removing this import.
+src/components/advising/profile-form.vm.tsx:4:31: warning eslint(no-unused-vars): Identifier 'Select' is imported but never used. help: Consider removing this import.
+src/components/advising/profile-form.vm.tsx:6:10: warning eslint(no-unused-vars): Identifier 'TEST_IDS' is imported but never used. help: Consider removing this import.
+src/components/advising/profile-form.vm.tsx:7:10: warning eslint(no-unused-vars): Identifier 'FIELDS' is imported but never used. help: Consider removing this import.
+src/components/advising/profile-form.vm.tsx:7:18: warning eslint(no-unused-vars): Identifier 'GRADES' is imported but never used. help: Consider removing this import.
+src/components/advising/profile-form.vm.tsx:8:51: warning eslint(no-unused-vars): Type 'FormValues' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.vm.tsx:5:10: warning eslint(no-unused-vars): Identifier 'Button' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.vm.tsx:5:24: warning eslint(no-unused-vars): Identifier 'Input' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.vm.tsx:5:31: warning eslint(no-unused-vars): Identifier 'Select' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.vm.tsx:6:10: warning eslint(no-unused-vars): Identifier 'IconPlus' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.vm.tsx:8:10: warning eslint(no-unused-vars): Identifier 'TEST_IDS' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.vm.tsx:9:10: warning eslint(no-unused-vars): Identifier 'FIELDS' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.vm.tsx:9:18: warning eslint(no-unused-vars): Identifier 'GRADES' is imported but never used. help: Consider removing this import.
+src/components/advising/group-create-form.view.tsx:18:17: warning eslint(no-unused-vars): Variable 'state' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+src/modules/rag/application/text-normalizer.ts:40:28: warning eslint(no-control-regex): Unexpected control character help: Avoid matching control characters in regular expressions. If intentional, disable this rule for the expression.
+src/modules/rag/application/text-normalizer.ts:40:51: warning eslint(no-control-regex): Unexpected control character help: Avoid matching control characters in regular expressions. If intentional, disable this rule for the expression.
+src/components/chat/chat-page.vm.tsx:4:10: warning eslint(no-unused-vars): Identifier 'Button' is imported but never used. help: Consider removing this import.
+src/components/chat/chat-page.vm.tsx:4:18: warning eslint(no-unused-vars): Identifier 'Input' is imported but never used. help: Consider removing this import.
+src/components/chat/chat-page.vm.tsx:4:25: warning eslint(no-unused-vars): Identifier 'Card' is imported but never used. help: Consider removing this import.
+src/components/chat/chat-page.vm.tsx:4:31: warning eslint(no-unused-vars): Identifier 'Avatar' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.view.tsx:29:5: warning eslint(no-unused-vars): Variable 'state' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+src/components/auth/register-form.view.tsx:33:5: warning eslint(no-unused-vars): Variable 'role' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+src/components/auth/register-form.vm.tsx:3:10: warning eslint(no-unused-vars): Identifier 'Button' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:3:24: warning eslint(no-unused-vars): Identifier 'Input' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:3:31: warning eslint(no-unused-vars): Identifier 'Select' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:4:8: warning eslint(no-unused-vars): Identifier 'Link' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:6:10: warning eslint(no-unused-vars): Identifier 'TEST_IDS' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:7:10: warning eslint(no-unused-vars): Identifier 'FIELDS' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:7:18: warning eslint(no-unused-vars): Identifier 'GRADES' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:8:51: warning eslint(no-unused-vars): Type 'FormValues' is imported but never used. help: Consider removing this import.
+src/components/auth/register-form.vm.tsx:14:7: warning eslint(no-unused-vars): Variable 'ROLE_OPTIONS' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+src/modules/advising/infrastructure/prisma-user-repository.ts:16:3: warning eslint(no-unused-vars): Type 'Role' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:18: warning eslint(no-unused-vars): Identifier 'Card' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:24: warning eslint(no-unused-vars): Identifier 'Col' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:29: warning eslint(no-unused-vars): Identifier 'Divider' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:38: warning eslint(no-unused-vars): Identifier 'Input' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:45: warning eslint(no-unused-vars): Identifier 'List' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:51: warning eslint(no-unused-vars): Identifier 'Row' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:56: warning eslint(no-unused-vars): Identifier 'Table' is imported but never used. help: Consider removing this import.
+src/components/admin/knowledge-page.vm.tsx:4:63: warning eslint(no-unused-vars): Identifier 'Space' is imported but never used. help: Consider removing this import.
+EXIT_CODE=0
+
+======================================================================
+3. pnpm build
+======================================================================
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+- Environments: .env
+✓ Running next.config.ts took 21ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 741ms
+  Running TypeScript ...
+  Finished TypeScript in 523ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/10) ...
+  Generating static pages using 11 workers (2/10) 
+  Generating static pages using 11 workers (4/10) 
+  Generating static pages using 11 workers (7/10) 
+✓ Generating static pages using 11 workers (10/10) in 440ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin/knowledge
+├ ƒ /api-docs
+├ ƒ /api/admin/cache/clear
+├ ƒ /api/admin/chunks
+├ ƒ /api/admin/chunks/[id]
+├ ƒ /api/admin/retrieval/debug
+├ ƒ /api/admin/stats
+├ ƒ /api/chat
+├ ƒ /api/chat/stream
+├ ƒ /api/conversations
+├ ƒ /api/conversations/[id]
+├ ƒ /api/documents
+├ ƒ /api/documents/[id]
+├ ƒ /api/health
+├ ƒ /api/ingest
+├ ƒ /api/metrics
+├ ƒ /api/openapi
+├ ƒ /api/search
+├ ƒ /api/upload
+├ ƒ /chat
+├ ƒ /counselor/students
+├ ƒ /login
+├ ƒ /profile
+└ ƒ /register
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+EXIT_CODE=0
+$ vitest run
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+{"level":30,"time":1795415050017,"service":"mr-dan","msg":"cache: cleared"}
+{"level":40,"time":1795415048165,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:26:15)\n    at expandQueries (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.ts:62:32)\n    at /home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:30:18\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"question":"q","msg":"query-expansion: LLM rewrite failed"}
+{"level":40,"time":1795415048284,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:49:15)\n    at LLMReranker.rerank (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.ts:100:39)\n    at /home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:54:32\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"query":"q","msg":"llm-reranker: LLM call failed, falling back to original order"}
+
+ Test Files  28 passed (28)
+      Tests  150 passed (150)
+   Start at  09:54:07
+   Duration  1.12s (tests 45%, import 41%, transform 9%, worker 4%)
+
+    Isolate  28 workers spawned · ~176ms startup each (spawn + environment, per file)
+             at least ~272ms faster with isolate: false — reuses workers across files instead of one per file
+
+exit=0
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  09:54:13
+   Duration  133ms (import 52%, tests 25%, worker 12%, transform 11%)
+
+[WebServer] $ next dev
+
+Running 8 tests using 6 workers
+
+  -  1 [chromium] › tests/e2e/access-control.spec.ts:33:3 › access control baseline › admin calling /api/admin/stats returns 200
+  -  2 [chromium] › tests/e2e/access-control.spec.ts:29:3 › access control baseline › counselor calling /api/admin/stats returns 403
+  -  3 [chromium] › tests/e2e/access-control.spec.ts:37:3 › access control baseline › student opening /api-docs lands on /profile
+  ✓  5 [chromium] › tests/e2e/access-control.spec.ts:17:3 › access control baseline › anonymous GET /api/admin/stats returns 401 (4.1s)
+  ✓  4 [chromium] › tests/e2e/access-control.spec.ts:10:3 › access control baseline › anonymous GET /api/documents returns 401 (4.4s)
+  ✓  7 [chromium] › tests/e2e/access-control.spec.ts:24:3 › access control baseline › anonymous /chat is redirected to /login (6.1s)
+  ✓  6 [chromium] › tests/e2e/advising-auth.spec.ts:12:3 › advising auth (identity, profile) › logged out visitor cannot see profile (6.2s)
+  ✓  8 [chromium] › tests/e2e/advising-auth.spec.ts:25:3 › advising auth (identity, profile) › edit profile persists and survives logout and login (8.4s)
+
+  3 skipped
+  5 passed (10.3s)

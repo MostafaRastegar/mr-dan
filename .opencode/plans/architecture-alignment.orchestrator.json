@@ -1,0 +1,79 @@
+{
+  "feature": "architecture-alignment",
+  "phase": "done",
+  "plan": ".opencode/plans/architecture-alignment.md",
+  "plan_sha256": "2d16b1f61c6219d9919b88a6668ec4914b58e6f9",
+  "review": ".opencode/reviews/architecture-alignment.md",
+  "test_log": ".opencode/reviews/architecture-alignment.tests.log",
+  "readme": { "path": "README.md", "state": "updated" },
+  "changelog": { "path": "CHANGELOG.md", "state": "written" },
+  "skills": [
+    "mr-dan-architecture", "mr-dan-feature-workflow", "mr-dan-frontend",
+    "mr-dan-frontend-debugging", "mr-dan-api", "mr-dan-persistence",
+    "mr-dan-testing-parity", "mr-dan-devops", "mr-dan-rag", "mr-dan-ingestion",
+    "mro-project-stack", "mro-data-model", "mro-code-review-checklist", "mro-behavior-docs"
+  ],
+  "sessions": {
+    "architect": "ses_df935590fffeDfoRKlbH3A6NCK",
+    "implementer": "ses_df92d36d6ffeR0M0BL5CGD2T0N",
+    "reviewer": "ses_df9240c4cffeFoQ0H3AVOEN8eo",
+    "test": "ses_df9240c4bffe2O7tv067bBTkQC"
+  },
+  "acceptance": { "total": 14, "confirmed": 12, "pending": 0, "deferred": 2 },
+  "changed_files": [
+    "src/components/admin/knowledge-page.vm.tsx",
+    "src/components/admin/knowledge-page.view.tsx",
+    "src/components/chat/chat-page.vm.tsx",
+    "src/components/chat/chat-page.view.tsx",
+    "src/components/advising/profile-form.vm.tsx",
+    "src/components/advising/profile-form.view.tsx",
+    "src/components/auth/register-form.vm.tsx",
+    "src/components/auth/register-form.view.tsx",
+    "src/components/advising/assign-student-form.vm.tsx",
+    "src/components/advising/assign-student-form.view.tsx",
+    "src/components/advising/counselor-roster.vm.tsx",
+    "src/components/advising/counselor-roster.view.tsx",
+    "src/components/advising/group-create-form.vm.tsx",
+    "src/components/advising/group-create-form.view.tsx",
+    "test/fakes/health-probe.ts",
+    "docs/contracts/architecture-alignment.md",
+    "test/architecture.test.ts",
+    "src/app/admin/knowledge/page.tsx",
+    "src/app/chat/page.tsx",
+    "src/app/(advising)/profile/page.tsx",
+    "src/app/(auth)/register/page.tsx",
+    "src/app/(advising)/counselor/students/page.tsx",
+    "src/modules/rag/domain/ports.test.ts",
+    "docs/behaviors/phase-5-1-identity-profile.md",
+    "docs/plan/architecture.md",
+    "README.md"
+  ],
+  "test_exit_codes": [
+    { "command": "pnpm vitest run test/architecture.test.ts", "exit": 0 },
+    { "command": "pnpm vitest run src/modules/rag/domain/ports.test.ts", "exit": 0 },
+    { "command": "pnpm typecheck", "exit": 0 },
+    { "command": "pnpm lint", "exit": 0 },
+    { "command": "pnpm build", "exit": 0 },
+    { "command": "pnpm test (25 files / 135 tests)", "exit": 0 },
+    { "command": "E2E_ENABLED=true pnpm exec playwright test tests/e2e/advising-auth.spec.ts (2 passed, 0 skipped)", "exit": 0 }
+  ],
+  "review_round": 1,
+  "severity_history": [ { "round": 1, "CRITICAL": 0, "HIGH": 1, "MEDIUM": 1, "LOW": 1 } ],
+  "review_level": "reviewed",
+  "review_level_status": "confirmed by human 2026-11-23",
+  "approvals": { "plan": "2026-11-23T10:05:00Z", "final": "2026-11-23T00:00:00Z" },
+  "budget": { "turns_per_phase": 20, "review_rounds": 3 },
+  "log": ".opencode/plans/architecture-alignment.log.jsonl",
+  "blockers": "HIGH #3 (forms rewritten, not pure moves) awaits human accept-or-fix; AC-10/AC-11 manual deferred (OPENROUTER_API_KEY not available); CHANGELOG pending final human approval",
+  "deferred_scope": [
+    {
+      "id": "D-RAG",
+      "decision": "parked by human 2026-11-23",
+      "scope": "all rag-related work: rag module architecture (presentation/messages.ts, run-action.ts), admin/knowledge surface, admin-auth-guards (O1), any rag/admin route guard",
+      "reason": "human: rag items are not planned yet; decide later",
+      "impact_on_plan": "none — architecture-alignment never included rag code changes (D3/D4 skipped them explicitly)"
+    }
+  ],
+  "notes": "All gates green: typecheck 0, lint 0, build 0, test 135 passed, e2e 2 passed/0 skipped. AC-1..9, 12..14 confirmed with evidence; AC-10/AC-11 deferred ([~]) — need OPENROUTER_API_KEY. Independent reviewer (ses_df9240c4cffeFoQ0H3AVOEN8eo) still running — no findings reported yet. Lint exit 0 but 44 warnings (42 in new vm/view files, 2 pre-existing in rag text-normalizer); reviewer to flag unused-import cleanup if applicable.",
+  "backpressure": { "features_awaiting_review": 2, "detail": "phase-5-1-identity-profile awaits final human approval (full); architecture-alignment in verify (reviewed). access-control-baseline plan awaits plan approval (full) — 2 of 3 slots used, one start still allowed." }
+}

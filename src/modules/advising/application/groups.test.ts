@@ -96,6 +96,40 @@ describe("groups", () => {
     expect(row?.counselorId).toBeNull();
   });
 
+  it("counselor cannot assign another counselor's student and changes nothing", async () => {
+    const owner = await createUser("counselor1", "counselor");
+    const other = await createUser("counselor2", "counselor");
+    const student = await createUser("student1", "student");
+    const ownerGroup = await createGroup({ id: owner.id, role: owner.role });
+    const otherGroup = await createGroup(
+      { id: other.id, role: other.role },
+      "گروه دو",
+    );
+
+    await assign({ id: owner.id, role: owner.role }, student.id, ownerGroup.id);
+
+    await expect(
+      assign({ id: other.id, role: other.role }, student.id, otherGroup.id),
+    ).rejects.toMatchObject({ code: "forbidden" });
+
+    const row = fakes.users.rowByUsername("student1");
+    expect(row?.groupId).toBe(ownerGroup.id);
+    expect(row?.counselorId).toBe(owner.id);
+  });
+
+  it("unassigning keeps the student's counselor id", async () => {
+    const owner = await createUser("counselor1", "counselor");
+    const student = await createUser("student1", "student");
+    const group = await createGroup({ id: owner.id, role: owner.role });
+
+    await assign({ id: owner.id, role: owner.role }, student.id, group.id);
+    await assign({ id: owner.id, role: owner.role }, student.id, null);
+
+    const row = fakes.users.rowByUsername("student1");
+    expect(row?.groupId).toBeNull();
+    expect(row?.counselorId).toBe(owner.id);
+  });
+
   it("assign with a missing group or student returns not_found", async () => {
     const counselor = await createUser("counselor1", "counselor");
     const student = await createUser("student1", "student");
@@ -129,7 +163,15 @@ describe("groups", () => {
     const group = await createGroup({ id: first.id, role: first.role });
 
     await assign({ id: first.id, role: first.role }, mine.id, group.id);
-    await assign({ id: second.id, role: second.role }, foreign.id, null);
+    const secondGroup = await createGroup(
+      { id: second.id, role: second.role },
+      "گروه دو",
+    );
+    await assign(
+      { id: second.id, role: second.role },
+      foreign.id,
+      secondGroup.id,
+    );
 
     const roster = await new CounselorRosterUseCase(
       fakes.users,

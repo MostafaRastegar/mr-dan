@@ -6,7 +6,14 @@
  * schemas derive from one place.
  */
 
-export type Role = "student" | "counselor";
+export type Role = "student" | "counselor" | "admin";
+
+/** Pure role parsing: `"admin"→admin`, `"counselor"→counselor`, anything else → `"student"` (default deny). */
+export function toRole(value: string): Role {
+  if (value === "admin") return "admin";
+  if (value === "counselor") return "counselor";
+  return "student";
+}
 
 export const GRADES = ["دهم", "یازدهم", "دوازدهم", "فارغ‌التحصیل"] as const;
 

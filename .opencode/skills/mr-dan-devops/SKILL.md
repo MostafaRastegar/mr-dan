@@ -7,29 +7,29 @@ description: Environment validation, Docker Compose, CI, logging, and metrics fo
 
 ## Usage
 
-هنگام تغییر env، Docker، CI، لاگ، متریک، یا راه‌اندازی محیط توسعه.
+Use when changing env handling, Docker, CI, logging, metrics, or local setup.
 
 ## Env
 
-- تنها محل خواندن `process.env`: `src/shared/env.ts` با zod.
-- در boot validate می‌شود؛ متغیر گمشده = خطای صریح، نه `undefined` در عمق کد.
-- `.env.example` کامل و بدون secret.
-- secretها: `.env` و `.env.oracle` در `.gitignore`.
-- تفکیک: `DATABASE_URL`, `CHROMA_URL`, `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `EMBEDDING_MODEL`, `LLM_MODEL`, `MAX_UPLOAD_MB`, `LOG_LEVEL`.
+- The only place `process.env` is read: `src/shared/env.ts`, validated with zod.
+- Validated at boot; a missing variable is an explicit error, never `undefined` deep in the code.
+- `.env.example` is complete and secret-free.
+- Secrets: `.env` and `.env.oracle` stay in `.gitignore`.
+- Split by concern: `DATABASE_URL`, `CHROMA_URL`, `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `EMBEDDING_MODEL`, `LLM_MODEL`, `MAX_UPLOAD_MB`, `LOG_LEVEL`.
 
 ## Docker Compose
 
 ```yaml
 services:
-  postgres:  image: postgres:17   # healthcheck pg_isready, volume
-  chromadb:  image: chromadb/chroma  # healthcheck روی 8000 داخل کانتینر؛ host 8001 چون 8000 مال oracle است
-  app:       build: .             # profile: full، پورت 3000
+  postgres:  image: postgres:17      # pg_isready healthcheck, volume
+  chromadb:  image: chromadb/chroma  # healthcheck on 8000 inside the container; host 8001 because 8000 belongs to the oracle
+  app:       build: .                # profile: full, port 3000
 ```
 
-- `depends_on: condition: service_healthy` برای app.
-- Chroma با `IS_PERSISTENT=TRUE` و volume.
-- app در حالت dev با bind mount؛ در production `output: "standalone"`.
-- هیچ رمز پیش‌فرض در compose؛ از `.env` بخوان.
+- `depends_on: condition: service_healthy` for the app.
+- Chroma runs with `IS_PERSISTENT=TRUE` and a volume.
+- The app uses a bind mount in dev; in production `output: "standalone"`.
+- No default password in compose; read from `.env`.
 
 ## CI
 
@@ -39,23 +39,23 @@ services:
 3. pnpm lint
 4. pnpm test
 5. pnpm build
-6. (اختیاری) docker compose up + integration
+6. (optional) docker compose up + integration
 ```
 
-- cache کردن store pnpm.
-- fail-fast روی lint/type.
-- هیچ تستی که به OpenRouter واقعی نیاز دارد در CI پیش‌فرض اجرا نمی‌شود.
+- Cache the pnpm store.
+- Fail fast on lint/type errors.
+- No test that needs the real OpenRouter runs in the default CI job.
 
 ## Logging
 
-- pino، JSON در production، pretty در dev.
-- فیلدهای ثابت: `requestId`, `route`, `durationMs`, `cache`, `topK`, `errorCode`.
-- هرگز: کلید API، متن کامل سند، embedding، محتوای کاربر.
-- خطا با `cause` لاگ می‌شود، ولی پاسخ کاربر فقط کد و پیام کوتاه.
+- pino: JSON in production, pretty in dev.
+- Fixed fields: `requestId`, `route`, `durationMs`, `cache`, `topK`, `errorCode`.
+- Never log: API keys, full document text, embeddings, user content.
+- Errors are logged with `cause`, but the user response carries only a code and a short message.
 
 ## Metrics
 
-`GET /api/metrics` با فرمت Prometheus:
+`GET /api/metrics` in Prometheus format:
 
 ```text
 mrdan_requests_total{route,status}
@@ -66,22 +66,22 @@ mrdan_llm_errors_total{kind}
 mrdan_chunks_total
 ```
 
-- بدون label با cardinality بالا (سؤال کاربر، id).
-- health جدا از metrics است.
+- No high-cardinality labels (user question, id).
+- Health is separate from metrics.
 
 ## Checklist
 
-- [ ] env در boot validate می‌شود.
-- [ ] `docker compose up` از صفر کار می‌کند.
-- [ ] health واقعاً dependencyها را چک می‌کند، نه `{ok:true}` ثابت.
-- [ ] CI روی PR اجرا می‌شود.
-- [ ] لاگ‌ها secret ندارند.
-- [ ] metrics بدون label پرخطر.
+- [ ] Env is validated at boot.
+- [ ] `docker compose up` works from a clean checkout.
+- [ ] Health actually checks dependencies, not a static `{ok:true}`.
+- [ ] CI runs on pull requests.
+- [ ] Logs contain no secrets.
+- [ ] Metrics have no risky labels.
 
 ## Anti-patterns
 
-- `process.env.X!` در کد پراکنده.
-- health که فقط `200` برمی‌گرداند.
-- compose با رمز hard-coded.
-- لاگ کردن کل prompt در production.
-- metrics با label `question`.
+- `process.env.X!` scattered through the code.
+- A health endpoint that only returns `200`.
+- Compose with hard-coded passwords.
+- Logging the whole prompt in production.
+- Metrics labeled with `question`.

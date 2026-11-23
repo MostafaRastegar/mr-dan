@@ -27,6 +27,20 @@ pnpm tsx scripts/seed-advising.ts   # حساب‌های counselor و student + �
 
 وابستگی جدید فاز ۵.۱ فقط `@tabler/icons-react@3.52.0` است (تنها icon set پروژه، pin دقیق بدون `^`). هیچ متغیر محیطی جدیدی اضافه نشده است؛ نام کوکی و TTL نشست ثابت‌اند، نه config.
 
+## ساختار کد
+
+```text
+src/
+├─ app/<route>/                page.tsx + <x>.vm.tsx + <x>.view.tsx + <area>.actions.ts
+│  └─ _components/             route-private vm/view pairs
+├─ components/                 providers.tsx + ui/
+├─ utils/                      app-error.ts, server-action.ts, use-form-action.ts
+├─ modules/<domain>/           domain, application, infrastructure, presentation
+└─ server/                     container.ts, advising-guards.ts
+```
+
+لایه‌های دامنه در `src/modules/<domain>/{domain,application,infrastructure,presentation}` دست‌نخورده‌اند؛ این تغییر فقط لایهٔ فرانت است.
+
 صفحات:
 - `/` — صفحه اصلی با لینک به چت، پنل دانش و اسناد API
 - `/chat` — چتはري streaming با منابع و دکمه-stop
@@ -51,6 +65,34 @@ curl localhost:3000/api/health
 - رمز با `node:crypto` و scrypt هش می‌شود (قالب `scrypt$...`)؛ **رمز خام هرگز ذخیره نمی‌شود**. در DB تنها SHA-256 توکن نشست می‌ماند، نه خود توکن.
 - دانش‌آموز پروفایل تحصیلی‌اش (پایه، رشته، مدرسه) را می‌بیند و ویرایش می‌کند؛ تغییر رمز نیازمند رمز فعلی است و سایر نشست‌های همان کاربر را باطل می‌کند.
 - مشاور گروه می‌سازد و دانش‌آموز را به گروه خودش تخصیص می‌دهد؛ این تخصیص در یک update اتمی انجام می‌شود (یک گروه و یک مشاور برای هر دانش‌آموز).
+
+## دسترسی و نقش‌ها
+
+تمام صفحات وendpointهای Feature نیاز به ورود دارند؛ فقط `GET /api/health` و `GET /api/metrics` برای همه باز است.
+
+| سطح | ناشناس | دانش‌آموز | مشاور | ادمین |
+|------|--------|-----------|--------|-------|
+| `GET /api/health`, `GET /api/metrics` | 200 | 200 | 200 | 200 |
+| `/`, `/login`, `/register` | 200 | 200 | 200 | 200 |
+| `/chat`, `/profile` | به `/login` | 200 | 200 | 200 |
+| `/admin/knowledge`, `/api-docs` | به `/login` | به `/profile` | به `/profile` | 200 |
+| ۹ مسیر داده RAG | ۴۰۱ | ۲۰۰ | ۲۰۰ | ۲۰۰ |
+| `GET /api/openapi` | ۴۰۱ | ۴۰۳ | ۴۰۳ | ۲۰۰ |
+| ۵ مسیر API مدیریت | ۴۰۱ | ۴۰۳ | ۴۰۳ | ۲۰۰ |
+
+APIهای محدود پاسخ JSON `{error:{code,message,requestId}}` برمی‌گردند (۴۰۱ یا ۴۰۳). صفحات غیرمجاز به `/login` یا `/profile` ریدایرکت می‌شوند.
+
+ایجاد ادمین فقط از طریق اسکریپت dev است:
+
+```bash
+pnpm tsx scripts/create-admin.ts <username>
+```
+
+اسکریپت در `production` اجرا نمی‌شود (خطا می‌دهد)، کاربر موجود را به `admin` ارتقا می‌دهد (فقط فیلد `role`، هرگز `passwordHash` را نمی‌トルد) یا کاربر جدید با رمز تولید‌شده می‌سازد که یکبار در stdout چاپ می‌شود. ثبت‌نام فقط نقش `student` و `counselor` می‌پذیرد؛ هرگز `admin` می‌سازد.
+
+نصب ادمین: UI مدیریت وجود ندارد؛ `user:manage` اعلام‌شده است اما استفاده نمی‌شود؛ مالکیت RAG از طریق کاربر وجود ندارد (هر نشست کل داده RAG را می‌بیند).
+
+جزئیات: [`docs/behaviors/access-control-baseline.md`](./docs/behaviors/access-control-baseline.md)
 
 ## محدودیت‌ها
 
@@ -114,6 +156,7 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm build
 فاز ۲ (hybrid + rerank + cache) — کامل  
 فاز ۳ (CRUD، مکالمه، admin، متریک) — کامل  
 فاز ۴ (RAG console UI: چت RTL، پنل دانش، e2e، Dockerfile، README) — کامل  
-فاز ۵.۱ (هویت، پروفایل، گروه) — کامل
+فاز ۵.۱ (هویت، پروفایل، گروه) — کامل  
+هر روت فرانت‌اند تریاد `page.tsx` + `<x>.vm.tsx` + `<x>.view.tsx` را کنار هم در `src/app/**` دارد؛ کامپوننت‌های خصوصی روت در `_components/` و Server Actionها در `src/app/**/*.actions.ts` هستند؛ چوک‌پوینت‌های action در `src/utils/` قرار دارند. test fakes در `test/fakes/` هستند.
 
 جزئیات در [`docs/plan/phases.md`](./docs/plan/phases.md).

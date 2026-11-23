@@ -7,20 +7,20 @@ description: Prisma 7 schema, repositories, transactions, and Postgres ownership
 
 ## Usage
 
-هنگام تغییر schema، نوشتن repository، migration، یا تصمیم دربارهٔ اینکه داده در Postgres بماند یا Chroma.
+Use when changing the schema, writing a repository, creating a migration, or deciding whether data belongs in Postgres or Chroma.
 
 ## Ownership
 
-| داده | محل |
+| Data | Store |
 |---|---|
 | chunk text + embedding + metadata | Chroma |
 | document record | Postgres |
 | conversation + messages | Postgres |
 | ingestion run | Postgres |
-| cache (اختیاری، پایدار) | Postgres |
-| آمار | محاسبه |
+| cache (optional, durable) | Postgres |
+| statistics | computed |
 
-## Schema (اولیه)
+## Schema (initial)
 
 ```prisma
 model Document {
@@ -75,42 +75,48 @@ model CacheEntry {
 }
 ```
 
-- `Document.ownerId` و `visibility` عمداً نیستند؛ فاز محصول با migration اضافه می‌کند.
-- `contentHash` یکتاست؛ ingestion تکراری در سطح DB هم بسته می‌شود.
+- `Document.ownerId` and `visibility` are deliberately absent; the product phase adds them with a migration.
+- `contentHash` is unique; duplicate ingestion is blocked at the DB level too.
 
 ## Rules
 
-1. `domain` هرگز `@prisma/client` را import نمی‌کند؛ repository خروجی را به model دامنه map می‌کند.
-2. هر repository یک interface در `domain/ports.ts` دارد.
-3. queryها در `infrastructure/prisma/` هستند، نه در use case.
-4. عملیات چندجدولی در `prisma.$transaction`.
-5. `select` صریح؛ `findMany()` بدون select ممنوع.
-6. حذف سند: Chroma اول، Postgres دوم. اگر Postgres شکست خورد، ingestion دوباره سند را می‌سازد.
-7. migrationها commit می‌شوند؛ `db push` در production ممنوع.
-8. تاریخ‌ها `DateTime`؛ در API ISO string.
-9. صفحه‌بندی با `take/skip` و `orderBy` صریح.
+1. `domain` never imports `@prisma/client`; the repository maps rows to domain models.
+2. Every repository has an interface in `domain/ports.ts`.
+3. Queries live in `infrastructure/prisma/`, not in a use case.
+4. Multi-table operations run in `prisma.$transaction`.
+5. `select` is explicit; `findMany()` without a select is banned.
+6. Deleting a document: Chroma first, Postgres second. If Postgres fails, ingestion rebuilds the document.
+7. Migrations are committed; `db push` in production is banned.
+8. Dates are `DateTime`; the API exposes ISO strings.
+9. Pagination uses explicit `take`/`skip` and `orderBy`.
 
-## Steps — افزودن repository
+## Steps — adding a repository
 
-1. interface را در `domain/ports.ts`.
-2. پیاده‌سازی در `infrastructure/prisma/`.
-3. map کردن row → domain model (بدون return خام Prisma).
-4. fake در `test/fakes/`.
-5. integration test با Postgres واقعی برای کوئری‌های غیرساده.
+1. Declare the interface in `domain/ports.ts`.
+2. Implement it in `infrastructure/prisma/`.
+3. Map rows → domain models (never return raw Prisma types).
+4. Add a fake in `test/fakes/`.
+5. Add an integration test against real Postgres for non-trivial queries.
+
+## Prisma 7 adapter notes
+
+- Unique violations surface at `meta.driverAdapterError.cause.constraint.index`, not `meta.target`. Map that field when translating to a domain error.
+- Errors are wrapped in an adapter error; the original is kept as `cause`.
+- `select` explicit, no `include` shortcuts.
 
 ## Checklist
 
-- [ ] `pnpm prisma migrate dev` بدون drift.
-- [ ] هیچ `any` از نوع Prisma به application نمی‌رسد.
-- [ ] حذف conversation پیام‌ها را cascade می‌کند.
-- [ ] `select` صریح است.
-- [ ] query سنگین index دارد.
-- [ ] testcontainers یا compose برای integration.
+- [ ] `pnpm prisma migrate dev` reports no drift.
+- [ ] No Prisma type reaches `application` as `any`.
+- [ ] Deleting a conversation cascades to its messages.
+- [ ] `select` is explicit.
+- [ ] Heavy queries have an index.
+- [ ] Integration uses testcontainers or compose.
 
 ## Anti-patterns
 
-- Prisma client در `application` یا `presentation`.
-- `include` همه‌چیز به‌جای select.
-- ذخیرهٔ embedding در Postgres در این فاز.
-- migration دستی SQL بدون revisiting schema.
-- `findFirst` بدون `orderBy` برای «آخرین».
+- Prisma client in `application` or `presentation`.
+- `include` of everything instead of `select`.
+- Storing embeddings in Postgres in this phase.
+- Hand-written SQL migration without revisiting the schema.
+- `findFirst` without `orderBy` for "latest".

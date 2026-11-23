@@ -28,6 +28,7 @@ src/
 │  │  ├─ admin/stats/route.ts
 │  │  └─ metrics/route.ts
 │  ├─ layout.tsx
+│  ├─ <route>/{page,x.vm,x.view,_components,<area>.actions}   # page triad + area actions
 │  └─ globals.css
 ├─ modules/
 │  ├─ rag/
@@ -62,15 +63,15 @@ src/
 │     │  └─ errors.ts                # UsernameTakenError, ForbiddenError…
 │     ├─ application/                # auth, session, profile, groups
 │     ├─ infrastructure/            # prisma-*-repository.ts, auth-crypto.ts
-│     └─ presentation/              # schemas, cookie, messages, run-action
+│     └─ presentation/              # schemas, cookie, messages
 ├─ shared/
 │  ├─ env.ts                        # zod-validated process.env
 │  ├─ logger.ts                     # pino
 │  ├─ result.ts                     # اگر لازم شد (اختیاری)
 │  └─ prisma.ts
+├─ utils/                         (app-error, server-action, use-form-action)
 └─ server/
    ├─ container.ts                  # تنها composition root
-   ├─ advising-actions.ts           # Server Actionهای ۵.۱ (بدون منطق دامنه)
    └─ advising-guards.ts            # گارد نشست برای app/(advising)
 ```
 
@@ -93,9 +94,24 @@ app/* ──────────────► server/container ───�
 
 ## ۲.۱. ماژول `advising` (فاز ۵.۱)
 
-همان چهار لایهٔ `rag` با همان قانون وابستگی: `domain` بدون import خارجی، `application` فقط domain و port، `infrastructure` قرارداد port را implement می‌کند، `presentation` فقط zod + domain + application (schemas، کوکی، `run-action`، نگاشت خطا). mutationها Server Action هستند، نه route handler.
+همان چهار لایهٔ `rag` با همان قانون وابستگی: `domain` بدون import خارجی، `application` فقط domain و port، `infrastructure` قرارداد port را implement می‌کند، `presentation` فقط zod + domain + application (schemas، کوکی، نگاشت خطا). mutationها Server Action هستند، نه route handler.
 
-Server Actionها و گاردهای نشست بیرون از ماژول‌اند: `src/server/advising-actions.ts` و `src/server/advising-guards.ts`. دلیل: تست معماری import از `presentation` به `server` را ممنوع می‌کند، و action باید هم use case را از composition root بگیرد و هم کوکی `next/headers` را بنویسد؛ پس در `src/server/` می‌نشیند و `app/(advising)/**` فقط آن را صدا می‌زند. هیچ منطق دامنه‌ای در این دو فایل نیست.
+Server Actionها coliocated با صفحات هستند: `src/app/(auth)/auth.actions.ts`، `src/app/(advising)/advising.actions.ts` و `src/app/(advising)/counselor/students/students.actions.ts`؛ هر一动 بدنهٔ خود را در `runAction` از `src/utils/server-action.ts` می‌بیند. گاردهای نشست همچنان در `src/server/advising-guards.ts` زندگی می‌کنند و در ورودی هر روت/صفحه اجرا می‌شوند (نه در middleware/proxy؛ پراکسی Next 16 نمی‌تواند به دیتابیس دسترسی داشته باشد). هیچ منطق دامنه‌ای در اکشن‌ها نیست.
+
+گاردهای نشست در `src/server/advising-guards.ts` زندگی می‌کنند و در ورودی هر
+روت/صفحه اجرا می‌شوند (نه در middleware/proxy؛ پراکسی Next 16 نمی‌تواند به
+دیتابیس دسترسی داشته باشد):
+
+- `requireSessionUser()` — صفحات: نشست ندارد → ریدایرکت به `/login`.
+- `requireApiSession()` — مسیرهای API: نشست ندارد → ۴۰۱ (`UnauthorizedError`).
+- `requireCapability(capability)` — صفحات: نشست ناکافی → ریدایرکت به `/profile`.
+- `requireApiCapability(capability)` — مسیرهای API: نشست ناکافی → ۴۰۳
+  (`ForbiddenError`).
+
+نقش `admin` به جدول نقش‌ها افزوده شده است و شامل کلیه قابلیت‌های مشاور به‌مانند
+`rag:manage` و `user:manage` است (جدول صریح، بدون ارث‌بری). ایجاد ادمین فقط از طریق
+`scripts/create-admin.ts` است (فقط dev، در production اجرا نمی‌شود) و ثبت‌نام هرگز
+نقش `admin` نمی‌سازد.
 
 ## ۳. Composition root
 
@@ -249,3 +265,10 @@ CACHE_TTL_EMBEDDING=3600, CACHE_TTL_LLM=86400
 - scheduler، scraper، Confluence
 - تزریق Prisma به domain
 - endpointهای دوگانه برای «سازگاری با فرانت قدیمی»
+
+### ۹.۱. استثناها و تصمیمات ثبت‌شده (D3، D4، D5)
+
+- **D3 — rag/admin بدون گارد:** سطح `rag` و سطح `admin` مسیر HTTP هستند و هیچ نشست ندارند؛ صفحهٔ `/admin/knowledge` امروز ناAuth است. افزودن `requireCapability` به آن‌ها رفتار و تغییر امنیتی است، خارج از دامنه این فاز، Needs `review_level: full`.
+- **D4 — rag ندارد `presentation/messages.ts`:** سطح rag فقط HTTP است (`app/api/**` + `fetch`); `ActionResult` برای map و Server Action برای لفته وجود ندارد.
+- **D5 — ریشه fattoy:** تمام test doubles تحت `test/fakes/` قرار دارند؛ `src/test/` حذف شد و `health-probe.ts` به `test/fakes/health-probe.ts` منتقل شد.
+

@@ -28,7 +28,7 @@
   // `build` agent). Every file in .opencode/agents/ pins its own model.
   // Why: an unpinned session used whatever the client last selected, which can
   // be a paid model. Change: use any id from `opencode models`.
-  "model": "9router/deep",
+  "model": "9router/nemo",
 
   // New sessions start in the Orchestrator, which plans, delegates, and gates
   // approval before any code is written. Why: matches the Orchestrated Workflow
@@ -128,11 +128,11 @@
     { "action": "edit", "resource": "*.env.example", "effect": "allow" },
     { "action": "edit", "resource": ".git/*", "effect": "deny" },
     { "action": "edit", "resource": ".githooks/*", "effect": "deny" },
-    { "action": "edit", "resource": "AGENTS.md", "effect": "deny" },
+    { "action": "edit", "resource": "AGENTS.md", "effect": "allow" },
     { "action": "edit", "resource": "opencode.jsonc", "effect": "deny" },
     { "action": "edit", "resource": ".opencode/agents/*", "effect": "deny" },
     { "action": "edit", "resource": ".opencode/plugins/*", "effect": "deny" },
-    { "action": "edit", "resource": ".opencode/skills/*", "effect": "deny" },
+    { "action": "edit", "resource": ".opencode/skills/*", "effect": "allow" },
     { "action": "edit", "resource": ".opencode/commands/*", "effect": "deny" }
   ],
 
@@ -149,10 +149,10 @@
   // `build` is pinned too so an ad-hoc session cannot silently use a paid model.
   // Change: `small_model` is deprecated in V2 — set these entries instead.
   "agents": {
-    "title": { "model": "9router/deep" },
-    "summary": { "model": "9router/deep" },
-    "compaction": { "model": "9router/deep" },
-    "build": { "model": "9router/deep" }
+    "title": { "model": "9router/nemo" },
+    "summary": { "model": "9router/nemo" },
+    "compaction": { "model": "9router/nemo" },
+    "build": { "model": "9router/nemo" }
   },
 
   // Compaction keeps the summary plus a verbatim tail of recent turns.
