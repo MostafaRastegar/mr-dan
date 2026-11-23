@@ -1,0 +1,156 @@
+{
+  "feature": "phase-5-3-nutrition-leisure",
+  "phase": "done",
+  "plan": ".opencode/plans/phase-5-3-nutrition-leisure.md",
+  "plan_sha256": "59d7aa246eb5f04a11927d507a5a27eba6fd7967",
+  "review": ".opencode/reviews/phase-5-3-nutrition-leisure.md",
+  "test_log": ".opencode/reviews/phase-5-3-nutrition-leisure.tests.log",
+  "readme": {
+    "path": "README.md",
+    "state": "updated"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "written"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-persistence",
+    "mr-dan-api",
+    "mr-dan-frontend",
+    "mr-dan-frontend-debugging",
+    "mr-dan-feature-workflow",
+    "mr-dan-testing-parity",
+    "mr-dan-devops",
+    "mr-dan-rag",
+    "mr-dan-ingestion",
+    "mro-data-model",
+    "mro-code-review-checklist",
+    "mro-behavior-docs",
+    "mro-project-stack"
+  ],
+  "sessions": {
+    "architect": "ses_df7ac7633ffe41826RQ1EgXNV8",
+    "implementer": "ses_df79dd3b2ffeyz9tDZzXukoh9o",
+    "reviewer": "ses_df7695b60ffeCtpIhFEeBe8qcy",
+    "test": "ses_df76a5553ffe14PjeV8UjhRbdG"
+  },
+  "acceptance": {
+    "total": 20,
+    "confirmed": 20,
+    "pending": 0,
+    "deferred": 0
+  },
+  "changed_files": [
+    "README.md",
+    "docs/behaviors/phase-5-3-nutrition-leisure.md",
+    "docs/contracts/phase-5-3-nutrition-leisure.md",
+    "docs/behaviors/access-control-baseline.md",
+    "docs/behaviors/phase-5-2-schedule-homework-study.md",
+    "docs/plan/phases.md",
+    "src/app/(advising)/nutrition/_components/physical-form.vm.tsx",
+    "src/modules/advising/application/planning-access.ts",
+    "tests/e2e/advising-nutrition-leisure.spec.ts"
+  ],
+  "test_exit_codes": [
+    {
+      "command": "pnpm test --run src/modules/advising/domain",
+      "exit": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm prisma migrate status",
+      "exit": 0
+    },
+    {
+      "command": "pnpm prisma validate",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run src/modules/advising/application test/architecture.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/advising/nutrition-leisure-integration.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "E2E_ENABLED=true pnpm test:e2e tests/e2e/advising-nutrition-leisure.spec.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/architecture.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "E2E_ENABLED=true pnpm test:e2e tests/e2e/advising-nutrition-leisure.spec.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm prisma migrate status",
+      "exit": 0
+    },
+    {
+      "command": "pnpm prisma validate",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test -t <each AC title>",
+      "exit": 0
+    }
+  ],
+  "review_round": 2,
+  "severity_history": [
+    {
+      "round": 1,
+      "critical": 0,
+      "high": 0,
+      "medium": 1,
+      "low": 4
+    },
+    {
+      "round": 2,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 1
+    }
+  ],
+  "approvals": {
+    "plan": "2026-11-23T12:29:28.183Z",
+    "final": "2026-11-23T13:38:17.672Z"
+  },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 3
+  },
+  "log": ".opencode/plans/phase-5-3-nutrition-leisure.log.jsonl",
+  "blockers": "none"
+}

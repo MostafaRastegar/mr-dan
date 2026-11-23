@@ -14,7 +14,11 @@ import type { UserRepositoryPort } from "@/modules/advising/domain/ports";
 
 export type Actor = { id: string; role: Role };
 
-export type PlanCapability = "schedule:write" | "homework:write" | "study:write";
+export type PlanCapability =
+  | "schedule:write"
+  | "homework:write"
+  | "study:write"
+  | "nutrition:write";
 
 export function assertPlanWrite(
   actor: Actor,
@@ -44,8 +48,4 @@ export async function assertPlanRead(
   ) {
     throw new ForbiddenError();
   }
-}
-
-export function isPlanningOwner(actor: Actor, ownerId: string): boolean {
-  return actor.id === ownerId;
 }

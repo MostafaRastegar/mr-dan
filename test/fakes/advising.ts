@@ -16,6 +16,8 @@ import type {
   GroupSummary,
   NewGroup,
   NewUser,
+  PhysicalProfile,
+  PhysicalProfilePatch,
   ProfilePatch,
   ProfileView,
   SessionRecord,
@@ -79,6 +81,7 @@ export class FakeAuthCrypto implements AuthCryptoPort {
 
 export class FakeUserRepository implements UserRepositoryPort {
   private readonly rows = new Map<string, UserRow>();
+  private readonly physical = new Map<string, PhysicalProfile>();
   private sequence = 0;
 
   constructor(private readonly state: SharedState) {}
@@ -230,6 +233,30 @@ export class FakeUserRepository implements UserRepositoryPort {
       const next = this.state.groupCounts.get(input.groupId) ?? 0;
       this.state.groupCounts.set(input.groupId, next + 1);
     }
+  }
+
+  async findPhysicalProfile(id: string): Promise<PhysicalProfile | null> {
+    if (!this.rows.has(id)) return null;
+    return (
+      this.physical.get(id) ?? {
+        age: null,
+        gender: null,
+        heightCm: null,
+        weightKg: null,
+        activityLevel: null,
+        dietGoal: null,
+      }
+    );
+  }
+
+  async updatePhysicalProfile(
+    id: string,
+    patch: PhysicalProfilePatch,
+  ): Promise<PhysicalProfile> {
+    if (!this.rows.has(id)) throw new Error("user not found");
+    const profile: PhysicalProfile = { ...patch };
+    this.physical.set(id, profile);
+    return profile;
   }
 }
 

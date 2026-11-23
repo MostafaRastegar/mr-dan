@@ -41,6 +41,7 @@ source_files: prisma/schema.prisma, prisma/migrations/20261123080240_add_advisin
 - منطقه زمانی کاربر (مرز روز ثابت UTC+۰۳:۳۰ است).
 - deadline با ساعت (فقط روز تقویمی ایران).
 - خواندن/نوشتن سطرهای برنامه‌ریزی دانش‌آموزان از طریق UI مشاور (فقط لایه استفاده، تا ۵.۴).
+- `/nutrition` و `/leisure` در سند `docs/behaviors/phase-5-3-nutrition-leisure.md` مستند شده‌اند.
 
 ## فایل‌های touche شده
 

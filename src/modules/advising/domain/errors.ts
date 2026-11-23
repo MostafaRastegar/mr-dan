@@ -38,3 +38,9 @@ export class ScheduleConflictError extends AppError {
     super("schedule_conflict", 409, "این بازه با یک درس دیگر همان روز تداخل دارد", cause);
   }
 }
+
+export class ProfileIncompleteError extends AppError {
+  constructor(cause?: unknown) {
+    super("profile_incomplete", 422, "Physical profile is incomplete", cause);
+  }
+}

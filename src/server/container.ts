@@ -61,6 +61,12 @@ import {
   GetStudyAnalysisUseCase,
 } from "@/modules/advising/application/study";
 import {
+  GetNutritionOverviewUseCase,
+  SaveMealPlanUseCase,
+  UpdatePhysicalProfileUseCase,
+} from "@/modules/advising/application/nutrition";
+import { GetLeisureSuggestionUseCase } from "@/modules/advising/application/leisure";
+import {
   PrismaUserRepository,
 } from "@/modules/advising/infrastructure/prisma-user-repository";
 import { PrismaSessionRepository } from "@/modules/advising/infrastructure/prisma-session-repository";
@@ -68,6 +74,7 @@ import { PrismaGroupRepository } from "@/modules/advising/infrastructure/prisma-
 import { PrismaScheduleRepository } from "@/modules/advising/infrastructure/prisma-schedule-repository";
 import { PrismaHomeworkRepository } from "@/modules/advising/infrastructure/prisma-homework-repository";
 import { PrismaStudySessionRepository } from "@/modules/advising/infrastructure/prisma-study-session-repository";
+import { PrismaMealPlanRepository } from "@/modules/advising/infrastructure/prisma-meal-plan-repository";
 import { ScryptAuthCrypto } from "@/modules/advising/infrastructure/auth-crypto";
 
 type Container = {
@@ -103,6 +110,10 @@ type Container = {
     deleteHomework: DeleteHomeworkUseCase;
     recordStudySession: RecordStudySessionUseCase;
     getStudyAnalysis: GetStudyAnalysisUseCase;
+    getNutritionOverview: GetNutritionOverviewUseCase;
+    updatePhysicalProfile: UpdatePhysicalProfileUseCase;
+    saveMealPlan: SaveMealPlanUseCase;
+    getLeisureSuggestion: GetLeisureSuggestionUseCase;
   };
 };
 
@@ -115,7 +126,7 @@ const globalForContainer = globalThis as unknown as {
  * Bump when the container's shape changes: the cache lives on `globalThis`
  * across HMR, so adding keys stays invisible to an already-running dev server.
  */
-const CONTAINER_VERSION = 2;
+const CONTAINER_VERSION = 3;
 
 function build(): Container {
   const documentRepository = new PrismaDocumentRepository();
@@ -202,6 +213,7 @@ function buildAdvising(): Container["advising"] {
   const schedule = new PrismaScheduleRepository();
   const homework = new PrismaHomeworkRepository();
   const study = new PrismaStudySessionRepository();
+  const mealPlans = new PrismaMealPlanRepository();
   const crypto = new ScryptAuthCrypto();
 
   return {
@@ -224,6 +236,10 @@ function buildAdvising(): Container["advising"] {
     deleteHomework: new DeleteHomeworkUseCase(homework),
     recordStudySession: new RecordStudySessionUseCase(users, study),
     getStudyAnalysis: new GetStudyAnalysisUseCase(users, study),
+    getNutritionOverview: new GetNutritionOverviewUseCase(users, mealPlans),
+    updatePhysicalProfile: new UpdatePhysicalProfileUseCase(users),
+    saveMealPlan: new SaveMealPlanUseCase(users, mealPlans),
+    getLeisureSuggestion: new GetLeisureSuggestionUseCase(study, homework),
   };
 }
 

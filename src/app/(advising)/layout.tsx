@@ -61,6 +61,24 @@ export default async function AdvisingLayout({
                 تایمر مطالعه
               </Link>
             ) : null}
+            {hasCapability(user.role, "nutrition:read") ? (
+              <Link
+                href="/nutrition"
+                className="flex items-center gap-1 text-slate-700"
+                data-testid={TEST_IDS.NAV.NUTRITION}
+              >
+                تغذیه
+              </Link>
+            ) : null}
+            {hasCapability(user.role, "leisure:read") ? (
+              <Link
+                href="/leisure"
+                className="flex items-center gap-1 text-slate-700"
+                data-testid={TEST_IDS.NAV.LEISURE}
+              >
+                فراغت
+              </Link>
+            ) : null}
             <Link href="/" className="text-sm text-slate-500">
               خانه
             </Link>

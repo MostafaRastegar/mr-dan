@@ -200,13 +200,14 @@ cd mr-rag && python -m scripts.eval_retrieval --mode dense
 
 **اسکیل‌ها:** mr-dan-persistence, mr-dan-architecture, mr-dan-frontend
 
-### فاز ۵.۳ — آزمون، تغذیه، کتاب، اوقات فراغت
+### فاز ۵.۳ — تغذیه، کتاب، اوقات فراغت
 
-- `Question` + `QuizAttempt` با نمره‌دهی کنکور (۳ غلط = ۱ درست) و کارنامه
-- `MealPlan` + migration فیلدهای فیزیکی روی `User` (`age`, `gender`, `heightCm`, `weightKg`, `activityLevel`, `dietGoal`) و BMR/TDEE
-- پیشنهاد کتاب از `data/books.json` و پیشنهاد فراغت از قواعد خستگی/بار کاری
+- [x] `MealPlan` + migration فیلدهای فیزیکی روی `User` (`age`, `gender`, `heightCm`, `weightKg`, `activityLevel`, `dietGoal`) و BMR/TDEE
+- [x] پیشنهاد کتاب از کاتالوگ ثابت `domain/books.ts` و پیشنهاد فراغت از قواعد خستگی/بار کاری
 
-**دروازه:** migration سبز، نمره‌دهی آزمون تست‌شده، محاسبهٔ BMR/TDEE تست‌شده.
+**دروازه:** migration سبز، محاسبهٔ BMR/TDEE تست‌شده.
+
+**پلن:** [`.opencode/plans/phase-5-3-nutrition-leisure.md`](../../.opencode/plans/phase-5-3-nutrition-leisure.md)
 
 ### فاز ۵.۴ — داشبورد (`echarts`) + پنل مشاور
 

@@ -6,6 +6,17 @@
  * schemas derive from one place.
  */
 
+import type { MealSlot } from "./energy";
+
+export type {
+  ActivityLevel,
+  CompletePhysicalProfile,
+  DietGoal,
+  Gender,
+  PhysicalProfile,
+  PhysicalProfilePatch,
+} from "./energy";
+
 export type Role = "student" | "counselor" | "admin";
 
 /** Pure role parsing: `"admin"→admin`, `"counselor"→counselor`, anything else → `"student"` (default deny). */
@@ -212,4 +223,27 @@ export interface NewStudySession {
   durationMinutes: number;
   focusLevel?: number | null;
   startedAt: Date;
+}
+
+export interface MealPlanItem {
+  slot: MealSlot;
+  label: string;
+  calories: number;
+}
+
+export interface MealPlanRecord {
+  id: string;
+  studentId: string;
+  dayKey: string;
+  targetCalories: number;
+  meals: MealPlanItem[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface NewMealPlan {
+  studentId: string;
+  dayKey: string;
+  targetCalories: number;
+  meals: MealPlanItem[];
 }

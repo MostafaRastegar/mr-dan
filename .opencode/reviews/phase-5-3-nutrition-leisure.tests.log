@@ -1,0 +1,172 @@
+# Gate — phase-5-3-nutrition-leisure
+
+## docker compose up -d
+command: `docker compose up -d`
+exit: 0
+
+```
+ Container mr-dan-postgres-1 Running 
+ Container mr-dan-chromadb-1 Running 
+```
+
+## docker compose ps
+command: `docker compose ps`
+exit: 0
+
+```
+NAME                IMAGE                                     COMMAND                  SERVICE    CREATED        STATUS                  PORTS
+mr-dan-chromadb-1   hub.hamdocker.ir/chromadb/chroma:latest   "dumb-init -- chroma…"   chromadb   26 hours ago   Up 22 hours (healthy)   0.0.0.0:8001->8000/tcp, [::]:8001->8000/tcp
+mr-dan-postgres-1   hub.hamdocker.ir/postgres:16              "docker-entrypoint.s…"   postgres   26 hours ago   Up 23 hours (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+```
+
+## prisma migrate status
+command: `pnpm prisma migrate status`
+exit: 0
+
+```
+$ prisma migrate status
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "mr_dan", schema "public" at "localhost:5432"
+
+4 migrations found in prisma/migrations
+
+Database schema is up to date!
+```
+
+## prisma validate
+command: `pnpm prisma validate`
+exit: 0
+
+```
+$ prisma validate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+The schema at prisma/schema.prisma is valid 🚀
+```
+
+## typecheck
+command: `pnpm typecheck`
+exit: 0
+
+```
+$ tsc --noEmit
+```
+
+## lint
+command: `pnpm lint`
+exit: 0
+
+```
+$ oxlint src test
+src/modules/rag/application/text-normalizer.ts:40:28: warning eslint(no-control-regex): Unexpected control character help: Avoid matching control characters in regular expressions. If intentional, disable this rule for the expression.
+src/modules/rag/application/text-normalizer.ts:40:51: warning eslint(no-control-regex): Unexpected control character help: Avoid matching control characters in regular expressions. If intentional, disable this rule for the expression.
+```
+
+## unit + integration tests
+command: `pnpm test`
+exit: 0
+
+```
+$ vitest run
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+{"level":30,"time":1795440370641,"service":"mr-dan","msg":"cache: cleared"}
+{"level":40,"time":1795440368900,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:26:15)\n    at expandQueries (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.ts:62:32)\n    at /home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:30:18\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"question":"q","msg":"query-expansion: LLM rewrite failed"}
+{"level":40,"time":1795440369486,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:49:15)\n    at LLMReranker.rerank (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.ts:100:39)\n    at /home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:54:32\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"query":"q","msg":"llm-reranker: LLM call failed, falling back to original order"}
+
+ Test Files  47 passed (47)
+      Tests  233 passed (233)
+   Start at  16:56:08
+   Duration  1.68s (tests 44%, import 41%, transform 10%, worker 4%)
+
+    Isolate  47 workers spawned · ~172ms startup each (spawn + environment, per file)
+             at least ~562ms faster with isolate: false — reuses workers across files instead of one per file
+```
+
+## build
+command: `pnpm build`
+exit: 0
+
+```
+├ ƒ /api/health
+├ ƒ /api/ingest
+├ ƒ /api/metrics
+├ ƒ /api/openapi
+├ ƒ /api/search
+├ ƒ /api/upload
+├ ƒ /chat
+├ ƒ /counselor/students
+├ ƒ /homework
+├ ƒ /leisure
+├ ƒ /login
+├ ƒ /nutrition
+├ ƒ /profile
+├ ƒ /register
+├ ƒ /schedule
+└ ƒ /study
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+```
+
+## architecture test
+command: `pnpm test --run test/architecture.test.ts`
+exit: 0
+
+```
+$ vitest run --run test/architecture.test.ts
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  16:56:18
+   Duration  169ms (import 49%, tests 30%, transform 11%, worker 9%)
+```
+
+## e2e gate (fresh dev server)
+command: `env E2E_ENABLED=true pnpm test:e2e tests/e2e/advising-nutrition-leisure.spec.ts`
+exit: 0
+
+```
+$ playwright test tests/e2e/advising-nutrition-leisure.spec.ts
+[WebServer] $ next dev
+
+Running 3 tests using 3 workers
+
+  ✓  2 [chromium] › tests/e2e/advising-nutrition-leisure.spec.ts:43:3 › advising nutrition and leisure › logged-out visitor is redirected to /login on nutrition and leisure (2.5s)
+  ✓  3 [chromium] › tests/e2e/advising-nutrition-leisure.spec.ts:96:3 › advising nutrition and leisure › leisure panel and book render for a student (3.8s)
+  ✓  1 [chromium] › tests/e2e/advising-nutrition-leisure.spec.ts:51:3 › advising nutrition and leisure › student saves a physical profile and today's meal plan (5.6s)
+
+  3 passed (7.1s)
+```
+
+## Summary
+
+| # | Command | Exit | Verdict |
+|---|---------|------|---------|
+| 1 | `docker compose up -d` | 0 | postgres + chroma up |
+| 2 | `docker compose ps` | 0 | services reported |
+| 3 | `pnpm prisma migrate status` | 0 | schema in sync, no pending migrations |
+| 4 | `pnpm prisma validate` | 0 | schema valid |
+| 5 | `pnpm typecheck` | 0 | 0 type errors |
+| 6 | `pnpm lint` | 0 | 0 errors, 2 pre-existing warnings |
+| 7 | `pnpm test` | 0 | 47 files / 233 tests passed |
+| 8 | `pnpm build` | 0 | prod build green, /nutrition + /leisure emitted |
+| 9 | `pnpm test --run test/architecture.test.ts` | 0 | 1 file / 9 tests passed, layer boundaries intact |
+| 10 | e2e `advising-nutrition-leisure.spec.ts` | 0 | 3 passed, 0 failed, 0 skipped |
+
+Facts:
+
+- Unit run: `Test Files  47 passed (47)` / `Tests  233 passed (233)`.
+- `no-control-regex` warnings: still present, 2 occurrences, both at `src/modules/rag/application/text-normalizer.ts:40` (pre-existing, expected).
+- E2E: 3 tests executed, 0 skipped, 0 failed.
+- Build output contains both routes: `ƒ /nutrition` and `ƒ /leisure`.
+
+Note: the gate script itself received SIGTERM (143) after the final command, caused by its own `pkill -f "next dev"` pattern matching the invoking shell. All ten measured commands completed with exit 0 before that point; no test result was lost.

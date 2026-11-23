@@ -16,6 +16,7 @@ const MESSAGES: Record<string, string> = {
   username_taken: "این نام کاربری قبلاً ثبت شده است",
   email_taken: "این ایمیل قبلاً ثبت شده است",
   schedule_conflict: "این بازه با یک درس دیگر همان روز تداخل دارد",
+  profile_incomplete: "برای محاسبهٔ کالری، ابتدا اطلاعات فیزیکی خود را کامل کنید",
   internal_error: "خطای داخلی رخ داد. لطفاً دوباره تلاش کنید.",
 };
 
@@ -23,6 +24,7 @@ const FIELD_FOR_CODE: Record<string, string> = {
   username_taken: "username",
   email_taken: "email",
   schedule_conflict: "startTime",
+  profile_incomplete: "age",
 };
 
 export function toActionError(error: unknown): ActionError {

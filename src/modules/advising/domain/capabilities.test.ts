@@ -54,3 +54,29 @@ describe("CAPABILITIES student write", () => {
     }
   });
 });
+
+describe("CAPABILITIES nutrition and leisure", () => {
+  const nutritionLeisure = [
+    "nutrition:read",
+    "nutrition:write",
+    "leisure:read",
+  ] as const;
+
+  it("student has nutrition and leisure capabilities", () => {
+    for (const cap of nutritionLeisure) {
+      expect(hasCapability("student", cap)).toBe(true);
+    }
+  });
+
+  it("counselor has nutrition and leisure capabilities", () => {
+    for (const cap of nutritionLeisure) {
+      expect(hasCapability("counselor", cap)).toBe(true);
+    }
+  });
+
+  it("admin has nutrition and leisure capabilities", () => {
+    for (const cap of nutritionLeisure) {
+      expect(hasCapability("admin", cap)).toBe(true);
+    }
+  });
+});

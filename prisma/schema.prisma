@@ -77,6 +77,13 @@ model User {
   fieldOfStudy String? // ریاضی فیزیک | علوم تجربی | علوم انسانی | فنی حرفه‌ای
   schoolName   String?
 
+  age           Int?    // years, 10..100
+  gender        String? // "male" | "female" — zod-validated, not a PG enum (matches role)
+  heightCm      Int?    // 100..250
+  weightKg      Int?    // 30..300
+  activityLevel String? // sedentary | light | moderate | active | very_active
+  dietGoal      String? // lose | maintain | gain
+
   groupId     String?
   group       Group?  @relation("GroupMembers", fields: [groupId], references: [id], onDelete: SetNull)
   counselorId String?
@@ -88,6 +95,7 @@ model User {
   weeklySchedule WeeklySchedule[] @relation("StudentSchedule")
   homework       Homework[]       @relation("StudentHomework")
   studySessions  StudySession[]   @relation("StudentStudySessions")
+  mealPlans      MealPlan[]       @relation("StudentMealPlans")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -140,6 +148,19 @@ model StudySession {
   createdAt       DateTime @default(now())
 
   @@index([studentId, startedAt])
+}
+
+model MealPlan {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        User     @relation("StudentMealPlans", fields: [studentId], references: [id], onDelete: Cascade)
+  dayKey         String // "YYYY-MM-DD" Iran day (UTC+03:30)
+  targetCalories Int
+  meals          Json // [{ slot, label, calories }]; sum === targetCalories
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([studentId, dayKey])
 }
 
 model Group {

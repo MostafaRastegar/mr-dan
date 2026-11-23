@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-11-23 — phase-5-3-nutrition-leisure
+
+### Added
+- `MealPlan` model plus six nullable physical columns on `User` (`age`, `gender`, `heightCm`, `weightKg`, `activityLevel`, `dietGoal`) in one additive migration `20261123123032_add_advising_nutrition_leisure`.
+- `/nutrition`: the six-field physical-profile form, BMR/TDEE from Mifflin-St Jeor (five activity multipliers, diet goals `0.85`/`1.0`/`1.1`, a 1200 kcal floor), and a one-row-per-day meal plan split `25/35/30/remainder` that sums exactly to the target.
+- `/leisure`: five ordered leisure rules (critical fatigue, heavy workload, overloaded week, balanced week, low activity) measured from study rows and pending homework, plus a deterministic pick from a typed in-domain book catalog.
+- The `nutrition:read`, `nutrition:write` and `leisure:read` capabilities on student/counselor/admin; `CONTAINER_VERSION` bumped to `3` so a cached dev-server container cannot serve the old shape.
+
+### Fixed
+- The physical-profile form called `form.resetFields()` on success, which blanked the six saved values under the success banner: rc-field-form applies `initialValues` only at mount, so the refreshed profile prop could not re-seed the store. Removed; an e2e assertion now proves the saved values survive the save.
+
+### Removed
+- The exam/quiz sub-area (`Question`, `QuizAttempt`, konkoor grading, `/exam`) was dropped from this phase and from the roadmap at the user's request before implementation started; `docs/plan/phases.md` §۵.۳ no longer lists it.
+
+### Docs
+- `README.md`: new `## تغذیه و اوقات فراغت` section (both routes, the six fields on `/nutrition` rather than `/profile`, the energy formula and multipliers, the 1200 floor, the meal split, the five leisure branches, the fixed book catalog), plus rows in `## صفحات`, `## دسترسی و نقش‌ها`, `## محدودیت‌ها`, `## وضعیت`.
+- `docs/behaviors/phase-5-3-nutrition-leisure.md` and `docs/contracts/phase-5-3-nutrition-leisure.md` created (`review_level: full`); `docs/behaviors/access-control-baseline.md` gained the three capabilities and two routes; `docs/behaviors/phase-5-2-schedule-homework-study.md` refreshed for the files this phase changed; `docs/plan/phases.md` §۵.۳ ticked and linked to the plan.
+
+### Known limitations
+- A meal plan is generated and saved per day, not hand-edited; only today's plan is shown and there is no plan history.
+- Calorie figures are estimates and not medical advice.
+- The book catalog is fixed in code; there is no per-user book history and no search.
+- Physical fields live on `/nutrition` only, not on `/profile`.
+- No question bank or exam UI: the exam area is out of scope, not a pending gap.
+
+### Evidence
+- `pnpm typecheck` 0 · `pnpm lint` 0 (2 pre-existing `no-control-regex` warnings in `src/modules/rag/application/text-normalizer.ts`) · `pnpm test` 0 (47 files / 233 tests) · `pnpm test --run test/architecture.test.ts` 0 (9/9) · `pnpm build` 0 (emits `/nutrition` and `/leisure`) · `pnpm exec prisma migrate status` 0 · `pnpm exec prisma validate` 0 · `git status --porcelain package.json pnpm-lock.yaml` empty · `E2E_ENABLED=true pnpm test:e2e tests/e2e/advising-nutrition-leisure.spec.ts` 0 (3 executed, 0 skipped, 0 failed).
+- Review: final PASS, `C0 H0 M0 L1` (one LOW deferred). Paths: plan `.opencode/plans/phase-5-3-nutrition-leisure.md`, review `.opencode/reviews/phase-5-3-nutrition-leisure.md`, test log `.opencode/reviews/phase-5-3-nutrition-leisure.tests.log`, contract `docs/contracts/phase-5-3-nutrition-leisure.md`, behavior doc `docs/behaviors/phase-5-3-nutrition-leisure.md`.
+
 ## 2026-11-23 — phase-5-2-schedule-homework-study
 
 ### Added

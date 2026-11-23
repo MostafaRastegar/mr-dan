@@ -9,11 +9,15 @@ import type {
   GroupSummary,
   HomeworkFilter,
   HomeworkItem,
+  MealPlanRecord,
   NewGroup,
+  NewMealPlan,
   NewUser,
   NewHomework,
   NewScheduleEntry,
   NewStudySession,
+  PhysicalProfile,
+  PhysicalProfilePatch,
   ProfilePatch,
   ProfileView,
   ScheduleEntryPatch,
@@ -40,6 +44,8 @@ export interface UserRepositoryPort {
     groupId: string | null;
     counselorId?: string;
   }): Promise<void>;
+  findPhysicalProfile(id: string): Promise<PhysicalProfile | null>;
+  updatePhysicalProfile(id: string, patch: PhysicalProfilePatch): Promise<PhysicalProfile>;
 }
 
 export interface SessionRepositoryPort {
@@ -85,4 +91,9 @@ export interface HomeworkRepositoryPort {
 export interface StudySessionRepositoryPort {
   create(input: NewStudySession): Promise<StudySessionRecord>;
   listByStudentInRange(studentId: string, from: Date, to: Date): Promise<StudySessionRecord[]>;
+}
+
+export interface MealPlanRepositoryPort {
+  findByDay(studentId: string, dayKey: string): Promise<MealPlanRecord | null>;
+  upsert(input: NewMealPlan): Promise<MealPlanRecord>;
 }

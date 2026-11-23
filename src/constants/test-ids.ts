@@ -24,6 +24,8 @@ export const TEST_IDS = {
     HOMEWORK: "nav-homework",
     STUDY: "nav-study",
     LOGOUT: "nav-logout",
+    NUTRITION: "nav-nutrition",
+    LEISURE: "nav-leisure",
   },
   SCHEDULE: {
     FORM: "schedule-form",
@@ -66,5 +68,19 @@ export const TEST_IDS = {
     ASSIGN_FORM: "roster-assign-form",
     ASSIGNED: "roster-assigned",
     TABLE: "roster-table",
+  },
+  NUTRITION: {
+    FORM: "nutrition-form",
+    SAVED: "nutrition-saved",
+    BMR: "nutrition-bmr",
+    TDEE: "nutrition-tdee",
+    TARGET: "nutrition-target",
+    INCOMPLETE: "nutrition-incomplete",
+    PLAN: "nutrition-plan",
+    SAVE_PLAN: "nutrition-save-plan",
+  },
+  LEISURE: {
+    PANEL: "leisure-panel",
+    BOOK: "leisure-book",
   },
 } as const;

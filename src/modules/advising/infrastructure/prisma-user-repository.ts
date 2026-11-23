@@ -11,12 +11,21 @@ import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/shared/prisma";
 import type {
   NewUser,
+  PhysicalProfile,
+  PhysicalProfilePatch,
   ProfilePatch,
   ProfileView,
   StudentSummary,
   UserAccount,
 } from "@/modules/advising/domain/models";
 import { toRole } from "@/modules/advising/domain/models";
+import {
+  ACTIVITY_LEVELS,
+  DIET_GOALS,
+  type ActivityLevel,
+  type DietGoal,
+  type Gender,
+} from "@/modules/advising/domain/energy";
 import type { UserRepositoryPort } from "@/modules/advising/domain/ports";
 import { EmailTakenError, UsernameTakenError } from "@/modules/advising/domain/errors";
 
@@ -47,6 +56,49 @@ type UserRow = {
   counselorId: string | null;
   createdAt: Date;
 };
+
+const PHYSICAL_SELECT = {
+  id: true,
+  age: true,
+  gender: true,
+  heightCm: true,
+  weightKg: true,
+  activityLevel: true,
+  dietGoal: true,
+} as const;
+
+type PhysicalRow = {
+  id: string;
+  age: number | null;
+  gender: string | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  activityLevel: string | null;
+  dietGoal: string | null;
+};
+
+function isGender(value: string | null): value is Gender {
+  return value === "male" || value === "female";
+}
+
+function isActivityLevel(value: string | null): value is ActivityLevel {
+  return ACTIVITY_LEVELS.some((level) => level === value);
+}
+
+function isDietGoal(value: string | null): value is DietGoal {
+  return DIET_GOALS.some((goal) => goal === value);
+}
+
+function mapPhysical(row: PhysicalRow): PhysicalProfile {
+  return {
+    age: row.age,
+    gender: isGender(row.gender) ? row.gender : null,
+    heightCm: row.heightCm,
+    weightKg: row.weightKg,
+    activityLevel: isActivityLevel(row.activityLevel) ? row.activityLevel : null,
+    dietGoal: isDietGoal(row.dietGoal) ? row.dietGoal : null,
+  };
+}
 
 function mapUser(row: UserRow): UserAccount {
   return {
@@ -244,5 +296,25 @@ export class PrismaUserRepository implements UserRepositoryPort {
       },
       select: { id: true },
     });
+  }
+
+  async findPhysicalProfile(id: string): Promise<PhysicalProfile | null> {
+    const row = await this.client.user.findUnique({
+      where: { id },
+      select: PHYSICAL_SELECT,
+    });
+    return row ? mapPhysical(row) : null;
+  }
+
+  async updatePhysicalProfile(
+    id: string,
+    patch: PhysicalProfilePatch,
+  ): Promise<PhysicalProfile> {
+    const row = await this.client.user.update({
+      where: { id },
+      data: { ...patch },
+      select: PHYSICAL_SELECT,
+    });
+    return mapPhysical(row);
   }
 }
