@@ -147,8 +147,7 @@ src/app/**/<route>/
 ├─ <area>.actions.ts     'use server': mutations for this area
 └─ _components/          route-private forms/modals, each a vm/view pair
 src/components/
-├─ providers.tsx         global ConfigProvider (root layout only)
-└─ ui/                   small AntD wrappers, never a fork
+└─ providers.tsx         global ConfigProvider (root layout only)
 src/utils/
 ├─ app-error.ts          ActionError + ActionState (type-only)
 ├─ server-action.ts      runAction

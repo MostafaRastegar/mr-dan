@@ -115,7 +115,7 @@ driven by `state?.ok`; never `router.push` inside a submit handler.
 | Client form bridge | `src/utils/use-form-action.ts` |
 | Route-private components | `src/app/**/_components/` |
 | `data-testid` registry | `src/constants/test-ids.ts` |
-| Shared React kit | `src/components/` = providers + `ui/` only (never a fork of AntD) |
+| Shared React kit | `src/components/providers.tsx` only — no shared component kit; a fork of AntD is forbidden |
 
 ## Container rules
 

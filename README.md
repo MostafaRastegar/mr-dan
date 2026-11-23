@@ -33,7 +33,7 @@ pnpm tsx scripts/seed-advising.ts   # حساب‌های counselor و student + �
 src/
 ├─ app/<route>/                page.tsx + <x>.vm.tsx + <x>.view.tsx + <area>.actions.ts
 │  └─ _components/             route-private vm/view pairs
-├─ components/                 providers.tsx + ui/
+├─ components/                 providers.tsx (global ConfigProvider only)
 ├─ utils/                      app-error.ts, server-action.ts, use-form-action.ts
 ├─ modules/<domain>/           domain, application, infrastructure, presentation
 └─ server/                     container.ts, advising-guards.ts
