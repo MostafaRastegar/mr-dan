@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Card, Col, Divider, Input, List, Row, Table, Space, notification } from "antd";
+import { Button, notification } from "antd";
 import type { ColumnType } from "antd/es/table";
 import { apiDelete, apiGet, apiPost } from "@/lib/api";
 

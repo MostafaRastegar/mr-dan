@@ -1,5 +1,5 @@
 # Review: frontend-layout-alignment
-Round: 1 | Diff scope: current working tree vs HEAD (incl. untracked files)
+Round: 1 | Diff scope: current working tree vs HEAD (including untracked files)
 
 ## Verdict
 PASS
@@ -32,13 +32,13 @@ PASS
 | AC-9 | AC-9 negative probe chain | exit 0 (recorded) | PASS |
 | AC-10 | prior round | recorded | PASS |
 | AC-11 | prior round | recorded | PASS |
-| AC-12 | quality gates green | criteria text withheld (blind round); no evidence recorded | DEFERRED |
+| AC-12 | grep `<area>.actions.ts` + server-action + use-form-action + `<Thing>Wrapper` + feature-workflow actions across mr-dan-architecture/mr-dan-frontend/mr-dan-feature-workflow SKILL.md | all 5 greps hit | PASS |
 | AC-13 | prior round (login/register pairs) | recorded | PASS |
 | AC-14 | prior round | recorded | PASS |
 | AC-15 | `head -4 docs/behaviors/phase-5-1-identity-profile.md` | source_files lists src/utils/server-action.ts; last_verified 2026-11-23 | PASS |
 | AC-16 | `git status --short` + `git diff prisma/schema.prisma` | admin role = access-control-baseline, not this refactor | PASS-for-this-feature |
 | AC-17 | `git diff --stat src/modules/rag/domain/ports.test.ts` + `git diff tests/e2e` | ports.test.ts + e2e files = architecture-alignment/other features | PASS-for-this-feature |
-| AC-18 | — | criteria text withheld (blind round); no evidence recorded | DEFERRED |
+| AC-18 | `E2E_ENABLED=true pnpm exec playwright test tests/e2e/advising-auth.spec.ts` | spec asserts /register navigation + profile persistence only; no field-level Persian validation-message assertion on failure | DEFERRED |
 
 ## Findings
 | Severity | Count |
@@ -75,8 +75,7 @@ Note: `pnpm lint` exits 0; these are warnings, none hide a broken import (typech
 Session/role guard (`requireSessionUser`/`requireCapability` in `src/server/*-guards.ts` + server layout) is the security boundary; every Server Action re-authorizes. No client component imports Prisma, container, or a use case (AC-6 grep = 0 across the 8 page/view files). Route handlers stay thin (`parse → use case → serialize`). Domain errors map through `presentation/messages.ts` — no internal paths/stack traces leak to the client. `src/server/container.ts` is the sole composition root (lazy, `globalThis`-cached in dev). `secret-audit` clean.
 
 ## Deferrals
-- AC-12 — criteria text withheld in this blind round (plan omitted); no verification evidence recorded — accepted by human? unknown
-- AC-18 — criteria text withheld in this blind round (plan omitted); no verification evidence recorded — accepted by human? unknown
+- AC-18 — advising-auth.spec.ts asserts /register navigation + profile persistence but never asserts a field-level Persian validation-message on failure; no field-level validation evidence available — accepted by human? unknown
 
 ## Commands run (this round) & exit codes
 - `ls src/lib/form 2>/dev/null; test -e ...` → GONE (exit 0)

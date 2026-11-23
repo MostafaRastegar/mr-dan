@@ -2,11 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Form, Input, Select } from "antd";
-import { IconPlus } from "@tabler/icons-react";
+import { Form } from "antd";
 
-import { TEST_IDS } from "@/constants/test-ids";
-import { FIELDS, GRADES } from "@/modules/advising/domain/models";
 import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
 import { createGroupAction } from "../students.actions";
 
@@ -27,7 +24,6 @@ export function GroupCreateFormWrapper() {
   return (
     <GroupCreateFormView
       form={form}
-      state={state}
       submit={submit}
       pending={pending}
       formError={formError}

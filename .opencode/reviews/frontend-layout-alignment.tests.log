@@ -6,3 +6,77 @@ Running 2 tests using 2 workers
   ✓  1 [chromium] › tests/e2e/advising-auth.spec.ts:25:3 › advising auth (identity, profile) › edit profile persists and survives logout and login (7.5s)
 
   2 passed (9.1s)
+$ vitest run
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+{"level":40,"time":1795417102508,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:26:15)\n    at expandQueries (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.ts:62:32)\n    at /home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:30:18\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"question":"q","msg":"query-expansion: LLM rewrite failed"}
+{"level":30,"time":1795417104558,"service":"mr-dan","msg":"cache: cleared"}
+{"level":40,"time":1795417102595,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:49:15)\n    at LLMReranker.rerank (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.ts:100:39)\n    at /home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:54:32\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"query":"q","msg":"llm-reranker: LLM call failed, falling back to original order"}
+
+ Test Files  28 passed (28)
+      Tests  152 passed (152)
+   Start at  10:28:22
+   Duration  1.22s (tests 46%, import 38%, transform 12%, worker 4%)
+
+    Isolate  28 workers spawned · ~193ms startup each (spawn + environment, per file)
+             at least ~299ms faster with isolate: false — reuses workers across files instead of one per file
+
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+- Environments: .env
+✓ Running next.config.ts took 43ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.0s
+  Running TypeScript ...
+  Finished TypeScript in 695ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/10) ...
+  Generating static pages using 11 workers (2/10) 
+  Generating static pages using 11 workers (4/10) 
+  Generating static pages using 11 workers (7/10) 
+✓ Generating static pages using 11 workers (10/10) in 440ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin/knowledge
+├ ƒ /api-docs
+├ ƒ /api/admin/cache/clear
+├ ƒ /api/admin/chunks
+├ ƒ /api/admin/chunks/[id]
+├ ƒ /api/admin/retrieval/debug
+├ ƒ /api/admin/stats
+├ ƒ /api/chat
+├ ƒ /api/chat/stream
+├ ƒ /api/conversations
+├ ƒ /api/conversations/[id]
+├ ƒ /api/documents
+├ ƒ /api/documents/[id]
+├ ƒ /api/health
+├ ƒ /api/ingest
+├ ƒ /api/metrics
+├ ƒ /api/openapi
+├ ƒ /api/search
+├ ƒ /api/upload
+├ ƒ /chat
+├ ƒ /counselor/students
+├ ƒ /login
+├ ƒ /profile
+└ ƒ /register
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+0
+[WebServer] $ next dev
+
+Running 2 tests using 2 workers
+
+  ✓  2 [chromium] › tests/e2e/advising-auth.spec.ts:12:3 › advising auth (identity, profile) › logged out visitor cannot see profile (3.9s)
+  ✓  1 [chromium] › tests/e2e/advising-auth.spec.ts:25:3 › advising auth (identity, profile) › edit profile persists and survives logout and login (7.1s)
+
+  2 passed (8.6s)

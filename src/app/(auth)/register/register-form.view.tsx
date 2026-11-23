@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Button, Form, Input, Select, type FormInstance } from "antd";
 import Link from "next/link";
-import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
 
 import { TEST_IDS } from "@/constants/test-ids";
@@ -14,26 +13,15 @@ const ROLE_OPTIONS = [
 
 interface RegisterFormViewProps {
   form: FormInstance;
-  state: ActionState<unknown> | null;
   submit: (values: FormValues) => void;
   pending: boolean;
   formError: string | null;
-  role: string;
   isStudent: boolean;
   initialValues: { role: string };
 }
 
 export function RegisterFormView(props: RegisterFormViewProps): ReactNode {
-  const {
-    form,
-    state,
-    submit,
-    pending,
-    formError,
-    role,
-    isStudent,
-    initialValues,
-  } = props;
+  const { form, submit, pending, formError, isStudent, initialValues } = props;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-6 py-10">

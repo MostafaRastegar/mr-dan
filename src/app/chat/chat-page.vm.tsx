@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button, Input, Card, Avatar, message } from "antd";
+import { message } from "antd";
 import type { SearchResult } from "@/modules/rag/domain/models";
 import { streamEvents } from "@/lib/api";
 

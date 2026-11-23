@@ -2,9 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Form, Select } from "antd";
+import { Form } from "antd";
 
-import { TEST_IDS } from "@/constants/test-ids";
 import type { GroupSummary, StudentSummary } from "@/modules/advising/domain/models";
 import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
 import { assignStudentAction } from "../students.actions";

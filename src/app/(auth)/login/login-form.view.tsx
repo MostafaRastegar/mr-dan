@@ -1,20 +1,18 @@
 import type { ReactNode } from "react";
 import { Button, Form, Input, type FormInstance } from "antd";
 import Link from "next/link";
-import type { ActionState } from "@/utils/app-error";
 
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface LoginFormViewProps {
   form: FormInstance;
-  state: ActionState<unknown> | null;
   submit: (values: Record<string, unknown>) => void;
   pending: boolean;
   formError: string | null;
 }
 
 export function LoginFormView(props: LoginFormViewProps): ReactNode {
-  const { form, state, submit, pending, formError } = props;
+  const { form, submit, pending, formError } = props;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-6">

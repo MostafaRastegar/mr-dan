@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button, Form, Input, Select } from "antd";
+import { Form } from "antd";
 
-import { TEST_IDS } from "@/constants/test-ids";
-import { FIELDS, GRADES, type ProfileView } from "@/modules/advising/domain/models";
-import { useFormAction, useServerFormErrors, type FormValues } from "@/utils/use-form-action";
+import { type ProfileView } from "@/modules/advising/domain/models";
+import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
 import type { ActionState } from "@/utils/app-error";
 import { updateProfileAction } from "../advising.actions";
 

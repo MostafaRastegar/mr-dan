@@ -13,7 +13,6 @@ import type {
   NewUser,
   ProfilePatch,
   ProfileView,
-  Role,
   StudentSummary,
   UserAccount,
 } from "@/modules/advising/domain/models";

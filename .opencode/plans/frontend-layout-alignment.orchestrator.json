@@ -46,8 +46,10 @@
     { "command": "AC-9 negative probe (81-line client file in src/app/chat/ -> suite fails naming it -> removed -> green)", "exit": 0 },
     { "command": "E2E_ENABLED=true pnpm exec playwright test tests/e2e/advising-auth.spec.ts (2 passed)", "exit": 0 }
   ],
-  "review_round": 0,
-  "severity_history": [],
+  "review_round": 1,
+  "severity_history": [
+    { "round": 1, "critical": 0, "high": 0, "medium": 0, "low": 10 }
+  ],
   "review_level": "reviewed",
   "approvals": { "plan": "2026-11-23T13:40:00Z", "final": null },
   "budget": { "turns_per_phase": 20, "review_rounds": 3 },

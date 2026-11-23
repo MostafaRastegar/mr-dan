@@ -1,8 +1,7 @@
 "use client";
 
-import { Button, Form, Input } from "antd";
+import { Form } from "antd";
 
-import { TEST_IDS } from "@/constants/test-ids";
 import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
 import { loginAction } from "../auth.actions";
 
@@ -16,7 +15,6 @@ export function LoginFormWrapper() {
   return (
     <LoginFormView
       form={form}
-      state={state}
       submit={submit}
       pending={pending}
       formError={formError}

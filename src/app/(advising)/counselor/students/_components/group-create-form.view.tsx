@@ -4,18 +4,16 @@ import { IconPlus } from "@tabler/icons-react";
 
 import { TEST_IDS } from "@/constants/test-ids";
 import { FIELDS, GRADES } from "@/modules/advising/domain/models";
-import type { ActionState } from "@/utils/app-error";
 
 interface GroupCreateFormViewProps {
   form: FormInstance;
-  state: ActionState<unknown> | null;
   submit: (values: Record<string, unknown>) => void;
   pending: boolean;
   formError: string | null;
 }
 
 export function GroupCreateFormView(props: GroupCreateFormViewProps): ReactNode {
-  const { form, state, submit, pending, formError } = props;
+  const { form, submit, pending, formError } = props;
 
   return (
     <Form
