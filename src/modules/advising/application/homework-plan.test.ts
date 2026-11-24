@@ -118,7 +118,7 @@ describe("homework plan use cases", () => {
     const fakes = createPlanningFakes();
     fakes.budget.seed(student.id, DAY, 300);
     const task = await seedHomework(fakes);
-    await fakes.homework.setCompletedAt(task.id, new Date());
+    await fakes.homework.setCompletion(task.id, { completedAt: new Date(), spentMinutes: null });
     const plan = new PlanHomeworkTimeUseCase(fakes.homework, fakes.plans);
 
     await expect(

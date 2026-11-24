@@ -54,6 +54,13 @@ function toAccount(row: UserRow): UserAccount {
     schoolName: row.schoolName,
     groupId: row.groupId,
     counselorId: row.counselorId,
+    sleepMinutes: row.sleepMinutes,
+    wakeMinutes: row.wakeMinutes,
+    schoolMode: row.schoolMode,
+    needId: row.needId,
+    takesMockExams: row.takesMockExams,
+    otherOccupiedMinutes: row.otherOccupiedMinutes,
+    homeworkAverageMinutes: row.homeworkAverageMinutes,
     createdAt: row.createdAt,
   };
 }
@@ -162,6 +169,13 @@ export class FakeUserRepository implements UserRepositoryPort {
       schoolName: input.schoolName,
       groupId: input.groupId,
       counselorId: input.counselorId,
+      sleepMinutes: null,
+      wakeMinutes: null,
+      schoolMode: null,
+      needId: null,
+      takesMockExams: null,
+      otherOccupiedMinutes: [0, 0, 0, 0, 0, 0, 0],
+      homeworkAverageMinutes: null,
       createdAt: new Date(2026, 0, 1),
       passwordHash: input.passwordHash,
     };
@@ -179,11 +193,13 @@ export class FakeUserRepository implements UserRepositoryPort {
       }
     }
 
-    row.fullName = patch.fullName;
-    row.email = patch.email;
-    row.grade = patch.grade;
-    row.fieldOfStudy = patch.fieldOfStudy;
-    row.schoolName = patch.schoolName;
+    row.fullName = patch.fullName ?? row.fullName;
+    row.email = patch.email ?? row.email;
+    row.grade = patch.grade ?? row.grade;
+    row.fieldOfStudy = patch.fieldOfStudy ?? row.fieldOfStudy;
+    row.schoolName = patch.schoolName ?? row.schoolName;
+    row.sleepMinutes = patch.sleepMinutes ?? null;
+    row.wakeMinutes = patch.wakeMinutes ?? null;
     return toAccount(row);
   }
 

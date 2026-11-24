@@ -61,6 +61,29 @@ import {
   SaveMealPlanUseCase,
   UpdatePhysicalProfileUseCase,
 } from "@/modules/advising/application/nutrition";
+import {
+  GetWeeklyGoalUseCase,
+  AddTestsDoneUseCase,
+  ToggleStudyBlockUseCase,
+} from "@/modules/advising/application/weekly-goal";
+import {
+  GetStudyProfileUseCase,
+  UpdateStudyProfileUseCase,
+  SaveExamResultUseCase,
+  AddSupplementaryCourseUseCase,
+  DeleteSupplementaryCourseUseCase,
+} from "@/modules/advising/application/study-profile";
+import {
+  ListSchoolProgramUseCase,
+  AddSchoolProgramEntryUseCase,
+  DeleteSchoolProgramEntryUseCase,
+} from "@/modules/advising/application/school-program";
+import {
+  GetStudentStudyPlanUseCase,
+  SaveStudyPlanHeaderUseCase,
+  AddStudyPlanEntryUseCase,
+  DeleteStudyPlanEntryUseCase,
+} from "@/modules/advising/application/study-plan";
 import { GetLeisureSuggestionUseCase } from "@/modules/advising/application/leisure";
 import {
   GetDayBudgetUseCase,
@@ -80,6 +103,13 @@ import { PrismaHomeworkRepository } from "@/modules/advising/infrastructure/pris
 import { PrismaFreeTimeBudgetRepository } from "@/modules/advising/infrastructure/prisma-free-time-budget-repository";
 import { PrismaHomeworkPlanRepository } from "@/modules/advising/infrastructure/prisma-homework-plan-repository";
 import { PrismaMealPlanRepository } from "@/modules/advising/infrastructure/prisma-meal-plan-repository";
+import { PrismaWeeklyGoalRepository } from "@/modules/advising/infrastructure/prisma-weekly-goal-repository";
+import { PrismaCatalogRepository } from "@/modules/advising/infrastructure/prisma-catalog-repository";
+import { PrismaChapterRepository } from "@/modules/advising/infrastructure/prisma-chapter-repository";
+import { PrismaSchoolProgramRepository } from "@/modules/advising/infrastructure/prisma-school-program-repository";
+import { PrismaStudyPlanRepository } from "@/modules/advising/infrastructure/prisma-study-plan-repository";
+import { PrismaStudentExamResultRepository } from "@/modules/advising/infrastructure/prisma-student-exam-result-repository";
+import { PrismaSupplementaryCourseRepository } from "@/modules/advising/infrastructure/prisma-supplementary-course-repository";
 import { ScryptAuthCrypto } from "@/modules/advising/infrastructure/auth-crypto";
 
 type Container = {
@@ -121,6 +151,21 @@ type Container = {
     updatePhysicalProfile: UpdatePhysicalProfileUseCase;
     saveMealPlan: SaveMealPlanUseCase;
     getLeisureSuggestion: GetLeisureSuggestionUseCase;
+    getWeeklyGoal: GetWeeklyGoalUseCase;
+    toggleStudyBlock: ToggleStudyBlockUseCase;
+    addTestsDone: AddTestsDoneUseCase;
+    getStudyProfile: GetStudyProfileUseCase;
+    updateStudyProfile: UpdateStudyProfileUseCase;
+    saveExamResult: SaveExamResultUseCase;
+    addSupplementaryCourse: AddSupplementaryCourseUseCase;
+    deleteSupplementaryCourse: DeleteSupplementaryCourseUseCase;
+    listSchoolProgram: ListSchoolProgramUseCase;
+    addSchoolProgramEntry: AddSchoolProgramEntryUseCase;
+    deleteSchoolProgramEntry: DeleteSchoolProgramEntryUseCase;
+    getStudentStudyPlan: GetStudentStudyPlanUseCase;
+    saveStudyPlanHeader: SaveStudyPlanHeaderUseCase;
+    addStudyPlanEntry: AddStudyPlanEntryUseCase;
+    deleteStudyPlanEntry: DeleteStudyPlanEntryUseCase;
   };
 };
 
@@ -133,7 +178,7 @@ const globalForContainer = globalThis as unknown as {
  * Bump when the container's shape changes: the cache lives on `globalThis`
  * across HMR, so adding keys stays invisible to an already-running dev server.
  */
-const CONTAINER_VERSION = 4;
+const CONTAINER_VERSION = 6;
 
 function build(): Container {
   const documentRepository = new PrismaDocumentRepository();
@@ -222,6 +267,13 @@ function buildAdvising(): Container["advising"] {
   const budget = new PrismaFreeTimeBudgetRepository();
   const plans = new PrismaHomeworkPlanRepository();
   const mealPlans = new PrismaMealPlanRepository();
+  const goals = new PrismaWeeklyGoalRepository();
+  const catalogs = new PrismaCatalogRepository();
+  const chapters = new PrismaChapterRepository();
+  const schoolProgram = new PrismaSchoolProgramRepository();
+  const studyPlans = new PrismaStudyPlanRepository();
+  const studentExamResults = new PrismaStudentExamResultRepository();
+  const supplementaryCourses = new PrismaSupplementaryCourseRepository();
   const crypto = new ScryptAuthCrypto();
 
   return {
@@ -250,6 +302,21 @@ function buildAdvising(): Container["advising"] {
     updatePhysicalProfile: new UpdatePhysicalProfileUseCase(users),
     saveMealPlan: new SaveMealPlanUseCase(users, mealPlans),
     getLeisureSuggestion: new GetLeisureSuggestionUseCase(budget, plans, homework),
+    getWeeklyGoal: new GetWeeklyGoalUseCase(goals),
+    toggleStudyBlock: new ToggleStudyBlockUseCase(goals),
+    addTestsDone: new AddTestsDoneUseCase(goals),
+    getStudyProfile: new GetStudyProfileUseCase(users, catalogs, studentExamResults, supplementaryCourses),
+    updateStudyProfile: new UpdateStudyProfileUseCase(users, catalogs),
+    saveExamResult: new SaveExamResultUseCase(users, catalogs, studentExamResults),
+    addSupplementaryCourse: new AddSupplementaryCourseUseCase(users, supplementaryCourses),
+    deleteSupplementaryCourse: new DeleteSupplementaryCourseUseCase(users, supplementaryCourses),
+    listSchoolProgram: new ListSchoolProgramUseCase(users, schoolProgram),
+    addSchoolProgramEntry: new AddSchoolProgramEntryUseCase(users, schoolProgram),
+    deleteSchoolProgramEntry: new DeleteSchoolProgramEntryUseCase(users, schoolProgram),
+    getStudentStudyPlan: new GetStudentStudyPlanUseCase(users, studyPlans, schoolProgram, schedule, goals),
+    saveStudyPlanHeader: new SaveStudyPlanHeaderUseCase(users, studyPlans),
+    addStudyPlanEntry: new AddStudyPlanEntryUseCase(users, studyPlans, chapters),
+    deleteStudyPlanEntry: new DeleteStudyPlanEntryUseCase(users, studyPlans),
   };
 }
 

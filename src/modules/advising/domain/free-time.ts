@@ -13,6 +13,40 @@ export interface ClassInterval {
   endMinute: number;
 }
 
+/** Minutes awake in a day: ((sleep − wake + 1440) % 1440) || 1440. */
+export function wakingMinutes({ wakeMinutes, sleepMinutes }: { wakeMinutes: number | null; sleepMinutes: number | null }): number {
+  const wake = wakeMinutes ?? 390;   // 06:30 default
+  const sleep = sleepMinutes ?? 1380; // 23:00 default
+  return ((sleep - wake + 1440) % 1440) || 1440;
+}
+
+/** Sum of school-program minutes for a given weekday (derived, never typed twice). */
+export function schoolMinutesForDay(school: readonly { dayOfWeek: number; minutes: number }[], dayOfWeek: number): number {
+  let total = 0;
+  for (const entry of school) {
+    if (entry.dayOfWeek === dayOfWeek) total += entry.minutes;
+  }
+  return total;
+}
+
+/** Non-school occupied minutes for a weekday; missing index reads 0. */
+export function otherOccupiedMinutesForDay(otherOccupiedMinutes: readonly number[], dayOfWeek: number): number {
+  return otherOccupiedMinutes[dayOfWeek] ?? 0;
+}
+
+/** Free minutes = waking − school(derived) − non-school occupied − homework average, clamped at 0. */
+export function freeMinutesForDay(input: {
+  wakeMinutes: number | null;
+  sleepMinutes: number | null;
+  schoolMinutes: number;
+  otherOccupiedMinutes: number;
+  homeworkAverageMinutes: number | null;
+}): number {
+  const wake = wakingMinutes(input);
+  const homework = input.homeworkAverageMinutes ?? 0;
+  return Math.max(0, wake - input.schoolMinutes - input.otherOccupiedMinutes - homework);
+}
+
 export interface DayCapacity {
   freeMinutes: number;
   usedMinutes: number;

@@ -72,7 +72,7 @@ describe("homework use cases", () => {
     });
     expect(pending).toHaveLength(2);
 
-    await fakes.homework.setCompletedAt(all[0].id, new Date());
+    await fakes.homework.setCompletion(all[0].id, { completedAt: new Date(), spentMinutes: null });
     const done = await list.execute({
       actor: actorOf(student),
       studentId: student.id,
@@ -102,6 +102,7 @@ describe("homework use cases", () => {
       actor: actorOf(student),
       homeworkId: item.id,
       completed: true,
+      spentMinutes: 30,
     });
     expect(done.completedAt).not.toBeNull();
 
@@ -168,5 +169,118 @@ describe("homework use cases", () => {
     await expect(
       toggle.execute({ actor: actorOf(student), homeworkId: "nope", completed: true }),
     ).rejects.toMatchObject({ code: "not_found" });
+  });
+
+  it("AC-24: tick with 45 minutes → spentMinutes 45 and completedAt set", async () => {
+    const users = makeUsers();
+    await seedUser(users, student.id, "student");
+    const fakes = createPlanningFakes();
+    const create = new CreateHomeworkUseCase(fakes.homework);
+    const toggle = new SetHomeworkCompletionUseCase(fakes.homework);
+
+    const item = await create.execute({
+      actor: actorOf(student),
+      studentId: student.id,
+      title: "تکلیف",
+      subject: null,
+      priority: 2,
+      deadline: new Date("2026-11-25T20:30:00Z"),
+    });
+
+    const done = await toggle.execute({
+      actor: actorOf(student),
+      homeworkId: item.id,
+      completed: true,
+      spentMinutes: 45,
+    });
+    expect(done.spentMinutes).toBe(45);
+    expect(done.completedAt).not.toBeNull();
+  });
+
+  it("AC-24: tick without minutes → rejected, completedAt stays null", async () => {
+    const users = makeUsers();
+    await seedUser(users, student.id, "student");
+    const fakes = createPlanningFakes();
+    const create = new CreateHomeworkUseCase(fakes.homework);
+    const toggle = new SetHomeworkCompletionUseCase(fakes.homework);
+
+    const item = await create.execute({
+      actor: actorOf(student),
+      studentId: student.id,
+      title: "تکلیف",
+      subject: null,
+      priority: 2,
+      deadline: new Date("2026-11-25T20:30:00Z"),
+    });
+
+    await expect(
+      toggle.execute({ actor: actorOf(student), homeworkId: item.id, completed: true }),
+    ).rejects.toMatchObject({ code: "validation_error" });
+
+    const stillPending = await fakes.homework.findById(item.id);
+    expect(stillPending?.completedAt).toBeNull();
+    expect(stillPending?.spentMinutes).toBeNull();
+  });
+
+  it("AC-24: tick with 1441 minutes → rejected, completedAt stays null", async () => {
+    const users = makeUsers();
+    await seedUser(users, student.id, "student");
+    const fakes = createPlanningFakes();
+    const create = new CreateHomeworkUseCase(fakes.homework);
+    const toggle = new SetHomeworkCompletionUseCase(fakes.homework);
+
+    const item = await create.execute({
+      actor: actorOf(student),
+      studentId: student.id,
+      title: "تکلیف",
+      subject: null,
+      priority: 2,
+      deadline: new Date("2026-11-25T20:30:00Z"),
+    });
+
+    await expect(
+      toggle.execute({
+        actor: actorOf(student),
+        homeworkId: item.id,
+        completed: true,
+        spentMinutes: 1441,
+      }),
+    ).rejects.toMatchObject({ code: "validation_error" });
+
+    const stillPending = await fakes.homework.findById(item.id);
+    expect(stillPending?.completedAt).toBeNull();
+    expect(stillPending?.spentMinutes).toBeNull();
+  });
+
+  it("AC-24: untick clears completedAt and spentMinutes", async () => {
+    const users = makeUsers();
+    await seedUser(users, student.id, "student");
+    const fakes = createPlanningFakes();
+    const create = new CreateHomeworkUseCase(fakes.homework);
+    const toggle = new SetHomeworkCompletionUseCase(fakes.homework);
+
+    const item = await create.execute({
+      actor: actorOf(student),
+      studentId: student.id,
+      title: "تکلیف",
+      subject: null,
+      priority: 2,
+      deadline: new Date("2026-11-25T20:30:00Z"),
+    });
+
+    await toggle.execute({
+      actor: actorOf(student),
+      homeworkId: item.id,
+      completed: true,
+      spentMinutes: 45,
+    });
+
+    const undone = await toggle.execute({
+      actor: actorOf(student),
+      homeworkId: item.id,
+      completed: false,
+    });
+    expect(undone.completedAt).toBeNull();
+    expect(undone.spentMinutes).toBeNull();
   });
 });

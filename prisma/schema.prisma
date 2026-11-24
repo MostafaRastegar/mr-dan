@@ -84,6 +84,16 @@ model User {
   activityLevel String? // sedentary | light | moderate | active | very_active
   dietGoal      String? // lose | maintain | gain
 
+  sleepMinutes Int? // minutes from local midnight, 0..1439
+  wakeMinutes  Int? // minutes from local midnight, 0..1439
+
+  needId               String?
+  need                 Need?            @relation(fields: [needId], references: [id], onDelete: SetNull)
+  schoolMode           String?
+  takesMockExams       Boolean?
+  otherOccupiedMinutes Int[]  @default([0, 0, 0, 0, 0, 0, 0])
+  homeworkAverageMinutes Int?
+
   groupId     String?
   group       Group?  @relation("GroupMembers", fields: [groupId], references: [id], onDelete: SetNull)
   counselorId String?
@@ -96,6 +106,12 @@ model User {
   homework       Homework[]       @relation("StudentHomework")
   freeTimeBudgets FreeTimeBudget[] @relation("StudentFreeTimeBudgets")
   mealPlans      MealPlan[]       @relation("StudentMealPlans")
+  weeklyGoals    WeeklyGoal[]     @relation("StudentWeeklyGoals")
+  examResults          StudentExamResult[] @relation("StudentExamResults")
+  schoolProgram        SchoolProgramEntry[] @relation("StudentSchoolProgram")
+  studyPlan            StudyPlan?       @relation("StudentStudyPlan")
+  courses              SupplementaryCourse[] @relation("StudentCourses")
+  testRecords          TestRecord[]     @relation("StudentTestRecords")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -130,6 +146,7 @@ model Homework {
   priority    Int       // 3 = high, 2 = medium, 1 = low (domain exposes labels)
   deadline    DateTime  // Iran midnight (UTC+03:30) of the due calendar day
   completedAt DateTime? // null = pending
+  spentMinutes Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -174,10 +191,24 @@ model MealPlan {
   dayKey         String // "YYYY-MM-DD" Iran day (UTC+03:30)
   targetCalories Int
   meals          Json // [{ slot, label, calories }]; sum === targetCalories
+  eatenSlots     String[] @default([]) // "breakfast" | "lunch" | "dinner" | "snack"
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@unique([studentId, dayKey])
+}
+
+model WeeklyGoal {
+  id                 String   @id @default(uuid())
+  studentId          String
+  student            User     @relation("StudentWeeklyGoals", fields: [studentId], references: [id], onDelete: Cascade)
+  weekKey            String // Saturday of the Iran week, "YYYY-MM-DD"
+  testsDone          Int      @default(0)
+  completedBlocks    String[] @default([]) // "<dayKey>:<startMinute>:<minutes>"
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([studentId, weekKey])
 }
 
 model Group {
@@ -205,4 +236,109 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Need {
+  id     String @id @default(uuid())
+  code   String @unique
+  label  String
+  active Boolean @default(true)
+  users  User[]
+}
+
+model Exam {
+  id      String @id @default(uuid())
+  code    String @unique
+  label   String
+  active  Boolean @default(true)
+  results StudentExamResult[]
+}
+
+model StudentExamResult {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation("StudentExamResults", fields: [studentId], references: [id], onDelete: Cascade)
+  examId    String
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  taraz     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, examId])
+  @@index([studentId, updatedAt])
+}
+
+model SchoolProgramEntry {
+  id        String @id @default(uuid())
+  studentId String
+  student   User   @relation("StudentSchoolProgram", fields: [studentId], references: [id], onDelete: Cascade)
+  dayOfWeek Int
+  subject   String
+  minutes   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, dayOfWeek, subject])
+}
+
+model StudyPlan {
+  id          String   @id @default(uuid())
+  studentId   String   @unique
+  student     User     @relation("StudentStudyPlan", fields: [studentId], references: [id], onDelete: Cascade)
+  counselorId String
+  testsTarget Int      @default(300)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  entries     StudyPlanEntry[]
+}
+
+model StudyPlanEntry {
+  id         String @id @default(uuid())
+  studentId  String
+  plan       StudyPlan @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  dayOfWeek  Int
+  subject    String
+  minutes    Int
+  chapterIds String[] @default([])
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([studentId, dayOfWeek, subject])
+}
+
+model Chapter {
+  id      String @id @default(uuid())
+  subject String
+  field   String
+  grade   String
+  number  Int
+  title   String
+  active  Boolean @default(true)
+
+  @@unique([subject, field, grade, number])
+}
+
+model TestRecord {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation("StudentTestRecords", fields: [studentId], references: [id], onDelete: Cascade)
+  subject   String
+  weekKey   String
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, subject, weekKey])
+}
+
+model SupplementaryCourse {
+  id            String @id @default(uuid())
+  studentId     String
+  student       User   @relation("StudentCourses", fields: [studentId], references: [id], onDelete: Cascade)
+  title         String
+  mode          String
+  weeklyMinutes Int?
+  createdAt     DateTime @default(now())
+
+  @@index([studentId])
 }

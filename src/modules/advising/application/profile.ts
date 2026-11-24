@@ -29,6 +29,8 @@ export type UpdateProfileInput = {
   grade?: string;
   fieldOfStudy?: string;
   schoolName?: string;
+  sleepMinutes?: number;
+  wakeMinutes?: number;
   currentPassword?: string;
   newPassword?: string;
 };
@@ -74,6 +76,8 @@ export class UpdateProfileUseCase {
       grade: normalizeOptional(input.grade),
       fieldOfStudy: normalizeOptional(input.fieldOfStudy),
       schoolName: normalizeOptional(input.schoolName),
+      sleepMinutes: input.sleepMinutes ?? null,
+      wakeMinutes: input.wakeMinutes ?? null,
     });
 
     if (nextPasswordHash) {

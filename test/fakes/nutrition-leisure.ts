@@ -91,11 +91,29 @@ export class FakeMealPlanRepository implements MealPlanRepositoryPort {
       dayKey: input.dayKey,
       targetCalories: input.targetCalories,
       meals: input.meals,
+      eatenSlots: [],
       createdAt: stamp,
       updatedAt: stamp,
     };
     this.rows.set(key, row);
     return row;
+  }
+
+  async setEatenSlots(
+    studentId: string,
+    dayKey: string,
+    slots: readonly string[],
+  ): Promise<MealPlanRecord> {
+    const key = `${studentId}:${dayKey}`;
+    const existing = this.rows.get(key);
+    if (!existing) throw new Error("meal plan not found");
+    const next: MealPlanRecord = {
+      ...existing,
+      eatenSlots: [...slots],
+      updatedAt: new Date(2026, 10, 23),
+    };
+    this.rows.set(key, next);
+    return next;
   }
 }
 

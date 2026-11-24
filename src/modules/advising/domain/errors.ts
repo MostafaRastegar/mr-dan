@@ -57,6 +57,12 @@ export class PlanConcurrencyError extends AppError {
   }
 }
 
+export class ConflictError extends AppError {
+  constructor(message = "تداخل در داده‌ها", cause?: unknown) {
+    super("conflict", 409, message, cause);
+  }
+}
+
 export class HomeworkCompletedError extends AppError {
   constructor(cause?: unknown) {
     super("homework_completed", 409, "این تکلیف قبلاً تکمیل شده است", cause);

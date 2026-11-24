@@ -4,7 +4,8 @@
  * The capacity invariant is decided inside a Serializable transaction: read the
  * day's budget, sum the day's planned minutes excluding the row being replaced,
  * ask the caller's `allows` callback, then upsert. A serialization failure
- * (P2034) becomes PlanConcurrencyError with `cause`. Explicit `select`, rows
+ * (P2034) is retried a bounded number of times, then becomes
+ * PlanConcurrencyError with `cause`. Explicit `select`, rows
  * mapped to domain models.
  */
 
@@ -43,10 +44,42 @@ function mapPlan(row: PlanRow): HomeworkPlanEntry {
   };
 }
 
+// Under SERIALIZABLE the Aggregate below takes a predicate lock on the whole
+// HomeworkPlanEntry relation, so unrelated writers get P2034. That is a
+// transient conflict, not a business rejection: retry a few times, then give up
+// with PlanConcurrencyError. Domain rejections return `ok: false` instead of
+// throwing, so they are never retried.
+const MAX_ATTEMPTS = 3;
+
 function isP2034(error: unknown): boolean {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2034"
+  ) {
+    return true;
+  }
+  // Prisma 7 wraps adapter errors; the code then lives on `cause`.
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034"
+    error instanceof Error &&
+    error.cause instanceof Prisma.PrismaClientKnownRequestError &&
+    error.cause.code === "P2034"
   );
+}
+
+function backoffMs(attempt: number): number {
+  return 5 * attempt + Math.random() * 5;
+}
+
+async function retryOnSerializationFailure<T>(run: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await run();
+    } catch (error) {
+      if (!isP2034(error)) throw error;
+      if (attempt >= MAX_ATTEMPTS) throw new PlanConcurrencyError(error);
+      await new Promise((resolve) => setTimeout(resolve, backoffMs(attempt)));
+    }
+  }
 }
 
 export class PrismaHomeworkPlanRepository implements HomeworkPlanRepositoryPort {
@@ -92,8 +125,8 @@ export class PrismaHomeworkPlanRepository implements HomeworkPlanRepositoryPort 
     plannedMinutes: number;
     allows: (current: { freeMinutes: number | null; usedMinutes: number }) => boolean;
   }): Promise<UpsertWithinCapacityResult> {
-    try {
-      return await this.client.$transaction(
+    return await retryOnSerializationFailure(() =>
+      this.client.$transaction(
         async (tx) => {
           const budget = await tx.freeTimeBudget.findUnique({
             where: {
@@ -134,11 +167,8 @@ export class PrismaHomeworkPlanRepository implements HomeworkPlanRepositoryPort 
           return { ok: true, entry: mapPlan(row) } as const;
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-      );
-    } catch (error) {
-      if (isP2034(error)) throw new PlanConcurrencyError(error);
-      throw error;
-    }
+      ),
+    );
   }
 
   async delete(input: { id: string; studentId: string }): Promise<void> {

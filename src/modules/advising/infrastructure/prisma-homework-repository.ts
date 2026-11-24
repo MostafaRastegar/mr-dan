@@ -26,6 +26,7 @@ const HOMEWORK_SELECT = {
   priority: true,
   deadline: true,
   completedAt: true,
+  spentMinutes: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -38,6 +39,7 @@ type HomeworkRow = {
   priority: number;
   deadline: Date;
   completedAt: Date | null;
+  spentMinutes: number | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -51,6 +53,7 @@ function mapHomework(row: HomeworkRow): HomeworkItem {
     priority: HOMEWORK_PRIORITY_LABEL[row.priority] ?? "low",
     deadline: row.deadline,
     completedAt: row.completedAt,
+    spentMinutes: row.spentMinutes,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -105,14 +108,14 @@ export class PrismaHomeworkRepository implements HomeworkRepositoryPort {
     return mapHomework(row);
   }
 
-  async setCompletedAt(
+  async setCompletion(
     id: string,
-    completedAt: Date | null,
+    input: { completedAt: Date | null; spentMinutes: number | null },
   ): Promise<HomeworkItem> {
     try {
       const row = await this.client.homework.update({
         where: { id },
-        data: { completedAt },
+        data: { completedAt: input.completedAt, spentMinutes: input.spentMinutes },
         select: HOMEWORK_SELECT,
       });
       return mapHomework(row);

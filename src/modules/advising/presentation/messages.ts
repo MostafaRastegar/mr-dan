@@ -20,6 +20,8 @@ const MESSAGES: Record<string, string> = {
   plan_concurrent_write: "برنامه هم‌زمان تغییر کرد؛ دوباره تلاش کنید",
   plan_after_deadline: "این برنامه بعد از مهلت تکلیف است",
   homework_completed: "این تکلیف قبلاً انجام شده است",
+  chapters: "فصل‌های انتخاب‌شده معتبر نیستند",
+  note: "یادداشت نباید بیشتر از ۲۰۰ نویسه باشد",
   internal_error: "خطای داخلی رخ داد. لطفاً دوباره تلاش کنید.",
 };
 
@@ -36,6 +38,8 @@ const FIELD_FOR_CODE: Record<string, string> = {
   plan_concurrent_write: "plannedTime",
   plan_after_deadline: "date",
   homework_completed: "homeworkId",
+  chapters: "chapters",
+  note: "note",
 };
 
 export function toActionError(error: unknown): ActionError {

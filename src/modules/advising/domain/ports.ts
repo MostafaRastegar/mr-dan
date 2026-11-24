@@ -6,14 +6,20 @@
  */
 
 import type {
+  Chapter,
+  Exam,
   FreeTimeBudget,
   GroupSummary,
   HomeworkFilter,
   HomeworkItem,
   HomeworkPlanEntry,
   MealPlanRecord,
+  Need,
   NewGroup,
   NewMealPlan,
+  NewSchoolProgramEntry,
+  NewStudyPlanEntry,
+  NewSupplementaryCourse,
   NewUser,
   NewHomework,
   NewScheduleEntry,
@@ -21,10 +27,16 @@ import type {
   PhysicalProfilePatch,
   ProfilePatch,
   ProfileView,
+  SchoolProgramEntry,
   ScheduleEntryPatch,
   SessionRecord,
+  StudentExamResult,
   StudentSummary,
+  StudyPlan,
+  StudyPlanEntry,
+  SupplementaryCourse,
   UserAccount,
+  WeeklyGoal,
   WeeklyScheduleEntry,
 } from "./models";
 
@@ -84,7 +96,7 @@ export interface HomeworkRepositoryPort {
   listByStudent(studentId: string, filter: HomeworkFilter): Promise<HomeworkItem[]>;
   findById(id: string): Promise<HomeworkItem | null>;
   create(input: NewHomework): Promise<HomeworkItem>;
-  setCompletedAt(id: string, completedAt: Date | null): Promise<HomeworkItem>;
+  setCompletion(id: string, input: { completedAt: Date | null; spentMinutes: number | null }): Promise<HomeworkItem>;
   delete(id: string): Promise<void>;
 }
 
@@ -131,4 +143,77 @@ export interface HomeworkPlanRepositoryPort {
 export interface MealPlanRepositoryPort {
   findByDay(studentId: string, dayKey: string): Promise<MealPlanRecord | null>;
   upsert(input: NewMealPlan): Promise<MealPlanRecord>;
+  setEatenSlots(
+    studentId: string,
+    dayKey: string,
+    slots: readonly string[],
+  ): Promise<MealPlanRecord>;
+}
+
+export interface WeeklyGoalRepositoryPort {
+  findByKey(
+    studentId: string,
+    weekKey: string,
+  ): Promise<WeeklyGoal | null>;
+  listInRange(
+    studentId: string,
+    fromWeekKey: string,
+    toWeekKey: string,
+  ): Promise<WeeklyGoal[]>;
+  setCompletedBlocks(
+    studentId: string,
+    weekKey: string,
+    blocks: readonly string[],
+  ): Promise<WeeklyGoal>;
+  incrementTestsDone(
+    studentId: string,
+    weekKey: string,
+    delta: number,
+  ): Promise<WeeklyGoal>;
+  incrementSubjectTests(input: {
+    studentId: string;
+    weekKey: string;
+    subject: string;
+    count: number;
+  }): Promise<void>;
+}
+
+export interface CatalogRepositoryPort {
+  listNeeds(): Promise<Need[]>;
+  listExams(): Promise<Exam[]>;
+  findNeed(id: string): Promise<Need | null>;
+  findExam(id: string): Promise<Exam | null>;
+}
+
+export interface ChapterRepositoryPort {
+  listForSubject(input: {
+    subject: string;
+    grade: string | null;
+    field: string | null;
+  }): Promise<Chapter[]>;
+  findByIds(ids: readonly string[]): Promise<Chapter[]>;
+}
+
+export interface SchoolProgramRepositoryPort {
+  listByStudent(studentId: string): Promise<SchoolProgramEntry[]>;
+  create(input: NewSchoolProgramEntry): Promise<SchoolProgramEntry>;
+  delete(input: { id: string; studentId: string }): Promise<void>;
+}
+
+export interface StudyPlanRepositoryPort {
+  findForStudent(studentId: string): Promise<StudyPlan | null>;
+  upsertHeader(input: { studentId: string; counselorId: string; testsTarget: number }): Promise<StudyPlan>;
+  upsertEntry(input: NewStudyPlanEntry): Promise<StudyPlanEntry>;
+  deleteEntry(input: { studentId: string; entryId: string }): Promise<void>;
+}
+
+export interface StudentExamResultRepositoryPort {
+  listRecent(studentId: string, take: number): Promise<StudentExamResult[]>;
+  upsert(input: { studentId: string; examId: string; taraz: number }): Promise<StudentExamResult>;
+}
+
+export interface SupplementaryCourseRepositoryPort {
+  listByStudent(studentId: string): Promise<SupplementaryCourse[]>;
+  create(input: NewSupplementaryCourse): Promise<SupplementaryCourse>;
+  delete(input: { id: string; studentId: string }): Promise<void>;
 }

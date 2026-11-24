@@ -43,6 +43,11 @@ export function persianDayOf(dayKey: string): number {
   return (utcDate(year, month, day).getUTCDay() + 1) % 7;
 }
 
+/** Saturday of the Iran week that contains `dayKey` (always ≤ the day key). */
+export function weekStartKey(dayKey: string): string {
+  return shiftDayKey(dayKey, -persianDayOf(dayKey));
+}
+
 /** `Date.UTC` maps years 0..99 to 1900..1999; set the year explicitly instead. */
 function utcDate(year: number, month: number, day: number): Date {
   const date = new Date(Date.UTC(2000, month - 1, day));

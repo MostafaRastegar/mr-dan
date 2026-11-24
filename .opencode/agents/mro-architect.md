@@ -129,11 +129,11 @@ The contract must include:
 
 Review levels:
 
-| Level | Criteria | Human review |
-| ----- | -------- | ------------ |
-| `minimal` | < 50 lines, no auth/db/new logic | None (automated only) |
-| `reviewed` | New logic, API change, or > 200 lines | Focused on risky parts |
-| `full` | Auth, payments, migration, infra, contract change | Paired + real execution |
+| Level      | Criteria                                          | Human review            |
+| ---------- | ------------------------------------------------- | ----------------------- |
+| `minimal`  | < 50 lines, no auth/db/new logic                  | None (automated only)   |
+| `reviewed` | New logic, API change, or > 200 lines             | Focused on risky parts  |
+| `full`     | Auth, payments, migration, infra, contract change | Paired + real execution |
 
 Example contract entry:
 
@@ -149,6 +149,19 @@ Example contract entry:
   echoed only. — verify: `pnpm test -k next-param-sanitize`
 - review_level: reviewed
 ```
+
+## UI features: two-stage plans
+
+If the request designs or changes the interface, the plan MUST contain two
+top-level stages, in this order, and nothing that writes data before them:
+
+- `## Stage UI (mock)` — screens, states, components, mock source, and `verify:`
+  criteria observable in a browser without touching the database.
+- `## Stage Backend` — schema, migration, ports, use cases, actions, tests.
+
+Label every acceptance criterion `[ui]` or `[backend]` to match. State the human
+demo checkpoint explicitly between the two stages. A plan that puts a migration or
+schema change before the UI stage is invalid: fix it, do not ship it.
 
 ## Running as a subagent
 

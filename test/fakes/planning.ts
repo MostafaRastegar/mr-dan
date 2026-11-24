@@ -164,6 +164,7 @@ export class FakeHomeworkRepository implements HomeworkRepositoryPort {
       priority: HOMEWORK_PRIORITY_LABEL[input.priority] ?? "low",
       deadline: input.deadline,
       completedAt: null,
+      spentMinutes: null,
       createdAt: new Date(2026, 10, 1),
       updatedAt: new Date(2026, 10, 1),
     };
@@ -172,14 +173,19 @@ export class FakeHomeworkRepository implements HomeworkRepositoryPort {
     return row;
   }
 
-  async setCompletedAt(
+  async setCompletion(
     id: string,
-    completedAt: Date | null,
+    input: { completedAt: Date | null; spentMinutes: number | null },
   ): Promise<HomeworkItem> {
     this.maybeThrow();
     const row = this.rows.get(id);
     if (!row) throw new NotFoundError("homework");
-    const next: HomeworkItem = { ...row, completedAt, updatedAt: new Date() };
+    const next: HomeworkItem = {
+      ...row,
+      completedAt: input.completedAt,
+      spentMinutes: input.spentMinutes,
+      updatedAt: new Date(),
+    };
     this.rows.set(id, next);
     this.writes += 1;
     return next;

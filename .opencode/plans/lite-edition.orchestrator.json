@@ -1,0 +1,114 @@
+{
+  "feature": "lite-edition",
+  "phase": "ui-approved",
+  "review_level": "full",
+  "plan": ".opencode/plans/lite-edition.md",
+  "plan_sha256": "42cf8e180469480075521a330e28a5eb470826de",
+  "source_spec": "docs/plan/lite-edition.md",
+  "review": ".opencode/reviews/lite-edition.md",
+  "test_log": ".opencode/reviews/lite-edition.tests.log",
+  "readme": {
+    "path": "README.md",
+    "state": "pending"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "pending"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-feature-workflow",
+    "mr-dan-frontend",
+    "mr-dan-frontend-debugging",
+    "mr-dan-persistence",
+    "mr-dan-api",
+    "mr-dan-testing-parity",
+    "mro-project-stack",
+    "mro-data-model",
+    "mro-code-review-checklist",
+    "mro-behavior-docs",
+    "ponytail",
+    "ponytail-review"
+  ],
+  "sessions": {
+    "architect": "ses_df6f7c2f0ffeoO2RRc7JFSjCkK",
+    "architect_amend": "ses_df6ec5ba4ffe4L8CmGrd3PNsLK",
+    "implementer": null,
+    "reviewer": null,
+    "test": null
+  },
+  "acceptance": {
+    "total": 51,
+    "confirmed": 0,
+    "pending": 42,
+    "deferred": 9
+  },
+  "changed_files": [
+    "prisma/schema.prisma",
+    "prisma/migrations/20261123155516_lite_dashboard_settings/migration.sql",
+    "src/modules/advising/domain/study-blocks.ts",
+    "src/modules/advising/domain/weekly-goal.ts",
+    "src/modules/advising/domain/models.ts",
+    "src/modules/advising/domain/ports.ts",
+    "src/modules/advising/domain/day-key.ts",
+    "src/modules/advising/application/weekly-goal.ts",
+    "src/modules/advising/application/profile.ts",
+    "src/modules/advising/application/nutrition.ts",
+    "src/modules/advising/infrastructure/prisma-weekly-goal-repository.ts",
+    "src/modules/advising/infrastructure/prisma-user-repository.ts",
+    "src/modules/advising/infrastructure/prisma-meal-plan-repository.ts",
+    "src/server/container.ts",
+    "test/advising/planning-integration.test.ts",
+    "src/app/(advising)/layout.tsx",
+    "src/app/(advising)/dashboard/dashboard.fixture.ts",
+    "src/app/(advising)/dashboard/dashboard.vm.tsx",
+    "src/app/(advising)/dashboard/dashboard.view.tsx",
+    "src/app/(advising)/dashboard/page.tsx",
+    "src/app/(advising)/dashboard/_components/homework-today.view.tsx",
+    "src/app/(advising)/dashboard/_components/weekly-goal.view.tsx",
+    "src/app/(advising)/dashboard/_components/free-time-card.view.tsx",
+    "src/app/(advising)/dashboard/_components/study-plan.view.tsx",
+    "src/app/(advising)/dashboard/_components/nutrition-widget.view.tsx",
+    "src/app/(advising)/schedule/schedule-week.view.tsx",
+    "src/app/(advising)/profile/profile-form.vm.tsx",
+    "src/app/(advising)/profile/profile-form.view.tsx",
+    "src/modules/advising/domain/study-blocks.test.ts",
+    "src/constants/test-ids.ts"
+  ],
+  "test_exit_codes": [
+    {
+      "command": "pnpm typecheck (orchestrator)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint (orchestrator)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build (orchestrator, /dashboard in route table)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run study-blocks.test.ts weekly-goal.test.ts (12 passed)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/architecture.test.ts (9 passed)",
+      "exit": 0
+    }
+  ],
+  "review_round": 0,
+  "severity_history": [],
+  "approvals": {
+    "plan": "2026-11-24T10:32:35.218Z",
+    "final": null,
+    "ui": "2026-11-24T08:50:16.270Z"
+  },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 3
+  },
+  "log": ".opencode/plans/lite-edition.log.jsonl",
+  "blockers": "B1 waits for advisor backend S5",
+  "notes": "In-flight conflicts: phase-5-3-1-free-time-budget at implement/0-of-29 (manual FreeTimeBudget); phase-5-1-identity-profile at verify (3 pending ACs). Lite spec deletes manual free-time entry -> supersedes 5-3-1."
+}

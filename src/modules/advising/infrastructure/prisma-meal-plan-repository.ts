@@ -27,6 +27,7 @@ const MEAL_PLAN_SELECT = {
   dayKey: true,
   targetCalories: true,
   meals: true,
+  eatenSlots: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -37,6 +38,7 @@ type MealPlanRow = {
   dayKey: string;
   targetCalories: number;
   meals: unknown;
+  eatenSlots: string[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -79,6 +81,7 @@ function mapMealPlan(row: MealPlanRow): MealPlanRecord {
     dayKey: row.dayKey,
     targetCalories: row.targetCalories,
     meals: parseMeals(row.meals),
+    eatenSlots: row.eatenSlots,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -126,5 +129,22 @@ export class PrismaMealPlanRepository implements MealPlanRepositoryPort {
       throw new AppError("meal_plan_write_failed", 500, "Failed to persist meal plan", error);
     }
     return mapMealPlan(row);
+  }
+
+  async setEatenSlots(
+    studentId: string,
+    dayKey: string,
+    slots: readonly string[],
+  ): Promise<MealPlanRecord> {
+    try {
+      const row = await this.client.mealPlan.update({
+        where: { studentId_dayKey: { studentId, dayKey } },
+        data: { eatenSlots: slots as string[] },
+        select: MEAL_PLAN_SELECT,
+      });
+      return mapMealPlan(row);
+    } catch (error) {
+      throw new AppError("meal_plan_write_failed", 500, "Failed to update eaten slots", error);
+    }
   }
 }

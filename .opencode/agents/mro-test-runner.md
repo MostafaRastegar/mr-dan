@@ -1,7 +1,7 @@
 ---
 description: "Runs the test suite and returns raw output. Never edits."
 mode: subagent
-model: 9router/nemo
+model: 9router/deep
 steps: 8
 permissions:
   - action: edit

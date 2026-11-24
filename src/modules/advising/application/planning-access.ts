@@ -15,6 +15,7 @@ import type { UserRepositoryPort } from "@/modules/advising/domain/ports";
 export type Actor = { id: string; role: Role };
 
 export type PlanCapability =
+  | "profile:write"
   | "schedule:write"
   | "homework:write"
   | "budget:write"
@@ -46,6 +47,24 @@ export async function assertPlanRead(
     owner.role !== "student" ||
     owner.counselorId !== actor.id
   ) {
+    throw new ForbiddenError();
+  }
+}
+
+/** A counselor may only touch their own students' plans. */
+export async function assertCounselorOfStudent(
+  users: UserRepositoryPort,
+  actor: Actor,
+  studentId: string,
+): Promise<void> {
+  if (!hasCapability(actor.role, "plan:write")) {
+    throw new ForbiddenError();
+  }
+  if (actor.role !== "counselor" && actor.role !== "admin") {
+    throw new ForbiddenError();
+  }
+  const owner = await users.findById(studentId);
+  if (!owner || owner.role !== "student" || owner.counselorId !== actor.id) {
     throw new ForbiddenError();
   }
 }

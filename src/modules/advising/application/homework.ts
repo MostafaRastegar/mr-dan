@@ -8,6 +8,7 @@
 import {
   ForbiddenError,
   NotFoundError,
+  ValidationError,
 } from "@/modules/advising/domain/errors";
 import {
   assertPlanRead,
@@ -68,6 +69,9 @@ export class CreateHomeworkUseCase {
   }
 }
 
+const SPENT_MINUTES_MIN = 1;
+const SPENT_MINUTES_MAX = 1440;
+
 export class SetHomeworkCompletionUseCase {
   constructor(private readonly homework: HomeworkRepositoryPort) {}
 
@@ -75,6 +79,7 @@ export class SetHomeworkCompletionUseCase {
     actor: Actor;
     homeworkId: string;
     completed: boolean;
+    spentMinutes?: number;
     now?: Date;
   }): Promise<HomeworkItem> {
     const ownerId = input.actor.id;
@@ -84,10 +89,21 @@ export class SetHomeworkCompletionUseCase {
     if (!existing) throw new NotFoundError("homework");
     if (existing.studentId !== ownerId) throw new ForbiddenError();
 
-    return this.homework.setCompletedAt(
-      input.homeworkId,
-      input.completed ? (input.now ?? new Date()) : null,
-    );
+    if (input.completed) {
+      const spent = input.spentMinutes ?? null;
+      if (spent === null || spent < SPENT_MINUTES_MIN || spent > SPENT_MINUTES_MAX) {
+        throw new ValidationError("دقیقهٔ صرف‌شده باید بین ۱ تا ۱۴۴۰ باشد");
+      }
+      return this.homework.setCompletion(input.homeworkId, {
+        completedAt: input.now ?? new Date(),
+        spentMinutes: spent,
+      });
+    }
+
+    return this.homework.setCompletion(input.homeworkId, {
+      completedAt: null,
+      spentMinutes: null,
+    });
   }
 }
 

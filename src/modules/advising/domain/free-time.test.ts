@@ -5,8 +5,12 @@ import {
   dayCapacity,
   durationMessage,
   fitsCapacity,
+  freeMinutesForDay,
+  otherOccupiedMinutesForDay,
+  schoolMinutesForDay,
   suggestFreeMinutes,
   type ClassInterval,
+  wakingMinutes,
 } from "./free-time";
 
 const fiveHours: ClassInterval[] = [{ dayOfWeek: 0, startMinute: 480, endMinute: 780 }];
@@ -75,5 +79,106 @@ describe("free-time", () => {
     expect(durationMessage(150, 300)).toBe("۲ ساعت و ۳۰ دقیقه از ۵ ساعت");
     expect(durationMessage(30, 60)).toBe("۳۰ دقیقه از ۱ ساعت");
     expect(durationMessage(0, 0)).toBe("۰ دقیقه از ۰ دقیقه");
+  });
+});
+
+describe("wakingMinutes", () => {
+  it("02:00 wake / 10:00 sleep → 960", () => {
+    expect(wakingMinutes({ wakeMinutes: 120, sleepMinutes: 600 })).toBe(960);
+  });
+
+  it("06:30 wake / 23:00 sleep → 990", () => {
+    expect(wakingMinutes({ wakeMinutes: 390, sleepMinutes: 1380 })).toBe(990);
+  });
+
+  it("equal wake and sleep → 1440", () => {
+    expect(wakingMinutes({ wakeMinutes: 390, sleepMinutes: 390 })).toBe(1440);
+  });
+
+  it("00:00 wake / 00:00 sleep → 1440", () => {
+    expect(wakingMinutes({ wakeMinutes: 0, sleepMinutes: 0 })).toBe(1440);
+  });
+
+  it("defaults: 06:30 / 23:00 → 990", () => {
+    expect(wakingMinutes({ wakeMinutes: null, sleepMinutes: null })).toBe(990);
+  });
+
+  it("wrap past midnight: 23:00 wake / 02:00 sleep → 180", () => {
+    expect(wakingMinutes({ wakeMinutes: 1380, sleepMinutes: 120 })).toBe(180);
+  });
+});
+
+describe("schoolMinutesForDay", () => {
+  const school = [
+    { dayOfWeek: 1, minutes: 240 },
+    { dayOfWeek: 1, minutes: 60 },
+    { dayOfWeek: 2, minutes: 180 },
+  ];
+
+  it("sums all entries for the day", () => {
+    expect(schoolMinutesForDay(school, 1)).toBe(300);
+  });
+
+  it("returns 0 for a day with no entries", () => {
+    expect(schoolMinutesForDay(school, 3)).toBe(0);
+  });
+});
+
+describe("otherOccupiedMinutesForDay", () => {
+  const occupied = [60, 120, 180, 240, 300, 360, 420];
+
+  it("reads the index for existing days", () => {
+    expect(otherOccupiedMinutesForDay(occupied, 0)).toBe(60);
+    expect(otherOccupiedMinutesForDay(occupied, 6)).toBe(420);
+  });
+
+  it("missing index reads 0", () => {
+    expect(otherOccupiedMinutesForDay([], 3)).toBe(0);
+    expect(otherOccupiedMinutesForDay([60, 120], 6)).toBe(0);
+  });
+});
+
+describe("freeMinutesForDay", () => {
+  const base = {
+    wakeMinutes: 390,
+    sleepMinutes: 1380,
+    schoolMinutes: 240,
+    otherOccupiedMinutes: 180,
+    homeworkAverageMinutes: 60,
+  };
+
+  it("AC-14: 990 − 240 − 180 − 60 = 510", () => {
+    expect(freeMinutesForDay(base)).toBe(510);
+  });
+
+  it("AC-15: clamps at 0, never negative", () => {
+    const overfull = { ...base, schoolMinutes: 990, otherOccupiedMinutes: 180, homeworkAverageMinutes: 120 };
+    expect(freeMinutesForDay(overfull)).toBe(0);
+    const exactlyFull = { ...base, schoolMinutes: 750, otherOccupiedMinutes: 180, homeworkAverageMinutes: 60 };
+    expect(freeMinutesForDay(exactlyFull)).toBe(0);
+  });
+
+  it("AC-16: missing index reads 0 (array shorter than 7)", () => {
+    expect(otherOccupiedMinutesForDay([60], 3)).toBe(0);
+    expect(otherOccupiedMinutesForDay([], 6)).toBe(0);
+    expect(freeMinutesForDay({ ...base, otherOccupiedMinutes: 0 })).toBe(990 - 240 - 0 - 60);
+  });
+
+  it("AC-32: school entry of N lowers by exactly N; occupied +N lowers by exactly N", () => {
+    const before = freeMinutesForDay(base);
+    const withMoreSchool = { ...base, schoolMinutes: base.schoolMinutes + 30 };
+    expect(freeMinutesForDay(withMoreSchool)).toBe(before - 30);
+    const withMoreOccupied = { ...base, otherOccupiedMinutes: base.otherOccupiedMinutes + 30 };
+    expect(freeMinutesForDay(withMoreOccupied)).toBe(before - 30);
+  });
+
+  it("never exceeds waking window", () => {
+    const empty = { ...base, schoolMinutes: 0, otherOccupiedMinutes: 0, homeworkAverageMinutes: 0 };
+    expect(freeMinutesForDay(empty)).toBe(990);
+  });
+
+  it("homework default null reads as 0", () => {
+    const noHomework = { ...base, homeworkAverageMinutes: null };
+    expect(freeMinutesForDay(noHomework)).toBe(990 - 240 - 180 - 0);
   });
 });

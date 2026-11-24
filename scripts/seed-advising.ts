@@ -29,6 +29,69 @@ export interface SeedOptions {
   env?: { NODE_ENV?: string };
 }
 
+export interface SeedCatalogsResult {
+  needs: number;
+  exams: number;
+  chapters: number;
+}
+
+const NEEDS = [
+  { code: "konkur", label: "کنکور" },
+  { code: "afzayesh-moadel", label: "افزایش معدل" },
+  { code: "tarmim-moadel", label: "ترمیم معدل" },
+] as const;
+
+const EXAMS = [
+  { code: "qalamchi", label: "قلمچی" },
+  { code: "gheyme-dou", label: "گزینه دو" },
+  { code: "gaj", label: "گاج" },
+  { code: "sanjesh", label: "سنجش" },
+] as const;
+
+// Representative chapter set. field "" = applies to every field (عمومی).
+const CHAPTERS = [
+  { subject: "riazi", field: "", grade: "دوازدهم", number: 1, title: "فصل ۱" },
+  { subject: "riazi", field: "", grade: "دوازدهم", number: 2, title: "فصل ۲" },
+  { subject: "riazi", field: "", grade: "دوازدهم", number: 3, title: "فصل ۳" },
+  { subject: "fizik", field: "", grade: "دوازدهم", number: 1, title: "فصل ۱" },
+  { subject: "fizik", field: "", grade: "دوازدهم", number: 2, title: "فصل ۲" },
+  { subject: "fizik", field: "", grade: "دوازدهم", number: 3, title: "فصل ۳" },
+] as const;
+
+export async function seedCatalogs(): Promise<SeedCatalogsResult> {
+  let needs = 0;
+  for (const n of NEEDS) {
+    await prisma.need.upsert({
+      where: { code: n.code },
+      update: {},
+      create: { code: n.code, label: n.label },
+    });
+    needs += 1;
+  }
+
+  let exams = 0;
+  for (const e of EXAMS) {
+    await prisma.exam.upsert({
+      where: { code: e.code },
+      update: {},
+      create: { code: e.code, label: e.label },
+    });
+    exams += 1;
+  }
+
+  let chapters = 0;
+  for (const c of CHAPTERS) {
+    await prisma.chapter.upsert({
+      where: { subject_field_grade_number: { subject: c.subject, field: c.field, grade: c.grade, number: c.number } },
+      update: { title: c.title, active: true },
+      create: { subject: c.subject, field: c.field, grade: c.grade, number: c.number, title: c.title },
+    });
+    chapters += 1;
+  }
+
+  return { needs, exams, chapters };
+}
+
 export async function seedAdvising(options: SeedOptions = {}): Promise<SeedResult> {
   const env = options.env ?? process.env;
   if (env.NODE_ENV === "production") {
@@ -100,6 +163,8 @@ if (isDirectRun) {
       console.log("demo accounts seeded:", COUNSELOR.username, STUDENT.username);
       console.log("demo password:", DEMO_PASSWORD);
       console.log("group:", GROUP_NAME, result.groupId);
+      const catalogs = await seedCatalogs();
+      console.log("catalogs seeded:", catalogs);
       await prisma.$disconnect();
     })
     .catch(async (error: unknown) => {

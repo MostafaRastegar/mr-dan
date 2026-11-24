@@ -128,7 +128,7 @@ describe("free-time budget use cases", () => {
       priority: 2,
       deadline: new Date("2026-11-28T12:00:00Z"),
     });
-    await fakes.homework.setCompletedAt(done.id, new Date());
+    await fakes.homework.setCompletion(done.id, { completedAt: new Date(), spentMinutes: null });
 
     const day = await dayBudgetOf(fakes).execute({ actor: student, dayKey: DAY });
 

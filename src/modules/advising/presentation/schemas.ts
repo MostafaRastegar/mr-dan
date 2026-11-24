@@ -88,6 +88,12 @@ const newPasswordField = z
     `رمز عبور باید بین ۸ تا ${PASSWORD_MAX} نویسه باشد`,
   );
 
+function hhmmToMinutes(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const [h, m] = value.split(":").map(Number);
+  return h * 60 + m;
+}
+
 export const registerSchema = z.object({
   username: usernameField,
   password: passwordField,
@@ -113,11 +119,42 @@ export const updateProfileSchema = z
     schoolName: optionalText(100, "نام مدرسه نباید بیشتر از ۱۰۰ نویسه باشد"),
     currentPassword: optionalText(PASSWORD_MAX, "رمز عبور فعلی بسیار بلند است"),
     newPassword: newPasswordField,
+    sleepTime: z
+      .string()
+      .optional()
+      .transform((value) => {
+        const trimmed = value?.trim() ?? "";
+        return trimmed.length > 0 ? trimmed : undefined;
+      }),
+    wakeTime: z
+      .string()
+      .optional()
+      .transform((value) => {
+        const trimmed = value?.trim() ?? "";
+        return trimmed.length > 0 ? trimmed : undefined;
+      }),
   })
+  .refine(
+    (value) => {
+      const s = value.sleepTime;
+      const w = value.wakeTime;
+      if (s === undefined || w === undefined) return true;
+      return hhmmToMinutes(s) !== hhmmToMinutes(w);
+    },
+    {
+      path: ["sleepTime"],
+      message: "ساعت خواب و بیداری نمی‌توانند برابر باشد",
+    },
+  )
   .refine((value) => !value.newPassword || !!value.currentPassword, {
     path: ["currentPassword"],
     message: "برای تغییر رمز، رمز عبور فعلی الزامی است",
-  });
+  })
+  .transform(({ sleepTime, wakeTime, ...rest }) => ({
+    ...rest,
+    sleepMinutes: hhmmToMinutes(sleepTime),
+    wakeMinutes: hhmmToMinutes(wakeTime),
+  }));
 
 export const createGroupSchema = z.object({
   name: requiredText(100, "نام گروه"),

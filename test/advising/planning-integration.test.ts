@@ -189,7 +189,7 @@ describe("planning integration (real Postgres)", () => {
     expect(list).toHaveLength(1);
     expect(list[0].priority).toBe("high");
 
-    const done = await homework.setCompletedAt(created.id, new Date());
+    const done = await homework.setCompletion(created.id, { completedAt: new Date(), spentMinutes: null });
     expect(done.completedAt).not.toBeNull();
 
     const pending = await homework.listByStudent(user.id, "pending");
@@ -197,5 +197,125 @@ describe("planning integration (real Postgres)", () => {
 
     await homework.delete(created.id);
     expect(await homework.listByStudent(user.id, "all")).toEqual([]);
+  });
+
+  it("free time budget round-trip", async () => {
+    if (!live) return;
+
+    const user = await users.create(student("budget-rt"));
+    const dayKey = "2026-12-08";
+
+    const created = await budgets.upsertWithinUsed({
+      studentId: user.id,
+      dayKey,
+      freeMinutes: 120,
+      allows: () => true,
+    });
+    expect(created.ok).toBe(true);
+
+    const stored = await budgets.findByDay(user.id, dayKey);
+    expect(stored?.freeMinutes).toBe(120);
+
+    const updated = await budgets.upsertWithinUsed({
+      studentId: user.id,
+      dayKey,
+      freeMinutes: 90,
+      allows: () => true,
+    });
+    expect(updated.ok).toBe(true);
+
+    expect(
+      await prisma.freeTimeBudget.count({ where: { studentId: user.id, dayKey } }),
+    ).toBe(1);
+    const reread = await budgets.findByDay(user.id, dayKey);
+    expect(reread?.freeMinutes).toBe(90);
+  });
+
+  it("homework plan round-trip", async () => {
+    if (!live) return;
+
+    const user = await users.create(student("plan-rt"));
+    const dayKey = "2026-12-09";
+    await budgets.upsertWithinUsed({
+      studentId: user.id,
+      dayKey,
+      freeMinutes: 120,
+      allows: () => true,
+    });
+    const task = await homework.create({
+      studentId: user.id,
+      title: "تکلیف",
+      subject: null,
+      priority: 2,
+      deadline: new Date("2026-12-09T20:30:00Z"),
+    });
+
+    const first = await plans.upsertWithinCapacity({
+      studentId: user.id,
+      homeworkId: task.id,
+      dayKey,
+      plannedMinutes: 30,
+      allows: ({ freeMinutes, usedMinutes }) =>
+        fitsCapacity(dayCapacity(freeMinutes, usedMinutes), 30),
+    });
+    expect(first.ok).toBe(true);
+
+    const second = await plans.upsertWithinCapacity({
+      studentId: user.id,
+      homeworkId: task.id,
+      dayKey,
+      plannedMinutes: 45,
+      allows: ({ freeMinutes, usedMinutes }) =>
+        fitsCapacity(dayCapacity(freeMinutes, usedMinutes), 45),
+    });
+    expect(second.ok).toBe(true);
+
+    expect(
+      await prisma.homeworkPlanEntry.count({
+        where: { studentId: user.id, homeworkId: task.id, dayKey },
+      }),
+    ).toBe(1);
+    const listed = await plans.listByDay(user.id, dayKey);
+    expect(listed).toHaveLength(1);
+    expect(listed[0].homeworkId).toBe(task.id);
+    expect(listed[0].plannedMinutes).toBe(45);
+  });
+
+  it("plan row cascades with its homework", async () => {
+    if (!live) return;
+
+    const user = await users.create(student("plan-cascade"));
+    const dayKey = "2026-12-10";
+    await budgets.upsertWithinUsed({
+      studentId: user.id,
+      dayKey,
+      freeMinutes: 120,
+      allows: () => true,
+    });
+    const task = await homework.create({
+      studentId: user.id,
+      title: "تکلیف",
+      subject: null,
+      priority: 2,
+      deadline: new Date("2026-12-10T20:30:00Z"),
+    });
+    const planned = await plans.upsertWithinCapacity({
+      studentId: user.id,
+      homeworkId: task.id,
+      dayKey,
+      plannedMinutes: 60,
+      allows: ({ freeMinutes, usedMinutes }) =>
+        fitsCapacity(dayCapacity(freeMinutes, usedMinutes), 60),
+    });
+    expect(planned.ok).toBe(true);
+
+    await prisma.homework.delete({ where: { id: task.id } });
+
+    expect(
+      await prisma.homeworkPlanEntry.count({ where: { studentId: user.id, dayKey } }),
+    ).toBe(0);
+    expect(
+      await prisma.freeTimeBudget.count({ where: { studentId: user.id, dayKey } }),
+    ).toBe(1);
   });
 });

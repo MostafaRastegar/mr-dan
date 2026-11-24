@@ -138,3 +138,52 @@ describe("group schemas", () => {
     expect(parsed.groupId).toBeNull();
   });
 });
+
+describe("update profile schema sleep/wake", () => {
+  const base = { fullName: "نام", email: undefined };
+
+  it("accepts absent sleep/wake", () => {
+    const parsed = updateProfileSchema.parse({ ...base });
+    expect(parsed.sleepMinutes).toBeUndefined();
+    expect(parsed.wakeMinutes).toBeUndefined();
+  });
+
+  it("converts hh:mm to minutes", () => {
+    const parsed = updateProfileSchema.parse({
+      ...base,
+      sleepTime: "23:00",
+      wakeTime: "06:30",
+    });
+    expect(parsed.sleepMinutes).toBe(1380);
+    expect(parsed.wakeMinutes).toBe(390);
+  });
+
+  it("rejects equal sleep and wake times", () => {
+    const result = updateProfileSchema.safeParse({
+      ...base,
+      sleepTime: "23:00",
+      wakeTime: "23:00",
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((i) => i.path[0] === "sleepTime")).toBe(
+        true,
+      );
+      expect(
+        result.error.issues.some((i) =>
+          String(i.message).includes("ساعت خواب و بیداری نمی‌توانند برابر باشد"),
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("accepts different times across midnight", () => {
+    const parsed = updateProfileSchema.parse({
+      ...base,
+      sleepTime: "02:00",
+      wakeTime: "10:00",
+    });
+    expect(parsed.sleepMinutes).toBe(120);
+    expect(parsed.wakeMinutes).toBe(600);
+  });
+});

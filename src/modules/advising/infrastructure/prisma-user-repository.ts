@@ -41,6 +41,13 @@ const USER_SELECT = {
   groupId: true,
   counselorId: true,
   createdAt: true,
+  sleepMinutes: true,
+  wakeMinutes: true,
+  schoolMode: true,
+  needId: true,
+  takesMockExams: true,
+  otherOccupiedMinutes: true,
+  homeworkAverageMinutes: true,
 } as const;
 
 type UserRow = {
@@ -55,6 +62,13 @@ type UserRow = {
   groupId: string | null;
   counselorId: string | null;
   createdAt: Date;
+  sleepMinutes: number | null;
+  wakeMinutes: number | null;
+  schoolMode: string | null;
+  needId: string | null;
+  takesMockExams: boolean | null;
+  otherOccupiedMinutes: number[] | null;
+  homeworkAverageMinutes: number | null;
 };
 
 const PHYSICAL_SELECT = {
@@ -112,6 +126,13 @@ function mapUser(row: UserRow): UserAccount {
     schoolName: row.schoolName,
     groupId: row.groupId,
     counselorId: row.counselorId,
+    sleepMinutes: row.sleepMinutes,
+    wakeMinutes: row.wakeMinutes,
+    schoolMode: row.schoolMode,
+    needId: row.needId,
+    takesMockExams: row.takesMockExams,
+    otherOccupiedMinutes: row.otherOccupiedMinutes,
+    homeworkAverageMinutes: row.homeworkAverageMinutes,
     createdAt: row.createdAt,
   };
 }
@@ -233,6 +254,15 @@ export class PrismaUserRepository implements UserRepositoryPort {
           grade: patch.grade,
           fieldOfStudy: patch.fieldOfStudy,
           schoolName: patch.schoolName,
+          sleepMinutes: patch.sleepMinutes,
+          wakeMinutes: patch.wakeMinutes,
+          schoolMode: patch.schoolMode,
+          needId: patch.needId,
+          takesMockExams: patch.takesMockExams,
+          homeworkAverageMinutes: patch.homeworkAverageMinutes,
+          ...(patch.otherOccupiedMinutes === undefined
+            ? {}
+            : { otherOccupiedMinutes: { set: patch.otherOccupiedMinutes ?? [] } }),
         },
         select: USER_SELECT,
       });

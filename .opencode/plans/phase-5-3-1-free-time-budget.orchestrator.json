@@ -1,6 +1,6 @@
 {
   "feature": "phase-5-3-1-free-time-budget",
-  "phase": "implement",
+  "phase": "blocked",
   "plan": ".opencode/plans/phase-5-3-1-free-time-budget.md",
   "plan_sha256": "81a8d72ae350b92675b606a0055aba8ec0cb1844",
   "review": ".opencode/reviews/phase-5-3-1-free-time-budget.md",
@@ -29,7 +29,7 @@
   ],
   "sessions": {
     "architect": null,
-    "implementer": "ses_df714356dffeJLvW2GfFoeESIi",
+    "implementer": "ses_df71128c8ffe4RDpDH87wsjnfE",
     "reviewer": null,
     "test": null
   },
@@ -97,7 +97,9 @@
     "src/app/(advising)/leisure/page.tsx",
     "tests/e2e/advising-planning.spec.ts",
     "src/constants/test-ids.ts",
-    "src/app/(advising)/budget/budget-day.vm.tsx"
+    "src/app/(advising)/budget/budget-day.vm.tsx",
+    "test/advising/free-time-integration.test.ts",
+    "test/advising/planning-integration.test.ts"
   ],
   "test_exit_codes": [
     {
@@ -207,6 +209,18 @@
     {
       "command": "pnpm test (262 tests)",
       "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/advising/free-time-integration.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/advising/planning-integration.test.ts",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test (5 runs: 4 failed 40001 flake, 1 green)",
+      "exit": 1
     }
   ],
   "review_round": 0,
@@ -220,5 +234,6 @@
     "review_rounds": 3
   },
   "log": ".opencode/plans/phase-5-3-1-free-time-budget.log.jsonl",
-  "blockers": "none"
+  "blockers": "concurrent external writer in the same working tree (WeeklyGoal / lite-edition: new migration 20261123155516_lite_dashboard_settings, new domain files, edits to models.ts/ports.ts/day-key.ts/nutrition.ts/profile.ts). typecheck now red on THEIR surface (UserAccount sleepMinutes/wakeMinutes, MealPlanRepositoryPort.setEatenSlots, MealPlanRecord.eatenSlots). D5a retry patch NOT applied (provider fell back to an exhausted openrouter key).",
+  "findings_note": "flaky Serializable"
 }

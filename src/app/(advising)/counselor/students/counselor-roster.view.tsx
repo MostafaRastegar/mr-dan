@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Empty, Table } from "antd";
 import type { TableProps } from "antd";
 import { IconPlus, IconUser, IconUsers } from "@tabler/icons-react";
@@ -18,6 +19,15 @@ const columns: TableProps<StudentSummary>["columns"] = [
     dataIndex: "groupName",
     key: "groupName",
     render: (value) => value ?? "بدون گروه",
+  },
+  {
+    title: "برنامه",
+    key: "program",
+    render: (_, record: StudentSummary) => (
+      <Link href={`/counselor/students/${record.id}`} className="text-sm text-slate-600 hover:underline">
+        مشاهده
+      </Link>
+    ),
   },
 ];
 

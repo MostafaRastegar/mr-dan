@@ -22,6 +22,7 @@ export type Capability =
   | "nutrition:read"
   | "nutrition:write"
   | "leisure:read"
+  | "plan:write"
   | "rag:manage"
   | "user:manage";
 
@@ -55,6 +56,7 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "nutrition:read",
     "nutrition:write",
     "leisure:read",
+    "plan:write",
   ],
   admin: [
     "profile:read",
@@ -70,6 +72,7 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "nutrition:read",
     "nutrition:write",
     "leisure:read",
+    "plan:write",
     "rag:manage",
     "user:manage",
   ],

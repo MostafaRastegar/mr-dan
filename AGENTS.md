@@ -115,6 +115,16 @@ chat nvidia/nemotron-3-ultra-550b-a55b:free
 - کامیت کردن `.env`، `.env.oracle` یا کلید OpenRouter.
 - ~/project/yaftar/aip-next is a read-only frontend reference — no import, no dependency, no submodule; it is comparison-only and never imported into this project
 
+## گیت UI-first (اجباری برای هر فیچر دارای طراحی رابط)
+
+هر فیچری که طراحی یا تغییر رابط کاربری دارد، دو گیت پشت سر هم دارد؛ گیت دوم تا تأیید کتبی انسان شروع نمی‌شود:
+
+1. **گیت UI (دیتای ماک):** کل رابط — همهٔ صفحه‌ها و حالت‌ها (خالی، لودینگ، خطا، موفق)، ریسپانسیو و RTL — با دیتای ماک ساخته می‌شود. در این گیت: بدون نوشتن در دیتابیس، بدون Server Action واقعی، بدون migration و بدون تغییر `prisma/schema.prisma`. مرز لایه‌ها حفظ می‌شود: دیتای ماک از طریق همان port/type قرارداد می‌آید (فیک‌های `test/fakes/*` در `src/server/container.ts` پشت فلگ `UI_MOCK=1`، یا fixture ثابت برای view). نوع‌ها واقعی‌اند؛ فقط منبع داده جعلی است.
+2. **دمو و تأیید انسان:** `pnpm dev`، اسکرین‌شات یا دمو زنده، سپس تأیید صریح انسان روی ظاهر و جریان. بدون این تأیید هیچ بک‌اند، migration، اکشن واقعی یا تست نهایی نوشته نمی‌شود.
+3. **گیت بک‌اند:** پس از تأیید، ماک با پیاده‌سازی واقعی (use case، adapter، action، migration) جایگزین می‌شود؛ سپس تست واحد/یکپارچه/e2e و گیت کامل.
+
+ممنوع: migration یا تغییر schema پیش از تأیید گیت UI؛ «بعداً وصل می‌کنم»؛ تحویل دکمهٔ بی‌عمل.
+
 ## تعریف «تمام شد»
 
 - `pnpm typecheck && pnpm lint && pnpm test && pnpm build` سبز.

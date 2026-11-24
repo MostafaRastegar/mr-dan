@@ -1,0 +1,86 @@
+{
+  "feature": "advisor-program",
+  "phase": "implement",
+  "review_level": "full",
+  "plan": ".opencode/plans/advisor-program.md",
+  "plan_sha256": "6d656f1b95042d02e145b2163bc6e7f98c488793",
+  "review": ".opencode/reviews/advisor-program.md",
+  "test_log": ".opencode/reviews/advisor-program.tests.log",
+  "readme": {
+    "path": "README.md",
+    "state": "pending"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "pending"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-feature-workflow",
+    "mr-dan-frontend",
+    "mr-dan-persistence",
+    "mr-dan-testing-parity",
+    "mro-project-stack",
+    "mro-data-model",
+    "mro-code-review-checklist",
+    "mro-behavior-docs",
+    "ponytail",
+    "ponytail-review"
+  ],
+  "sessions": {
+    "architect": "ses_df38b78e6ffeyoQQbS0KxCKHE0",
+    "implementer": null,
+    "reviewer": null,
+    "test": null
+  },
+  "acceptance": {
+    "total": 52,
+    "confirmed": 0,
+    "pending": 52,
+    "deferred": 0
+  },
+  "changed_files": [
+    "src/constants/test-ids.ts",
+    "src/app/(advising)/counselor/students/[studentId]/_components/subject-progress.view.tsx",
+    "src/app/(advising)/counselor/students/[studentId]/_components/school-program-accordion.view.tsx",
+    "src/app/(advising)/counselor/students/[studentId]/counselor-student.fixture.ts",
+    "src/app/(advising)/counselor/students/[studentId]/counselor-student.view.tsx",
+    "src/app/(advising)/schedule/_components/school-program-table.view.tsx"
+  ],
+  "test_exit_codes": [
+    {
+      "command": "pnpm typecheck (orchestrator)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint (orchestrator, zero src/app warnings)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build (orchestrator)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test --run test/architecture.test.ts (9 passed)",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test (294 passed, 54 files)",
+      "exit": 0
+    }
+  ],
+  "review_round": 0,
+  "severity_history": [],
+  "approvals": {
+    "plan": "2026-11-24T10:32:35.218Z",
+    "ui": "2026-11-24T11:28:21.123Z",
+    "final": null
+  },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 3
+  },
+  "log": ".opencode/plans/lite-edition.log.jsonl",
+  "blockers": "S5 backend in progress (AP-1..AP-4); dump gate passed",
+  "notes": "S3-S5 of the cross-plan sequence. Depends on lite-edition S1 UI mock v2 + demo 1. Owns: SchoolProgramEntry, StudyPlan(+Entry), Need/Exam/StudentExamResult, SupplementaryCourse, User.schoolMode/needId/takesMockExams/otherOccupiedMinutes/homeworkAverageMinutes, Homework.spentMinutes. Free time = waking − schoolMinutes(day, derived) − otherOccupiedMinutes[day] − homeworkAverageMinutes."
+}

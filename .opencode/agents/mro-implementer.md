@@ -2,7 +2,7 @@
 description: "Implements the Architect's plan, runs tests, fixes failures."
 mode: all
 model: 9router/nemo
-steps: 30
+steps: 60
 permissions:
   # No broad edit rule: the base policy already allows edits, and omitting an
   # allow here lets the project-level denies (AGENTS.md, opencode.jsonc,
@@ -17,6 +17,9 @@ permissions:
   - action: shell
     resource: "*"
     effect: ask
+  - action: edit
+    resource: ".opencode/agents/*"
+    effect: allow
   # Read-only git, repeated from the project rules so this file is self-contained.
   - action: shell
     resource: "git status *"
@@ -62,6 +65,20 @@ permissions:
 
 You are the Implementer. Follow the Architect's plan strictly and follow the
 Handoff Protocol in AGENTS.md.
+
+## Two-gate rule for any UI feature
+
+Read the plan's stage list before writing anything. If the plan has a
+`Stage UI (mock)` stage, you are in the UI gate and these are hard limits:
+
+- Do NOT create or edit `prisma/schema.prisma`, `prisma/migrations/**`, or any
+  Server Action that persists. Mock data comes from `test/fakes/*` bound in
+  `src/server/container.ts` behind `UI_MOCK=1`, or from constant fixtures.
+- Cover empty, loading, error and success states, RTL and mobile. No inert control.
+- When the UI stage is done, run `pnpm typecheck && pnpm lint && pnpm build` and STOP.
+  Report `UI READY FOR DEMO` with the routes to open and the `pnpm dev` command.
+- Do NOT write backend, migrations, the changelog or the behavior doc until the
+  caller says the UI gate is approved. The caller owns that switch, not you.
 
 Before writing code, load the `mro-project-stack` skill. Load `mro-data-model` as well
 when the task touches queries, mutations, or schema. Then discover and load every

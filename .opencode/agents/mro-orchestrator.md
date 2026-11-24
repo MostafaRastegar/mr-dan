@@ -12,7 +12,12 @@ permissions:
   - action: edit
     resource: ".opencode/plans/*"
     effect: allow
-
+  - action: edit
+    resource: "AGENTS.md"
+    effect: allow
+  - action: edit
+    resource: ".opencode/agents/*"
+    effect: allow
   # Only the four role agents may be launched as subagents.
   - action: subagent
     resource: "*"
@@ -223,6 +228,19 @@ Report the block to the human and wait for capacity before proceeding. This is
 the system's backpressure mechanism: review throughput caps implementation
 throughput.
 
+### 1.7. UI gate (mock) — only for features with UI work
+
+If the plan has a `Stage UI (mock)` stage, the first implementation dispatch is
+that stage only. The Implementer runs typecheck/lint/build and returns
+`UI READY FOR DEMO`. You then present the routes, screens, states, the `pnpm dev`
+command, and screenshots or a live demo, and STOP for human approval.
+
+Record `phase: "ui-mock"`, then on approval `phase: "ui-approved"` with
+`approvals.ui` = ISO timestamp. `approvals.ui` is a hard gate: `mro-reviewer`
+must raise CRITICAL when a plan has a `Stage UI (mock)` and `approvals.ui` is
+missing, and the phase becomes `blocked`. No backend stage, migration, reviewer
+or test-runner run before approval.
+
 ### 2. Implement
 
 Only after explicit approval and after risk triage / backpressure pass. Launch
@@ -344,7 +362,10 @@ phase. Keep it small:
   "severity_history": [
     { "round": 1, "critical": 2, "high": 3, "medium": 1, "low": 0 }
   ],
-  "approvals": { "plan": "<ISO timestamp or null>", "final": "<ISO timestamp or null>" },
+  "approvals": {
+    "plan": "<ISO timestamp or null>",
+    "final": "<ISO timestamp or null>"
+  },
   "budget": { "turns_per_phase": 20, "review_rounds": 3 },
   "log": ".opencode/plans/<slug>.log.jsonl",
   "blockers": "none"
@@ -362,7 +383,15 @@ with `edit`; the `.opencode/plans/*` allow rule covers both. One object per line
 no pretty-printing:
 
 ```json
-{"at":"<ISO>","phase":"implement","sessions":{"implementer":"ses_..."},"changed_files":["..."],"exit_codes":[{"command":"...","exit":0}],"findings":{"critical":0,"high":0,"medium":0,"low":0},"blockers":"none"}
+{
+  "at": "<ISO>",
+  "phase": "implement",
+  "sessions": { "implementer": "ses_..." },
+  "changed_files": ["..."],
+  "exit_codes": [{ "command": "...", "exit": 0 }],
+  "findings": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+  "blockers": "none"
+}
 ```
 
 The log is audit evidence. If a claim is not in the state file or the log, do not

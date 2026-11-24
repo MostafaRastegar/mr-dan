@@ -12,11 +12,13 @@ import {
   assertPlanWrite,
   type Actor,
 } from "@/modules/advising/application/planning-access";
-import { ProfileIncompleteError } from "@/modules/advising/domain/errors";
+import { ProfileIncompleteError, ValidationError } from "@/modules/advising/domain/errors";
 import {
   computeEnergy,
   isPhysicalProfileComplete,
   mealDistribution,
+  type MealSlot,
+  MEAL_SLOTS,
   type PhysicalProfile,
   type PhysicalProfilePatch,
 } from "@/modules/advising/domain/energy";
@@ -118,5 +120,43 @@ export class SaveMealPlanUseCase {
       targetCalories,
       meals: mealDistribution(targetCalories),
     });
+  }
+}
+
+export class ToggleMealSlotUseCase {
+  constructor(
+    private readonly saveMealPlan: SaveMealPlanUseCase,
+    private readonly mealPlans: MealPlanRepositoryPort,
+  ) {}
+
+  async execute(input: {
+    actor: Actor;
+    studentId?: string;
+    now?: Date;
+    slot: MealSlot;
+    eaten: boolean;
+  }): Promise<MealPlanRecord> {
+    const ownerId = ownerIdOf(input);
+    assertPlanWrite(input.actor, "nutrition:write", ownerId);
+
+    if (!MEAL_SLOTS.includes(input.slot)) {
+      throw new ValidationError("نوبت غذا معتبر نیست");
+    }
+
+    const todayKey = iranDayKey(input.now ?? new Date());
+    let plan = await this.mealPlans.findByDay(ownerId, todayKey);
+    if (!plan) {
+      plan = await this.saveMealPlan.execute({
+        actor: input.actor,
+        studentId: ownerId,
+        now: input.now,
+      });
+    }
+
+    const eatenSlots = input.eaten
+      ? [...new Set([...plan.eatenSlots, input.slot])]
+      : plan.eatenSlots.filter((slot) => slot !== input.slot);
+
+    return this.mealPlans.setEatenSlots(ownerId, todayKey, eatenSlots);
   }
 }

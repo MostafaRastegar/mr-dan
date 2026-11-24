@@ -4,13 +4,18 @@ import type { WeeklyScheduleEntry } from "@/modules/advising/domain/models";
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
 import { subjectLabel } from "@/modules/advising/domain/subjects";
 import { formatClock } from "@/modules/advising/presentation/planning-format";
+import { buildStudyBlocks } from "@/modules/advising/domain/study-blocks";
+import { iranDayKey } from "@/modules/advising/domain/day-key";
 
 import { ScheduleEntryForm } from "./_components/schedule-entry-form.vm";
 import { ScheduleControlsVM } from "./_components/schedule-controls.vm";
+import { SchoolProgramForm } from "./_components/school-program-form.vm";
+import type { SchoolProgramEntry } from "./_components/school-program-form.view";
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface ScheduleWeekViewProps {
   entries: WeeklyScheduleEntry[];
+  schoolProgramEntries: SchoolProgramEntry[];
   canWrite: boolean;
   fieldOfStudy: string | null;
   isFormOpen: boolean;
@@ -21,12 +26,15 @@ interface ScheduleWeekViewProps {
 export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
   const {
     entries,
+    schoolProgramEntries,
     canWrite,
     fieldOfStudy,
     isFormOpen,
     onOpenForm,
     onCloseForm,
   } = props;
+
+  const todayKey = iranDayKey(new Date());
 
   const columns = [
     {
@@ -57,6 +65,32 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
       title: "اتاق",
       key: "room",
       render: (record: WeeklyScheduleEntry) => record.room ?? "—",
+    },
+    {
+      title: "بلوک مطالعه",
+      key: "blocks",
+      render: (record: WeeklyScheduleEntry) => {
+        const blocks = buildStudyBlocks({
+          dayKey: todayKey,
+          startMinute: record.startMinute,
+          endMinute: record.endMinute,
+          subject: record.subject,
+        });
+        if (blocks.length === 0) return "—";
+        return (
+          <div className="flex flex-col gap-1">
+            {blocks.map((block) => (
+              <span
+                key={block.startMinute}
+                className="text-xs text-slate-600 dir-ltr"
+              >
+                {formatClock(block.startMinute)} — {formatClock(block.startMinute + block.minutes)}
+                ({block.minutes}د)
+              </span>
+            ))}
+          </div>
+        );
+      },
     },
     ...(canWrite
       ? [
@@ -106,6 +140,8 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
           onClose={onCloseForm}
         />
       )}
+
+      <SchoolProgramForm initialEntries={schoolProgramEntries} />
     </div>
   );
 }

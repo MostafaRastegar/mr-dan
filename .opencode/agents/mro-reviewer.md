@@ -1,7 +1,7 @@
 ---
 description: "Independent read-only review: correctness, security, types, tests."
 mode: subagent
-model: 9router/nemo
+model: 9router/deep
 steps: 12
 permissions:
   - action: edit
@@ -138,3 +138,14 @@ PASS | FAIL
 
 Then reply with a one-paragraph summary, the overall verdict, and the count per
 severity. Do not soften a failure into a suggestion.
+
+## Two-gate rule
+
+If the plan has a `Stage UI (mock)` stage, first check
+`.opencode/plans/<slug>.orchestrator.json` for `approvals.ui`. Missing or null →
+report CRITICAL "UI gate not approved" and stop.
+
+While reviewing the UI stage, review UI only: empty/loading/error/success states,
+RTL, responsive behaviour, accessibility, dead controls, design-token drift, and
+any persistence leaking into the UI stage. Do not demand backend tests in the UI
+stage; do demand them once the backend stage is under review.

@@ -5,6 +5,8 @@ import type { FormValues } from "@/utils/use-form-action";
 import { FIELDS, GRADES, type ProfileView } from "@/modules/advising/domain/models";
 
 import { TEST_IDS } from "@/constants/test-ids";
+import type { StudyProfileView } from "@/modules/advising/application/study-profile";
+import { StudyProfileForm } from "./_components/study-profile-form.vm";
 
 interface ProfileFormViewProps {
   form: FormInstance;
@@ -19,8 +21,12 @@ interface ProfileFormViewProps {
     grade?: string;
     fieldOfStudy?: string;
     schoolName?: string;
+    sleepTime?: string;
+    wakeTime?: string;
   };
   profile: ProfileView;
+  savedAt: boolean | null;
+  studyProfile: StudyProfileView;
 }
 
 export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
@@ -33,6 +39,8 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
     isStudent,
     initialValues,
     profile,
+    savedAt,
+    studyProfile,
   } = props;
 
   return (
@@ -66,7 +74,7 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
           requiredMark={false}
           onFinish={submit}
           data-testid={TEST_IDS.PROFILE.FORM}
-          initialValues={initialValues}
+          initialValues={initialValues as Record<string, unknown>}
         >
           <Form.Item
             name="fullName"
@@ -111,6 +119,30 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
               <Form.Item name="schoolName" label="نام مدرسه">
                 <Input data-testid={TEST_IDS.FORM.INPUT("schoolName")} />
               </Form.Item>
+
+              <Form.Item
+                name="sleepTime"
+                label="ساعت خواب"
+                extra="فرمت HH:mm"
+              >
+                <Input
+                  type="time"
+                  dir="ltr"
+                  data-testid={TEST_IDS.FORM.INPUT("sleepTime")}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="wakeTime"
+                label="ساعت بیداری"
+                extra="فرمت HH:mm"
+              >
+                <Input
+                  type="time"
+                  dir="ltr"
+                  data-testid={TEST_IDS.FORM.INPUT("wakeTime")}
+                />
+              </Form.Item>
             </>
           ) : null}
 
@@ -136,9 +168,9 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
             </Form.Item>
           </fieldset>
 
-          {state?.ok ? (
+          {(state?.ok || savedAt) ? (
             <p className="mb-4 text-sm text-teal-700" role="status" data-testid={TEST_IDS.PROFILE.SAVED}>
-              پروفایل ذخیره شد.
+              ذخیره شد.
             </p>
           ) : null}
 
@@ -160,6 +192,8 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
           </Form.Item>
         </Form>
       </div>
+
+      {isStudent ? <StudyProfileForm data={studyProfile} /> : null}
     </div>
   );
 }

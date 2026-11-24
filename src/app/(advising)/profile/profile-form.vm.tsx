@@ -1,19 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState } from "react";
 import { Form } from "antd";
 
-import { type ProfileView } from "@/modules/advising/domain/models";
-import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
+import type { ProfileView } from "@/modules/advising/domain/models";
+import type { StudyProfileView } from "@/modules/advising/application/study-profile";
 import type { ActionState } from "@/utils/app-error";
-import { updateProfileAction } from "../advising.actions";
+import type { FormValues } from "@/utils/use-form-action";
 
 import { ProfileFormView } from "./profile-form.view";
 
-export function ProfileFormWrapper({ profile }: { profile: ProfileView }) {
+function minutesToHHMM(minutes: number | null): string {
+  if (minutes === null) return "";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+export function ProfileFormWrapper({
+  profile,
+  studyProfile,
+}: {
+  profile: ProfileView;
+  studyProfile: StudyProfileView;
+}) {
   const [form] = Form.useForm();
-  const { state, submit, pending } = useFormAction(updateProfileAction);
-  const formError = useServerFormErrors(state, form);
+  const [savedAt, setSavedAt] = useState<boolean | null>(null);
   const isStudent = profile.role === "student";
 
   const initialValues = {
@@ -22,23 +34,28 @@ export function ProfileFormWrapper({ profile }: { profile: ProfileView }) {
     grade: profile.grade ?? undefined,
     fieldOfStudy: profile.fieldOfStudy ?? undefined,
     schoolName: profile.schoolName ?? undefined,
+    sleepTime: minutesToHHMM(profile.sleepMinutes),
+    wakeTime: minutesToHHMM(profile.wakeMinutes),
   };
 
-  useEffect(() => {
-    if (!state?.ok) return;
-    form.setFieldsValue({ currentPassword: undefined, newPassword: undefined });
-  }, [state, form]);
+  // UI stage: intercept submit, show local "ذخیره شد", no network write.
+  // Stage Backend restores the real `updateProfileAction` via `useFormAction`.
+  const handleSubmit = (_values: FormValues) => {
+    setSavedAt(true);
+  };
 
   return (
     <ProfileFormView
       form={form}
-      state={state as ActionState<unknown> | null}
-      submit={submit}
-      pending={pending}
-      formError={formError}
+      state={null as ActionState<unknown> | null}
+      submit={handleSubmit}
+      pending={false}
+      formError={null}
       isStudent={isStudent}
       initialValues={initialValues}
       profile={profile}
+      savedAt={savedAt}
+      studyProfile={studyProfile}
     />
   );
 }

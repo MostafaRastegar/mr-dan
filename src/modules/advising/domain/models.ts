@@ -35,6 +35,15 @@ export const FIELDS = [
   "فنی حرفه‌ای",
 ] as const;
 
+/** Shared numeric limits for advising forms (minutes unless noted otherwise). */
+export const TARAZ_MIN = 0;
+export const TARAZ_MAX = 10000;
+export const OTHER_OCCUPIED_MAX = 720; // 12h non-school per weekday
+export const HOMEWORK_AVERAGE_MAX = 720;
+export const NOTE_MAX = 200;
+export const CHAPTERS_MAX_PER_ENTRY = 10;
+export const COURSE_WEEKLY_HOURS_MAX = 30;
+
 export type Grade = (typeof GRADES)[number];
 export type FieldOfStudy = (typeof FIELDS)[number];
 
@@ -49,6 +58,13 @@ export interface UserAccount {
   schoolName: string | null;
   groupId: string | null;
   counselorId: string | null;
+  sleepMinutes: number | null;
+  wakeMinutes: number | null;
+  schoolMode: string | null;
+  needId: string | null;
+  takesMockExams: boolean | null;
+  otherOccupiedMinutes: number[] | null;
+  homeworkAverageMinutes: number | null;
   createdAt: Date;
 }
 
@@ -98,11 +114,18 @@ export interface NewUser {
 }
 
 export interface ProfilePatch {
-  fullName: string;
-  email: string | null;
-  grade: string | null;
-  fieldOfStudy: string | null;
-  schoolName: string | null;
+  fullName?: string;
+  email?: string | null;
+  grade?: string | null;
+  fieldOfStudy?: string | null;
+  schoolName?: string | null;
+  sleepMinutes?: number | null;
+  wakeMinutes?: number | null;
+  schoolMode?: string | null;
+  needId?: string | null;
+  takesMockExams?: boolean | null;
+  otherOccupiedMinutes?: number[] | null;
+  homeworkAverageMinutes?: number | null;
 }
 
 export interface NewGroup {
@@ -159,6 +182,112 @@ export interface WeeklyScheduleEntry {
   updatedAt: Date;
 }
 
+export interface Chapter {
+  id: string;
+  subject: string;
+  field: string;
+  grade: string;
+  number: number;
+  title: string;
+  active: boolean;
+}
+
+export interface SchoolProgramEntry {
+  id: string;
+  studentId: string;
+  dayOfWeek: number;
+  subject: string;
+  minutes: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StudyPlan {
+  id: string;
+  studentId: string;
+  counselorId: string;
+  testsTarget: number;
+  entries: StudyPlanEntry[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StudyPlanEntry {
+  id: string;
+  studentId: string;
+  dayOfWeek: number;
+  subject: string;
+  minutes: number;
+  chapterIds: string[];
+  note: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Need {
+  id: string;
+  code: string;
+  label: string;
+  active: boolean;
+}
+
+export interface Exam {
+  id: string;
+  code: string;
+  label: string;
+  active: boolean;
+}
+
+export interface StudentExamResult {
+  id: string;
+  studentId: string;
+  examId: string;
+  taraz: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SupplementaryCourse {
+  id: string;
+  studentId: string;
+  title: string;
+  mode: string;
+  weeklyMinutes: number | null;
+  createdAt: Date;
+}
+
+export interface TestRecord {
+  id: string;
+  studentId: string;
+  subject: string;
+  weekKey: string;
+  count: number;
+  updatedAt: Date;
+}
+
+export interface NewSchoolProgramEntry {
+  studentId: string;
+  dayOfWeek: number;
+  subject: string;
+  minutes: number;
+}
+
+export interface NewStudyPlanEntry {
+  studentId: string;
+  dayOfWeek: number;
+  subject: string;
+  minutes: number;
+  chapterIds: string[];
+  note: string | null;
+}
+
+export interface NewSupplementaryCourse {
+  studentId: string;
+  title: string;
+  mode: string;
+  weeklyMinutes: number | null;
+}
+
 export interface NewScheduleEntry {
   studentId: string;
   dayOfWeek: DayOfWeek;
@@ -186,6 +315,7 @@ export interface HomeworkItem {
   priority: HomeworkPriority;
   deadline: Date;
   completedAt: Date | null;
+  spentMinutes: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -234,6 +364,7 @@ export interface MealPlanRecord {
   dayKey: string;
   targetCalories: number;
   meals: MealPlanItem[];
+  eatenSlots: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -243,4 +374,14 @@ export interface NewMealPlan {
   dayKey: string;
   targetCalories: number;
   meals: MealPlanItem[];
+}
+
+export interface WeeklyGoal {
+  id: string;
+  studentId: string;
+  weekKey: string;
+  testsDone: number;
+  completedBlocks: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }

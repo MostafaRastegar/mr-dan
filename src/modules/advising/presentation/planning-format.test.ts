@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { HomeworkItem } from "../domain/models";
 import {
+  formatChapterList,
   formatClock,
   formatDeadline,
   formatDuration,
@@ -37,6 +38,7 @@ describe("planning format", () => {
       studentId: "s",
       title: "t",
       subject: null,
+      spentMinutes: null,
       priority: "high",
       deadline: new Date("2026-12-01T20:30:00Z"),
       completedAt: new Date(),
@@ -65,5 +67,23 @@ describe("planning format", () => {
       deadline: new Date("2026-12-02T20:30:00Z"), // Iran Dec 3
     };
     expect(homeworkStatus(upcoming, todayKey)).toBe("upcoming");
+  });
+
+  it("formatChapterList", () => {
+    const chapters = [
+      { id: "c-2", number: 2 },
+      { id: "c-1", number: 1 },
+      { id: "c-3", number: 3 },
+    ];
+    expect(formatChapterList([], chapters)).toBe("—");
+    expect(formatChapterList(["c-3", "c-1", "c-2"], chapters)).toBe(
+      "فصل ۱، فصل ۲، فصل ۳",
+    );
+    expect(formatChapterList(["c-1", "c-missing"], chapters)).toBe(
+      "فصل ۱، فصل نامشخص",
+    );
+    expect(formatChapterList(["c-missing"], chapters)).toBe(
+      "فصل نامشخص",
+    );
   });
 });
