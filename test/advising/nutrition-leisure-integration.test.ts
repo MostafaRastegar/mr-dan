@@ -135,4 +135,35 @@ describe("nutrition integration (real Postgres)", () => {
     const other = await users.create(student("physical-other"));
     expect(await users.findPhysicalProfile(other.id)).toEqual(EMPTY_PROFILE);
   });
+
+  it("dashboard-meal: eaten slots persist for today", async () => {
+    if (!live) return;
+
+    const user = await users.create(student("dashboard-meal"));
+    const todayKey = "2026-11-23";
+
+    const plan = await mealPlans.upsert({
+      studentId: user.id,
+      dayKey: todayKey,
+      targetCalories: 2705,
+      meals: mealDistribution(2705),
+    });
+    expect(plan.eatenSlots).toEqual([]);
+
+    const withBreakfast = await mealPlans.setEatenSlots(user.id, todayKey, [
+      "breakfast",
+    ]);
+    expect(withBreakfast.eatenSlots).toEqual(["breakfast"]);
+
+    const readBack = await mealPlans.findByDay(user.id, todayKey);
+    expect(readBack?.eatenSlots).toEqual(["breakfast"]);
+
+    const cleared = await mealPlans.setEatenSlots(user.id, todayKey, []);
+    expect(cleared.eatenSlots).toEqual([]);
+
+    await prisma.user.delete({ where: { id: user.id } });
+    expect(await prisma.mealPlan.count({ where: { studentId: user.id } })).toBe(
+      0,
+    );
+  });
 });

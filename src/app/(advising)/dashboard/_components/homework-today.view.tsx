@@ -8,11 +8,9 @@ import { TEST_IDS } from "@/constants/test-ids";
 
 interface HomeworkTodayViewProps {
   items: HomeworkItem[];
-  tickedHomework: Map<string, number>;
   homeworkMinutes: Map<string, number>;
-  onToggleHomework: (id: string) => void;
   onSetHomeworkMinutes: (id: string, minutes: number | null) => void;
-  demo: "success" | "empty" | "loading" | "error";
+  onToggleHomework: (id: string) => void;
 }
 
 function isValidMinutes(minutes: number | null | undefined): boolean {
@@ -20,21 +18,11 @@ function isValidMinutes(minutes: number | null | undefined): boolean {
 }
 
 export function HomeworkTodayView(props: HomeworkTodayViewProps): ReactNode {
-  const { items, tickedHomework, homeworkMinutes, onToggleHomework, onSetHomeworkMinutes, demo } = props;
+  const { items, homeworkMinutes, onSetHomeworkMinutes, onToggleHomework } =
+    props;
 
-  if (demo === "loading") {
-    return (
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-5"
-        data-testid={TEST_IDS.DASHBOARD.CARD("homework")}
-      >
-        بارگذاری…
-      </section>
-    );
-  }
-
-  const pending = items.filter((item) => item.completedAt === null && !tickedHomework.has(item.id));
-  const done = items.filter((item) => item.completedAt === null && tickedHomework.has(item.id));
+  const pending = items.filter((item) => item.completedAt === null);
+  const done = items.filter((item) => item.completedAt !== null);
 
   if (pending.length === 0 && done.length === 0) {
     return (
@@ -90,7 +78,7 @@ export function HomeworkTodayView(props: HomeworkTodayViewProps): ReactNode {
           );
         })}
         {done.map((item) => {
-          const minutes = tickedHomework.get(item.id) ?? 0;
+          const minutes = item.spentMinutes ?? 0;
           return (
             <li
               key={item.id}

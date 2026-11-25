@@ -11,7 +11,7 @@ import {
   assertCounselorOfStudent,
   type Actor,
 } from "@/modules/advising/application/planning-access";
-import { goalProgress, type GoalTargets } from "@/modules/advising/domain/weekly-goal";
+import { goalProgress, type GoalTargets, subjectStudiedMinutes } from "@/modules/advising/domain/weekly-goal";
 import { planMinutesTotal } from "@/modules/advising/domain/study-plan";
 import { chapterIdsAreValid, dedupeChapterIds } from "@/modules/advising/domain/chapters";
 import type {
@@ -28,6 +28,7 @@ import type {
   UserRepositoryPort,
   WeeklyGoalRepositoryPort,
 } from "@/modules/advising/domain/ports";
+import { currentWeekKey } from "@/modules/advising/application/weekly-goal";
 
 const ENTRY_MINUTES_MIN = 15;
 const ENTRY_MINUTES_MAX = 720;
@@ -40,6 +41,24 @@ export type StudentStudyPlanView = {
   schoolProgram: SchoolProgramEntry[];
   weeklySchedule: WeeklyScheduleEntry[];
   goalProgress: ReturnType<typeof goalProgress>;
+  rows: StudyPlanSubjectRow[];
+  totals: StudyPlanTotals;
+};
+
+export type StudyPlanSubjectRow = {
+  subject: string;
+  plannedMinutes: number;
+  studiedMinutes: number;
+  shortfallMinutes: number;
+  testsDone: number;
+};
+
+export type StudyPlanTotals = {
+  plannedMinutes: number;
+  studiedMinutes: number;
+  shortfallMinutes: number;
+  testsDone: number;
+  testsTarget: number;
 };
 
 export class GetStudentStudyPlanUseCase {
@@ -58,26 +77,57 @@ export class GetStudentStudyPlanUseCase {
   }): Promise<StudentStudyPlanView> {
     await assertCounselorOfStudent(this.users, input.actor, input.studentId);
 
-    const weekKey = input.weekKey;
-    const [plan, school, schedule, goal] = await Promise.all([
+    const weekKey = input.weekKey ?? currentWeekKey();
+    const [plan, school, schedule, goal, subjectTests] = await Promise.all([
       this.plans.findForStudent(input.studentId),
       this.schoolProgram.listByStudent(input.studentId),
       this.schedule.listByStudent(input.studentId),
-      weekKey
-        ? this.goals.findByKey(input.studentId, weekKey)
-        : this.goals.findByKey(input.studentId, ""),
+      this.goals.findByKey(input.studentId, weekKey),
+      this.goals.listSubjectTests({ studentId: input.studentId, weekKey }),
     ]);
 
     const targets: GoalTargets = plan
       ? { studyMinutesTarget: planMinutesTotal(plan.entries ?? []), testsTarget: plan.testsTarget }
       : { studyMinutesTarget: 0, testsTarget: 0 };
 
+    const progress = goalProgress(goal, targets);
+    const studiedBySubject = subjectStudiedMinutes(goal?.completedBlocks ?? [], schedule);
+    const testsBySubject = Object.fromEntries(subjectTests.map((t) => [t.subject, t.count]));
+
+    const plannedBySubject: Record<string, number> = {};
+    for (const entry of plan?.entries ?? []) {
+      plannedBySubject[entry.subject] = (plannedBySubject[entry.subject] ?? 0) + entry.minutes;
+    }
+
+    const rows: StudyPlanSubjectRow[] = Object.keys(plannedBySubject).map((subject) => {
+      const plannedMinutes = plannedBySubject[subject];
+      const studiedMinutes = studiedBySubject[subject] ?? 0;
+      return {
+        subject,
+        plannedMinutes,
+        studiedMinutes,
+        shortfallMinutes: Math.max(0, plannedMinutes - studiedMinutes),
+        testsDone: testsBySubject[subject] ?? 0,
+      };
+    });
+
+    const totals: StudyPlanTotals = {
+      plannedMinutes: rows.reduce((sum, r) => sum + r.plannedMinutes, 0),
+      studiedMinutes: progress.studyMinutes,
+      shortfallMinutes: 0,
+      testsDone: progress.testsDone,
+      testsTarget: plan?.testsTarget ?? 0,
+    };
+    totals.shortfallMinutes = Math.max(0, totals.plannedMinutes - totals.studiedMinutes);
+
     return {
       plan,
       entries: plan?.entries ?? [],
       schoolProgram: school,
       weeklySchedule: schedule,
-      goalProgress: goalProgress(goal, targets),
+      goalProgress: progress,
+      rows,
+      totals,
     };
   }
 }

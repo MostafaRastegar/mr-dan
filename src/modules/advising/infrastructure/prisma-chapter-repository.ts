@@ -76,4 +76,14 @@ export class PrismaChapterRepository implements ChapterRepositoryPort {
     });
     return rows.map(mapChapter);
   }
+
+  /** All active chapters, for resolving titles and populating the picker. */
+  async listAll(): Promise<Chapter[]> {
+    const rows = await this.client.chapter.findMany({
+      where: { active: true },
+      select: CHAPTER_SELECT,
+      orderBy: [{ number: "asc" }],
+    });
+    return rows.map(mapChapter);
+  }
 }

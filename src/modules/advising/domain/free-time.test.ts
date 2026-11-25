@@ -83,8 +83,8 @@ describe("free-time", () => {
 });
 
 describe("wakingMinutes", () => {
-  it("02:00 wake / 10:00 sleep → 960", () => {
-    expect(wakingMinutes({ wakeMinutes: 120, sleepMinutes: 600 })).toBe(960);
+  it("10:00 wake / 02:00 sleep → 960", () => {
+    expect(wakingMinutes({ wakeMinutes: 600, sleepMinutes: 120 })).toBe(960);
   });
 
   it("06:30 wake / 23:00 sleep → 990", () => {
@@ -147,24 +147,24 @@ describe("freeMinutesForDay", () => {
     homeworkAverageMinutes: 60,
   };
 
-  it("AC-14: 990 − 240 − 180 − 60 = 510", () => {
+  it("AC-14: free time derives school hours once (990 − 240 − 180 − 60 = 510)", () => {
     expect(freeMinutesForDay(base)).toBe(510);
   });
 
-  it("AC-15: clamps at 0, never negative", () => {
+  it("AC-15: free minutes never negative with occupied (clamps at 0, never negative)", () => {
     const overfull = { ...base, schoolMinutes: 990, otherOccupiedMinutes: 180, homeworkAverageMinutes: 120 };
     expect(freeMinutesForDay(overfull)).toBe(0);
     const exactlyFull = { ...base, schoolMinutes: 750, otherOccupiedMinutes: 180, homeworkAverageMinutes: 60 };
     expect(freeMinutesForDay(exactlyFull)).toBe(0);
   });
 
-  it("AC-16: missing index reads 0 (array shorter than 7)", () => {
+  it("AC-16: short occupied array reads zero (missing index reads 0 (array shorter than 7))", () => {
     expect(otherOccupiedMinutesForDay([60], 3)).toBe(0);
     expect(otherOccupiedMinutesForDay([], 6)).toBe(0);
     expect(freeMinutesForDay({ ...base, otherOccupiedMinutes: 0 })).toBe(990 - 240 - 0 - 60);
   });
 
-  it("AC-32: school entry of N lowers by exactly N; occupied +N lowers by exactly N", () => {
+  it("AC-32: school and non-school each subtract once (school entry of N lowers by exactly N; occupied +N lowers by exactly N)", () => {
     const before = freeMinutesForDay(base);
     const withMoreSchool = { ...base, schoolMinutes: base.schoolMinutes + 30 };
     expect(freeMinutesForDay(withMoreSchool)).toBe(before - 30);

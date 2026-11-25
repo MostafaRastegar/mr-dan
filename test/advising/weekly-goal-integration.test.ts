@@ -122,4 +122,28 @@ describe("weekly goal integration (real Postgres)", () => {
 
     await prisma.user.delete({ where: { id: user.id } });
   });
+
+  it("dashboard: study block and tests done persist", async () => {
+    if (!live) return;
+
+    const user = await users.create(student("dashboard-goal"));
+    const weekKey = "2026-11-23";
+
+    const withBlock = await goals.setCompletedBlocks(user.id, weekKey, [
+      "2026-11-23:480:50",
+    ]);
+    expect(withBlock.completedBlocks).toEqual(["2026-11-23:480:50"]);
+
+    const tenTests = await goals.incrementTestsDone(user.id, weekKey, 10);
+    expect(tenTests.testsDone).toBe(10);
+
+    const readBack = await goals.findByKey(user.id, weekKey);
+    expect(readBack?.completedBlocks).toEqual(["2026-11-23:480:50"]);
+    expect(readBack?.testsDone).toBe(10);
+
+    await prisma.user.delete({ where: { id: user.id } });
+    expect(await prisma.weeklyGoal.count({ where: { studentId: user.id } })).toBe(
+      0,
+    );
+  });
 });

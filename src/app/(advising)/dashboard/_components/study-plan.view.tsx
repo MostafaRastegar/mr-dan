@@ -12,22 +12,10 @@ interface StudyPlanViewProps {
   ticked: Set<string>;
   onToggle: (block: StudyBlock) => void;
   book: string | null;
-  demo: "success" | "empty" | "loading" | "error";
 }
 
 export function StudyPlanView(props: StudyPlanViewProps): ReactNode {
-  const { blocks, ticked, onToggle, book, demo } = props;
-
-  if (demo === "loading") {
-    return (
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-5"
-        data-testid={TEST_IDS.DASHBOARD.CARD("plan")}
-      >
-        بارگذاری…
-      </section>
-    );
-  }
+  const { blocks, ticked, onToggle, book } = props;
 
   return (
     <section

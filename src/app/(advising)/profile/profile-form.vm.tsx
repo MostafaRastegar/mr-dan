@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Form } from "antd";
 
 import type { ProfileView } from "@/modules/advising/domain/models";
 import type { StudyProfileView } from "@/modules/advising/application/study-profile";
-import type { ActionState } from "@/utils/app-error";
-import type { FormValues } from "@/utils/use-form-action";
+import {
+  useFormAction,
+  useServerFormErrors,
+} from "@/utils/use-form-action";
 
+import { updateProfileAction } from "../advising.actions";
 import { ProfileFormView } from "./profile-form.view";
 
 function minutesToHHMM(minutes: number | null): string {
@@ -25,7 +29,7 @@ export function ProfileFormWrapper({
   studyProfile: StudyProfileView;
 }) {
   const [form] = Form.useForm();
-  const [savedAt, setSavedAt] = useState<boolean | null>(null);
+  const router = useRouter();
   const isStudent = profile.role === "student";
 
   const initialValues = {
@@ -38,23 +42,24 @@ export function ProfileFormWrapper({
     wakeTime: minutesToHHMM(profile.wakeMinutes),
   };
 
-  // UI stage: intercept submit, show local "ذخیره شد", no network write.
-  // Stage Backend restores the real `updateProfileAction` via `useFormAction`.
-  const handleSubmit = (_values: FormValues) => {
-    setSavedAt(true);
-  };
+  const { state, submit, pending } = useFormAction(updateProfileAction);
+  const formError = useServerFormErrors(state, form);
+
+  useEffect(() => {
+    if (!state?.ok) return;
+    router.refresh();
+  }, [state, router]);
 
   return (
     <ProfileFormView
       form={form}
-      state={null as ActionState<unknown> | null}
-      submit={handleSubmit}
-      pending={false}
-      formError={null}
+      state={state}
+      submit={submit}
+      pending={pending}
+      formError={formError}
       isStudent={isStudent}
       initialValues={initialValues}
       profile={profile}
-      savedAt={savedAt}
       studyProfile={studyProfile}
     />
   );

@@ -10,7 +10,6 @@ interface FreeTimeCardViewProps {
     otherOccupiedMinutes: number;
     homeworkAverageMinutes: number;
   };
-  demo: "success" | "empty" | "loading" | "error";
 }
 
 const persianDigits = new Intl.NumberFormat("fa-IR", { useGrouping: false });
@@ -25,18 +24,7 @@ function formatDuration(minutes: number): string {
 }
 
 export function FreeTimeCardView(props: FreeTimeCardViewProps): ReactNode {
-  const { freeMinutes, breakdown, demo } = props;
-
-  if (demo === "loading") {
-    return (
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-5"
-        data-testid={TEST_IDS.DASHBOARD.CARD("free-time")}
-      >
-        بارگذاری…
-      </section>
-    );
-  }
+  const { freeMinutes, breakdown } = props;
 
   return (
     <section

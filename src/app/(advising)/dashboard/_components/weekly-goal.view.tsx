@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Button, Progress } from "antd";
-import type { DashboardGoal } from "../dashboard.fixture";
+import type { DashboardGoal } from "@/modules/advising/application/dashboard";
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface WeeklyGoalViewProps {
@@ -9,7 +9,6 @@ interface WeeklyGoalViewProps {
   studiedMinutes: number;
   needLabel: string;
   onAddTests: (delta: number) => void;
-  demo: "success" | "empty" | "loading" | "error";
 }
 
 function percentOf(value: number, target: number): number {
@@ -18,18 +17,7 @@ function percentOf(value: number, target: number): number {
 }
 
 export function WeeklyGoalView(props: WeeklyGoalViewProps): ReactNode {
-  const { goal, testsDone, studiedMinutes, needLabel, onAddTests, demo } = props;
-
-  if (demo === "loading") {
-    return (
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-5"
-        data-testid={TEST_IDS.DASHBOARD.CARD("goal")}
-      >
-        بارگذاری…
-      </section>
-    );
-  }
+  const { goal, testsDone, studiedMinutes, needLabel, onAddTests } = props;
 
   const studyPercent = goal ? percentOf(studiedMinutes, goal.studyMinutesTarget) : 0;
   const testsPercent = goal ? percentOf(testsDone, goal.testsTarget) : 0;

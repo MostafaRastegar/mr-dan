@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form } from "antd";
+import { useRouter } from "next/navigation";
 
+import { useFormAction } from "@/utils/use-form-action";
 import type { StudyProfileView } from "@/modules/advising/application/study-profile";
 
 import {
@@ -21,7 +23,22 @@ function emptyOccupied(): number[] {
 }
 
 export function StudyProfileForm({ data }: StudyProfileFormVMProps) {
+  console.log("[StudyProfileForm] data:", JSON.stringify({
+    userId: data.user.id,
+    schoolMode: data.user.schoolMode,
+    needId: data.user.needId,
+    takesMockExams: data.user.takesMockExams,
+    otherOccupiedMinutes: data.user.otherOccupiedMinutes,
+    homeworkAverageMinutes: data.user.homeworkAverageMinutes,
+    needsCount: data.needs.length,
+    examsCount: data.exams.length,
+    resultsCount: data.examResults.length,
+    coursesCount: data.courses.length,
+  }, null, 2));
+
   const [form] = Form.useForm();
+  const router = useRouter();
+  const { state, submit } = useFormAction(updateStudyProfileAction);
   const [savedAt, setSavedAt] = useState<boolean | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -37,6 +54,8 @@ export function StudyProfileForm({ data }: StudyProfileFormVMProps) {
       ? data.user.otherOccupiedMinutes.map((m) => Math.round((m ?? 0) / 60))
       : emptyOccupied(),
   );
+  const [courseMode, setCourseMode] = useState<string | null>("in_person");
+  const [courseHours, setCourseHours] = useState<number | null>(null);
   const [homeworkAvg, setHomeworkAvg] = useState<string | null>(
     data.user.homeworkAverageMinutes != null ? String(data.user.homeworkAverageMinutes / 60) : null,
   );
@@ -49,41 +68,56 @@ export function StudyProfileForm({ data }: StudyProfileFormVMProps) {
     })),
   );
 
-  const buildProfileFormData = (): FormData => {
-    const fd = new FormData();
-    fd.set("schoolMode", schoolMode ?? "");
-    fd.set("needId", needId ?? "");
-    fd.set("takesMockExams", takesMockExams ? "true" : "false");
-    fd.set("examId", examId ?? "");
-    fd.set("taraz", taraz ?? "");
-    for (let i = 0; i < 7; i += 1) fd.set(`otherOccupied${i}`, String(occupiedHours[i] ?? 0));
-    fd.set("homeworkAverageHours", homeworkAvg ?? "");
-    return fd;
+  const handleSubmit = (values: Record<string, unknown>) => {
+    setFormError(null);
+    // hoursInput overrides InputNumber value/onChange, so antd Form never
+    // sees occupiedHours / homeworkAverageHours / takesMockExams. Inject them
+    // manually so the action receives what the user actually entered.
+    const allValues = {
+      ...values,
+      schoolMode,
+      needId,
+      otherOccupied0: occupiedHours[0] ?? undefined,
+      otherOccupied1: occupiedHours[1] ?? undefined,
+      otherOccupied2: occupiedHours[2] ?? undefined,
+      otherOccupied3: occupiedHours[3] ?? undefined,
+      otherOccupied4: occupiedHours[4] ?? undefined,
+      otherOccupied5: occupiedHours[5] ?? undefined,
+      otherOccupied6: occupiedHours[6] ?? undefined,
+      homeworkAverageHours: homeworkAvg != null ? Number(homeworkAvg) : undefined,
+      takesMockExams: takesMockExams,
+    };
+    submit(allValues);
   };
 
-  const handleSubmit = async () => {
-    setFormError(null);
-    const result = await updateStudyProfileAction(null, buildProfileFormData());
-    if (result.ok) {
-      setSavedAt(true);
-    } else {
-      setSavedAt(null);
-      setFormError(result.error.message);
-    }
-  };
+  // After a successful save, refresh so the server re-renders with fresh DB data.
+  useEffect(() => {
+    if (!state?.ok) return;
+    setSavedAt(true);
+    router.refresh();
+  }, [state, router]);
 
   const handleAddCourse = async () => {
     const fd = new FormData();
     const title = form.getFieldValue("courseTitle") as string;
-    const mode = (form.getFieldValue("courseMode") as string) ?? "in_person";
-    const hours = form.getFieldValue("courseHours");
     fd.set("title", title);
-    fd.set("mode", mode);
-    if (hours !== undefined && hours !== "") fd.set("weeklyHours", String(hours));
+    fd.set("mode", courseMode ?? "in_person");
+    if (courseHours !== undefined && courseHours !== null) {
+      fd.set("weeklyHours", String(courseHours));
+    }
     const result = await addCourseAction(null, fd);
     if (result.ok) {
       form.resetFields(["courseTitle", "courseMode", "courseHours"]);
-      setCourses((prev) => [...prev, { id: `new-${Date.now()}`, title, mode, weeklyHours: hours == null ? undefined : Number(hours) }]);
+      setCourses((prev) => [
+        ...prev,
+        {
+          id: `new-${Date.now()}`,
+          title,
+          mode: courseMode ?? "in_person",
+          weeklyHours: courseHours == null ? undefined : courseHours,
+        },
+      ]);
+      router.refresh();
     } else {
       setFormError(result.error.message);
     }
@@ -93,6 +127,7 @@ export function StudyProfileForm({ data }: StudyProfileFormVMProps) {
     const result = await deleteCourseAction(id);
     if (result.ok) {
       setCourses((prev) => prev.filter((c) => c.id !== id));
+      router.refresh();
     } else {
       setFormError(result.error.message);
     }
@@ -116,6 +151,10 @@ export function StudyProfileForm({ data }: StudyProfileFormVMProps) {
       setTaraz={setTaraz}
       setOccupiedHours={setOccupiedHours}
       setHomeworkAvg={setHomeworkAvg}
+      courseMode={courseMode}
+      setCourseMode={setCourseMode}
+      courseHours={courseHours}
+      setCourseHours={setCourseHours}
       handleAddCourse={handleAddCourse}
       handleRemoveCourse={handleRemoveCourse}
       handleSubmit={handleSubmit}

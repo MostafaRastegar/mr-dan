@@ -182,4 +182,15 @@ export class PrismaWeeklyGoalRepository implements WeeklyGoalRepositoryPort {
       });
     });
   }
+
+  async listSubjectTests(input: {
+    studentId: string;
+    weekKey: string;
+  }): Promise<{ subject: string; count: number }[]> {
+    const rows = await this.client.testRecord.findMany({
+      where: { studentId: input.studentId, weekKey: input.weekKey },
+      select: { subject: true, count: true },
+    });
+    return rows.map((row) => ({ subject: row.subject, count: row.count }));
+  }
 }

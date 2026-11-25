@@ -85,6 +85,8 @@ import {
   DeleteStudyPlanEntryUseCase,
 } from "@/modules/advising/application/study-plan";
 import { GetLeisureSuggestionUseCase } from "@/modules/advising/application/leisure";
+import { GetDashboardOverviewUseCase } from "@/modules/advising/application/dashboard";
+import { ToggleMealSlotUseCase } from "@/modules/advising/application/nutrition";
 import {
   GetDayBudgetUseCase,
   SetFreeTimeBudgetUseCase,
@@ -93,6 +95,7 @@ import {
   DeleteHomeworkPlanUseCase,
   PlanHomeworkTimeUseCase,
 } from "@/modules/advising/application/homework-plan";
+import type { Chapter } from "@/modules/advising/domain/models";
 import {
   PrismaUserRepository,
 } from "@/modules/advising/infrastructure/prisma-user-repository";
@@ -151,6 +154,8 @@ type Container = {
     updatePhysicalProfile: UpdatePhysicalProfileUseCase;
     saveMealPlan: SaveMealPlanUseCase;
     getLeisureSuggestion: GetLeisureSuggestionUseCase;
+    dashboardOverview: GetDashboardOverviewUseCase;
+    toggleMealSlot: ToggleMealSlotUseCase;
     getWeeklyGoal: GetWeeklyGoalUseCase;
     toggleStudyBlock: ToggleStudyBlockUseCase;
     addTestsDone: AddTestsDoneUseCase;
@@ -166,6 +171,7 @@ type Container = {
     saveStudyPlanHeader: SaveStudyPlanHeaderUseCase;
     addStudyPlanEntry: AddStudyPlanEntryUseCase;
     deleteStudyPlanEntry: DeleteStudyPlanEntryUseCase;
+    listChapters: () => Promise<Chapter[]>;
   };
 };
 
@@ -275,6 +281,7 @@ function buildAdvising(): Container["advising"] {
   const studentExamResults = new PrismaStudentExamResultRepository();
   const supplementaryCourses = new PrismaSupplementaryCourseRepository();
   const crypto = new ScryptAuthCrypto();
+  const saveMealPlan = new SaveMealPlanUseCase(users, mealPlans);
 
   return {
     registerUser: new RegisterUserUseCase(users, sessions, crypto),
@@ -300,8 +307,19 @@ function buildAdvising(): Container["advising"] {
     deleteHomeworkPlan: new DeleteHomeworkPlanUseCase(plans),
     getNutritionOverview: new GetNutritionOverviewUseCase(users, mealPlans),
     updatePhysicalProfile: new UpdatePhysicalProfileUseCase(users),
-    saveMealPlan: new SaveMealPlanUseCase(users, mealPlans),
+    saveMealPlan,
+    toggleMealSlot: new ToggleMealSlotUseCase(saveMealPlan, mealPlans),
     getLeisureSuggestion: new GetLeisureSuggestionUseCase(budget, plans, homework),
+    dashboardOverview: new GetDashboardOverviewUseCase(
+      users,
+      homework,
+      schedule,
+      goals,
+      studyPlans,
+      budget,
+      plans,
+      mealPlans,
+    ),
     getWeeklyGoal: new GetWeeklyGoalUseCase(goals),
     toggleStudyBlock: new ToggleStudyBlockUseCase(goals),
     addTestsDone: new AddTestsDoneUseCase(goals),
@@ -317,6 +335,7 @@ function buildAdvising(): Container["advising"] {
     saveStudyPlanHeader: new SaveStudyPlanHeaderUseCase(users, studyPlans),
     addStudyPlanEntry: new AddStudyPlanEntryUseCase(users, studyPlans, chapters),
     deleteStudyPlanEntry: new DeleteStudyPlanEntryUseCase(users, studyPlans),
+    listChapters: () => chapters.listAll(),
   };
 }
 

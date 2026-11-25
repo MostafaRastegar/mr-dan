@@ -19,7 +19,6 @@ interface SchoolProgramFormVMProps {
 export function SchoolProgramForm({ initialEntries }: SchoolProgramFormVMProps) {
   const [form] = Form.useForm();
   const router = useRouter();
-  const [entries, setEntries] = useState<SchoolProgramEntry[]>(initialEntries);
   const [savedAt, setSavedAt] = useState<boolean | null>(null);
 
   const { state: addState, submit: addSubmit, pending: addPending } = useFormAction(
@@ -52,7 +51,7 @@ export function SchoolProgramForm({ initialEntries }: SchoolProgramFormVMProps) 
   return (
     <SchoolProgramFormView
       form={form}
-      entries={entries}
+      entries={initialEntries}
       savedAt={savedAt}
       formError={formError}
       pending={addPending || deletePending}

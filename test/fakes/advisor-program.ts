@@ -28,7 +28,8 @@ import type {
   SupplementaryCourseRepositoryPort,
 } from "@/modules/advising/domain/ports";
 
-const now = () => new Date();
+let nowSeq = 0;
+const now = () => new Date(Date.now() + nowSeq++);
 
 export class FakeCatalogRepository implements CatalogRepositoryPort {
   private readonly needs = new Map<string, Need>();

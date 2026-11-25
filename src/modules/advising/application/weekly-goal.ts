@@ -40,7 +40,7 @@ function requireOwner(actor: Actor, ownerId: string): void {
   if (ownerId !== actor.id) throw new ForbiddenError();
 }
 
-function currentWeekKey(): string {
+export function currentWeekKey(): string {
   return weekStartKey(iranDayKey(new Date()));
 }
 

@@ -107,7 +107,7 @@ async function createCounselor(label: string) {
 }
 
 describe("advisor-program integration (real Postgres)", () => {
-  it("AC-13: catalog seed twice → stable counts, needs keep codes", async () => {
+  it("AC-13: catalog and chapter seed is idempotent (catalog seed twice → stable counts, needs keep codes)", async () => {
     if (!live) return;
 
     const first = await seedCatalogs();
@@ -310,7 +310,7 @@ describe("advisor-program integration (real Postgres)", () => {
     expect(found[0].id).toBe(chapter!.id);
   });
 
-  it("AC-41 / AC-52: incrementSubjectTests — two calls, WeeklyGoal.testsDone and TestRecord.count correct, one transaction", async () => {
+  it("AC-41 / AC-52: subject test record (incrementSubjectTests — two calls, WeeklyGoal.testsDone and TestRecord.count correct, one transaction)", async () => {
     if (!live) return;
 
     const user = await createStudent("subject-test-student");

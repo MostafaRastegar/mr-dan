@@ -1,10 +1,19 @@
 import type { ReactNode, Dispatch, SetStateAction } from "react";
-import { Button, Form, Input, InputNumber, Select, Switch, Empty, type FormInstance } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Switch,
+  Empty,
+  type FormInstance,
+} from "antd";
 
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
 
 import { TEST_IDS } from "@/constants/test-ids";
-import type { Need, Exam, StudentExamResult } from "@/modules/advising/domain/models";
+import type { Need, Exam } from "@/modules/advising/domain/models";
 import type { StudyProfileView } from "@/modules/advising/application/study-profile";
 
 interface StudyProfileFormViewProps {
@@ -25,9 +34,13 @@ interface StudyProfileFormViewProps {
   setTaraz: (value: string | null) => void;
   setOccupiedHours: Dispatch<SetStateAction<number[]>>;
   setHomeworkAvg: (value: string | null) => void;
+  courseMode: string | null;
+  setCourseMode: (value: string | null) => void;
+  courseHours: number | null;
+  setCourseHours: (value: number | null) => void;
   handleAddCourse: () => void;
   handleRemoveCourse: (id: string) => void;
-  handleSubmit: () => void;
+  handleSubmit: (values: Record<string, unknown>) => void;
   savedAt: boolean | null;
   formError: string | null;
 }
@@ -50,7 +63,9 @@ const hoursInput = (
   />
 );
 
-export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNode {
+export function StudyProfileFormView(
+  props: StudyProfileFormViewProps,
+): ReactNode {
   const {
     form,
     data,
@@ -69,6 +84,10 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
     setTaraz,
     setOccupiedHours,
     setHomeworkAvg,
+    courseMode,
+    setCourseMode,
+    courseHours,
+    setCourseHours,
     handleAddCourse,
     handleRemoveCourse,
     handleSubmit,
@@ -109,7 +128,7 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
           </Form.Item>
 
           <Form.Item
-            name="need"
+            name="needId"
             label="نیاز"
             rules={[{ required: true, message: "نیاز را انتخاب کنید" }]}
           >
@@ -130,7 +149,9 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
         </div>
 
         <fieldset className="mb-6 flex flex-col gap-3 rounded-lg border border-slate-200 p-4">
-          <legend className="px-1 text-sm text-slate-700">آزمونهای آزمایشی</legend>
+          <legend className="px-1 text-sm text-slate-700">
+            آزمونهای آزمایشی
+          </legend>
 
           <div className="flex items-center gap-3">
             <Switch
@@ -140,13 +161,15 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
               checkedChildren="بله"
               unCheckedChildren="خیر"
             />
-            <span className="text-sm text-slate-600">شرکت در آزمونهای آزمایشی</span>
+            <span className="text-sm text-slate-600">
+              شرکت در آزمونهای آزمایشی
+            </span>
           </div>
 
           {takesMockExams ? (
             <div className="grid gap-4 sm:grid-cols-3">
               <Form.Item
-                name="exam"
+                name="examId"
                 label="آزمون"
                 rules={[{ required: true, message: "آزمون را انتخاب کنید" }]}
               >
@@ -170,7 +193,11 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
                 label="تراز"
                 rules={[
                   { required: true, message: "تراز را وارد کنید" },
-                  { min: 0, max: 10000, message: "تراز باید بین ۰ تا ۱۰۰۰۰ باشد" },
+                  {
+                    min: 0,
+                    max: 10000,
+                    message: "تراز باید بین ۰ تا ۱۰۰۰۰ باشد",
+                  },
                 ]}
               >
                 <InputNumber
@@ -192,36 +219,55 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr>
-                    <th className="text-left pb-1 border-b border-slate-200">آزمون</th>
-                    <th className="text-left pb-1 border-b border-slate-200">تراز</th>
-                    <th className="text-left pb-1 border-b border-slate-200">تاریخ</th>
+                    <th className="text-left pb-1 border-b border-slate-200">
+                      آزمون
+                    </th>
+                    <th className="text-left pb-1 border-b border-slate-200">
+                      تراز
+                    </th>
+                    <th className="text-left pb-1 border-b border-slate-200">
+                      تاریخ
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.examResults.map((r) => {
-  const exam = data.exams.find((e) => e.id === r.examId);
-  return (
-                    <tr key={r.id}>
-                      <td className="py-1 border-b border-slate-100">{exam?.label ?? r.examId}</td>
-                      <td className="py-1 border-b border-slate-100" dir="ltr">
-                        {r.taraz}
-                      </td>
-                      <td className="py-1 border-b border-slate-100 text-xs text-slate-500">
-                        {r.createdAt.toLocaleDateString("fa-IR", { year: "numeric", month: "2-digit", day: "2-digit" })}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    const exam = data.exams.find((e) => e.id === r.examId);
+                    return (
+                      <tr key={r.id}>
+                        <td className="py-1 border-b border-slate-100">
+                          {exam?.label ?? r.examId}
+                        </td>
+                        <td
+                          className="py-1 border-b border-slate-100"
+                          dir="ltr"
+                        >
+                          {r.taraz}
+                        </td>
+                        <td className="py-1 border-b border-slate-100 text-xs text-slate-500">
+                          {r.createdAt.toLocaleDateString("fa-IR", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                          })}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
           ) : (
-            <p className="mt-3 text-xs text-slate-400">هنوز نتیجه‌ای ثبت نشده است</p>
+            <p className="mt-3 text-xs text-slate-400">
+              هنوز نتیجه‌ای ثبت نشده است
+            </p>
           )}
         </fieldset>
 
         <fieldset className="mb-6 flex flex-col gap-3 rounded-lg border border-slate-200 p-4">
-          <legend className="px-1 text-sm text-slate-700">ساعتهای اشغال هفته (غیر-مدرسه)</legend>
+          <legend className="px-1 text-sm text-slate-700">
+            ساعتهای اشغال هفته (غیر-مدرسه)
+          </legend>
           <p className="text-xs text-slate-500">ساعة روز، شنبه تا جمعه</p>
           <div className="grid gap-2 md:grid-cols-7">
             {DAYS_OF_WEEK.map((day) => (
@@ -231,7 +277,12 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
                 </label>
                 {hoursInput(
                   occupiedHours[day.day] ?? 0,
-                  (v) => setOccupiedHours((prev: number[]) => { const next = prev.slice(); next[day.day] = v ?? 0; return next; }),
+                  (v) =>
+                    setOccupiedHours((prev: number[]) => {
+                      const next = prev.slice();
+                      next[day.day] = v ?? 0;
+                      return next;
+                    }),
                   `${TEST_IDS.PROFILE.OCCUPIED_HOURS}-${day.day}`,
                 )}
               </div>
@@ -241,7 +292,7 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
 
         <div className="mb-6">
           <Form.Item
-            name="homeworkAvg"
+            name="homeworkAverageHours"
             label="میانگین روزانه تکلیف مدرسه (ساعت)"
             rules={[{ min: 0, max: 12, message: "حداکثر ۱۲ ساعت" }]}
           >
@@ -254,29 +305,43 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
         </div>
 
         <fieldset className="mb-6 flex flex-col gap-3 rounded-lg border border-slate-200 p-4">
-          <legend className="px-1 text-sm text-slate-700">کلاسهای تکمیلی</legend>
+          <legend className="px-1 text-sm text-slate-700">
+            کلاسهای تکمیلی
+          </legend>
 
           {courses.length === 0 ? (
             <Empty description="هیچ کلاس تکمیلی ثبت نشده است" />
           ) : (
             <ul className="divide-y divide-slate-100">
-              {courses.map((course: { id: string; title: string; mode: string; weeklyHours?: number }) => (
-                <li key={course.id} className="flex items-center justify-between gap-2 p-2 border border-slate-100 rounded">
-                  <span className="text-sm flex-1">{course.title}</span>
-                  <span className="text-xs text-slate-500 dir-ltr">
-                    {course.mode === "in_person" ? "حضوری" : "مجازی"}
-                    {course.weeklyHours != null ? ` · ${course.weeklyHours} س/س` : ""}
-                  </span>
-                  <Button
-                    size="small"
-                    danger
-                    onClick={() => handleRemoveCourse(course.id)}
-                    data-testid={TEST_IDS.PROFILE.COURSE_DELETE}
+              {courses.map(
+                (course: {
+                  id: string;
+                  title: string;
+                  mode: string;
+                  weeklyHours?: number;
+                }) => (
+                  <li
+                    key={course.id}
+                    className="flex items-center justify-between gap-2 p-2 border border-slate-100 rounded"
                   >
-                    حذف
-                  </Button>
-                </li>
-              ))}
+                    <span className="text-sm flex-1">{course.title}</span>
+                    <span className="text-xs text-slate-500 dir-ltr">
+                      {course.mode === "in_person" ? "حضوری" : "مجازی"}
+                      {course.weeklyHours != null
+                        ? ` · ${course.weeklyHours} س/س`
+                        : ""}
+                    </span>
+                    <Button
+                      size="small"
+                      danger
+                      onClick={() => handleRemoveCourse(course.id)}
+                      data-testid={TEST_IDS.PROFILE.COURSE_DELETE}
+                    >
+                      حذف
+                    </Button>
+                  </li>
+                ),
+              )}
             </ul>
           )}
 
@@ -294,7 +359,8 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
 
             <Form.Item name="courseMode" label="حالت">
               <Select
-                value="in_person"
+                value={courseMode ?? undefined}
+                onChange={setCourseMode}
                 allowClear
                 placeholder="حضوری / مجازی"
                 data-testid={TEST_IDS.FORM.SELECT("courseMode")}
@@ -305,7 +371,11 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
             </Form.Item>
 
             <Form.Item name="courseHours" label="ساعت/ هفته">
-              {hoursInput(null, () => {}, TEST_IDS.FORM.INPUT("courseHours"))}
+              {hoursInput(
+                courseHours,
+                setCourseHours,
+                TEST_IDS.FORM.INPUT("courseHours"),
+              )}
             </Form.Item>
 
             <Form.Item label=" " colon={false} className="mb-0 flex items-end">
@@ -321,12 +391,20 @@ export function StudyProfileFormView(props: StudyProfileFormViewProps): ReactNod
         </fieldset>
 
         {savedAt ? (
-          <p className="mb-4 text-sm text-teal-700" role="status" data-testid={TEST_IDS.PROFILE.STUDY_SAVED}>
+          <p
+            className="mb-4 text-sm text-teal-700"
+            role="status"
+            data-testid={TEST_IDS.PROFILE.STUDY_SAVED}
+          >
             ذخیره شد.
           </p>
         ) : null}
         {formError ? (
-          <p className="mb-4 text-sm text-red-600" role="alert" data-testid={TEST_IDS.PROFILE.STUDY_ERROR}>
+          <p
+            className="mb-4 text-sm text-red-600"
+            role="alert"
+            data-testid={TEST_IDS.PROFILE.STUDY_ERROR}
+          >
             {formError}
           </p>
         ) : null}

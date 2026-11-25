@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { FakeChapterRepository } from "../../../../test/fakes/advisor-program";
 import { FakeSchoolProgramRepository } from "../../../../test/fakes/advisor-program";
@@ -6,6 +6,7 @@ import { FakeStudyPlanRepository } from "../../../../test/fakes/advisor-program"
 import { FakeUserRepository } from "../../../../test/fakes/advising";
 import { FakeScheduleRepository } from "../../../../test/fakes/planning";
 import { FakeWeeklyGoalRepository } from "../../../../test/fakes/weekly-goal";
+import { persianDayOf, weekStartKey } from "@/modules/advising/domain/day-key";
 import {
   AddStudyPlanEntryUseCase,
   GetStudentStudyPlanUseCase,
@@ -73,7 +74,7 @@ function makeChapterCatalog() {
 }
 
 describe("GetStudentStudyPlanUseCase", () => {
-  it("AC-19: counselor cannot read another student's plan", async () => {
+  it("AC-19: counselor may not read another students plan (counselor cannot read another student's plan)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedCounselor(users, otherCounselor.id);
@@ -92,7 +93,7 @@ describe("GetStudentStudyPlanUseCase", () => {
     ).rejects.toMatchObject({ code: "forbidden" });
   });
 
-  it("AC-21: testsTarget 200 + entries 900 → read model 900/200", async () => {
+  it("AC-21: study plan totals (testsTarget 200 + entries 900 → read model 900/200)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -152,10 +153,57 @@ describe("GetStudentStudyPlanUseCase", () => {
     expect(view.goalProgress.studyPercent).toBe(0);
     expect(view.goalProgress.testsPercent).toBe(0);
   });
+
+  it("AC-51: subject progress read model (rows + totals)", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-28T12:00:00Z"));
+
+    const users = makeUsers();
+    await seedCounselor(users, counselor.id);
+    await seedStudent(users, "s1", counselor.id);
+
+    const plans = new FakeStudyPlanRepository();
+    const school = new FakeSchoolProgramRepository();
+    const schedule = new FakeScheduleRepository();
+    const goals = new FakeWeeklyGoalRepository();
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 100 });
+    await plans.upsertEntry({ studentId: "s1", dayOfWeek: 1, subject: "riazi", minutes: 300, chapterIds: [], note: null });
+    await plans.upsertEntry({ studentId: "s1", dayOfWeek: 2, subject: "fizik", minutes: 120, chapterIds: [], note: null });
+
+    const dayKey = "2026-11-28";
+    const weekday = persianDayOf(dayKey);
+    await schedule.create({ studentId: "s1", dayOfWeek: weekday, startMinute: 480, endMinute: 530, subject: "riazi" });
+    await schedule.create({ studentId: "s1", dayOfWeek: weekday, startMinute: 600, endMinute: 650, subject: "kimia" });
+
+    await goals.seed({
+      id: "wg-1",
+      studentId: "s1",
+      weekKey: weekStartKey(dayKey),
+      testsDone: 0,
+      completedBlocks: [`${dayKey}:480:350`, `${dayKey}:600:60`],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const useCase = new GetStudentStudyPlanUseCase(users, plans, school, schedule, goals);
+    const view = await useCase.execute({ actor: counselor, studentId: "s1" });
+
+    expect(view.rows).toEqual([      { subject: "riazi", plannedMinutes: 300, studiedMinutes: 350, shortfallMinutes: 0, testsDone: 0 },
+      { subject: "fizik", plannedMinutes: 120, studiedMinutes: 0, shortfallMinutes: 120, testsDone: 0 },
+    ]);
+    expect(view.totals).toEqual({
+      plannedMinutes: 420,
+      studiedMinutes: 410,
+      shortfallMinutes: 10,
+      testsDone: 0,
+      testsTarget: 100,
+    });
+  });
 });
 
 describe("AddStudyPlanEntryUseCase", () => {
-  it("AC-20: student cannot write", async () => {
+  it("AC-20: student may not write the study plan (student cannot write)", async () => {
     const users = makeUsers();
     await seedStudent(users, "s1", null);
 
@@ -175,7 +223,7 @@ describe("AddStudyPlanEntryUseCase", () => {
     ).rejects.toMatchObject({ code: "forbidden" });
   });
 
-  it("AC-44: unknown chapter id → ValidationError, nothing written", async () => {
+  it("AC-44: unknown chapter is rejected (unknown chapter id → ValidationError, nothing written)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -184,6 +232,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = new FakeChapterRepository();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     await expect(
       useCase.execute({
@@ -194,13 +244,13 @@ describe("AddStudyPlanEntryUseCase", () => {
         minutes: 60,
         chapterIds: ["unknown-id"],
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     const plan = await plans.findForStudent("s1");
     expect(plan?.entries).toEqual([]);
   });
 
-  it("AC-44: inactive chapter id → ValidationError, nothing written", async () => {
+  it("AC-44: unknown chapter is rejected (inactive chapter id → ValidationError, nothing written)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -209,6 +259,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     await expect(
       useCase.execute({
@@ -219,13 +271,13 @@ describe("AddStudyPlanEntryUseCase", () => {
         minutes: 60,
         chapterIds: ["ch-inactive"],
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     const plan = await plans.findForStudent("s1");
     expect(plan?.entries).toEqual([]);
   });
 
-  it("AC-45: chapter of another subject → rejected", async () => {
+  it("AC-45: chapter must match the student subject grade and field (chapter of another subject → rejected)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -244,10 +296,10 @@ describe("AddStudyPlanEntryUseCase", () => {
         minutes: 60,
         chapterIds: ["ch-other-subject"],
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
   });
 
-  it("AC-45: chapter of another grade → rejected", async () => {
+  it("AC-45: chapter must match the student subject grade and field (chapter of another grade → rejected)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -266,10 +318,10 @@ describe("AddStudyPlanEntryUseCase", () => {
         minutes: 60,
         chapterIds: ["ch-other-grade"],
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
   });
 
-  it("AC-45: chapter of another field → rejected; field: '' accepted", async () => {
+  it("AC-45: chapter must match the student subject grade and field (chapter of another field → rejected; field: '' accepted)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id, "دهم", "ریاضی فیزیک");
@@ -278,6 +330,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     await expect(
       useCase.execute({
@@ -288,7 +342,7 @@ describe("AddStudyPlanEntryUseCase", () => {
         minutes: 60,
         chapterIds: ["ch-other-field"],
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     const created = await useCase.execute({
       actor: counselor,
@@ -301,7 +355,7 @@ describe("AddStudyPlanEntryUseCase", () => {
     expect(created.chapterIds).toEqual(["ch-1"]);
   });
 
-  it("AC-46: duplicate ids deduped before write", async () => {
+  it("AC-46: chapter ids dedupe and note trims (duplicate ids deduped before write)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -310,6 +364,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     const created = await useCase.execute({
       actor: counselor,
@@ -325,7 +381,7 @@ describe("AddStudyPlanEntryUseCase", () => {
     expect(plan!.entries[0].chapterIds).toEqual(["ch-1", "ch-2"]);
   });
 
-  it("AC-46: whitespace-only note → null", async () => {
+  it("AC-46: chapter ids dedupe and note trims (whitespace-only note → null)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -334,6 +390,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     const created = await useCase.execute({
       actor: counselor,
@@ -346,7 +404,7 @@ describe("AddStudyPlanEntryUseCase", () => {
     expect(created.note).toBeNull();
   });
 
-  it("AC-46: surrounding whitespace trimmed", async () => {
+  it("AC-46: chapter ids dedupe and note trims (surrounding whitespace trimmed)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -355,6 +413,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     const created = await useCase.execute({
       actor: counselor,
@@ -367,7 +427,7 @@ describe("AddStudyPlanEntryUseCase", () => {
     expect(created.note).toBe("یادداشت");
   });
 
-  it("AC-46: 201-char note → ValidationError", async () => {
+  it("AC-46: chapter ids dedupe and note trims (201-char note → ValidationError)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -376,6 +436,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     await expect(
       useCase.execute({
@@ -386,7 +448,7 @@ describe("AddStudyPlanEntryUseCase", () => {
         minutes: 60,
         note: "a".repeat(201),
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     const plan = await plans.findForStudent("s1");
     expect(plan?.entries).toEqual([]);
@@ -401,6 +463,8 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
     const created = await useCase.execute({
       actor: counselor,
@@ -424,10 +488,10 @@ describe("AddStudyPlanEntryUseCase", () => {
 
     await expect(
       useCase.execute({ actor: counselor, studentId: "s1", testsTarget: -1 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
     await expect(
       useCase.execute({ actor: counselor, studentId: "s1", testsTarget: 2001 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     const plan = await useCase.execute({ actor: counselor, studentId: "s1", testsTarget: 200 });
     expect(plan.testsTarget).toBe(200);

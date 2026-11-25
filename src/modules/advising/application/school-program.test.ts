@@ -31,7 +31,7 @@ async function seedUser(users: FakeUserRepository, id: string, role: "student" |
 }
 
 describe("AddSchoolProgramEntryUseCase", () => {
-  it("AC-18: duplicate day+subject → one row, Persian conflict", async () => {
+  it("AC-18: school program duplicate (duplicate day+subject → one row, Persian conflict)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const program = new FakeSchoolProgramRepository();
@@ -55,7 +55,7 @@ describe("AddSchoolProgramEntryUseCase", () => {
 
     await expect(
       add.execute({ actor, dayOfWeek: 1, subject: "not-a-slug", hours: 3 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     expect(await program.listByStudent(actor.id)).toEqual([]);
   });
@@ -68,10 +68,10 @@ describe("AddSchoolProgramEntryUseCase", () => {
 
     await expect(
       add.execute({ actor, dayOfWeek: 1, subject: "riazi", hours: 0.1 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
     await expect(
       add.execute({ actor, dayOfWeek: 1, subject: "riazi", hours: 13 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
   });
 
   it("bad dayOfWeek → ValidationError", async () => {
@@ -82,7 +82,7 @@ describe("AddSchoolProgramEntryUseCase", () => {
 
     await expect(
       add.execute({ actor, dayOfWeek: 7, subject: "riazi", hours: 3 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
   });
 
   it("AC-26: round-trip — save then list returns the same row", async () => {

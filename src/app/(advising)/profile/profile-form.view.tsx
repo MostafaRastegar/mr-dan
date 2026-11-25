@@ -25,7 +25,6 @@ interface ProfileFormViewProps {
     wakeTime?: string;
   };
   profile: ProfileView;
-  savedAt: boolean | null;
   studyProfile: StudyProfileView;
 }
 
@@ -39,7 +38,6 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
     isStudent,
     initialValues,
     profile,
-    savedAt,
     studyProfile,
   } = props;
 
@@ -168,7 +166,7 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
             </Form.Item>
           </fieldset>
 
-          {(state?.ok || savedAt) ? (
+          {(state?.ok) ? (
             <p className="mb-4 text-sm text-teal-700" role="status" data-testid={TEST_IDS.PROFILE.SAVED}>
               ذخیره شد.
             </p>

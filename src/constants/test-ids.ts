@@ -137,6 +137,7 @@ export const TEST_IDS = {
   },
   DASHBOARD: {
     CARD: (n: string) => `dashboard-card-${n}`,
+    ACTION_ERROR: "dashboard-action-error",
     HOMEWORK_TOGGLE: (id: string) => `dashboard-homework-toggle-${id}`,
     HOMEWORK_MINUTES: (id: string) => `dashboard-homework-minutes-${id}`,
     BLOCK_TOGGLE: (key: string) => `dashboard-block-toggle-${key}`,

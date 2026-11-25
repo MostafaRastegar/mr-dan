@@ -11,11 +11,17 @@ import type { WeeklyGoalRepositoryPort } from "@/modules/advising/domain/ports";
 
 export class FakeWeeklyGoalRepository implements WeeklyGoalRepositoryPort {
   private readonly rows = new Map<string, WeeklyGoal>();
+  private readonly testRecords = new Map<string, number>();
   private sequence = 0;
 
   /** Test-only seeding bypasses the upsert path. */
   seed(goal: WeeklyGoal): void {
     this.rows.set(`${goal.studentId}:${goal.weekKey}`, goal);
+  }
+
+  /** Test-only seeding of per-subject test counts. */
+  seedTestRecord(studentId: string, weekKey: string, subject: string, count: number): void {
+    this.testRecords.set(`${studentId}:${weekKey}:${subject}`, count);
   }
 
   async findByKey(
@@ -107,13 +113,29 @@ export class FakeWeeklyGoalRepository implements WeeklyGoalRepositoryPort {
         updatedAt: now,
       };
       this.rows.set(key, row);
-      return;
+    } else {
+      const next: WeeklyGoal = {
+        ...existing,
+        testsDone: existing.testsDone + input.count,
+        updatedAt: now,
+      };
+      this.rows.set(key, next);
     }
-    const next: WeeklyGoal = {
-      ...existing,
-      testsDone: existing.testsDone + input.count,
-      updatedAt: now,
-    };
-    this.rows.set(key, next);
+    const testKey = `${input.studentId}:${input.weekKey}:${input.subject}`;
+    this.testRecords.set(testKey, (this.testRecords.get(testKey) ?? 0) + input.count);
+  }
+
+  async listSubjectTests(input: {
+    studentId: string;
+    weekKey: string;
+  }): Promise<{ subject: string; count: number }[]> {
+    const prefix = `${input.studentId}:${input.weekKey}:`;
+    const result: { subject: string; count: number }[] = [];
+    for (const [testKey, count] of this.testRecords) {
+      if (testKey.startsWith(prefix)) {
+        result.push({ subject: testKey.slice(prefix.length), count });
+      }
+    }
+    return result;
   }
 }

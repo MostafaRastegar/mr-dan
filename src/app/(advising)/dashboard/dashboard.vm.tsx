@@ -1,22 +1,33 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { StudyBlock } from "@/modules/advising/domain/study-blocks";
-import { studyBlockKey } from "@/modules/advising/domain/study-blocks";
-import type { DashboardData } from "./dashboard.fixture";
+import { useRouter } from "next/navigation";
+
+import type { MealSlot } from "@/modules/advising/domain/energy";
+import type { DashboardReadModel } from "@/modules/advising/application/dashboard";
+import {
+  type StudyBlock,
+  studyBlockKey,
+} from "@/modules/advising/domain/study-blocks";
+import {
+  addTestsAction,
+  setHomeworkDoneAction,
+  toggleMealSlotAction,
+  toggleStudyBlockAction,
+} from "./dashboard.actions";
 import { DashboardView } from "./dashboard.view";
 
 interface DashboardWrapperProps {
-  data: DashboardData;
-  demo: "success" | "empty" | "loading" | "error";
+  overview: DashboardReadModel;
 }
 
-export function DashboardWrapper({ data, demo }: DashboardWrapperProps) {
-  const [tickedHomework, setTickedHomework] = useState<Map<string, number>>(new Map());
-  const [tickedBlocks, setTickedBlocks] = useState<Set<string>>(new Set());
-  const [eatenSlots, setEatenSlots] = useState<Set<string>>(new Set());
-  const [testsDone, setTestsDone] = useState<number>(data.goal?.testsDone ?? 0);
-  const [homeworkMinutes, setHomeworkMinutesState] = useState<Map<string, number>>(new Map());
+export function DashboardWrapper({ overview }: DashboardWrapperProps) {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [homeworkMinutes, setHomeworkMinutesState] = useState<
+    Map<string, number>
+  >(new Map());
+  const [testsDone, setTestsDone] = useState(overview.goal?.testsDone ?? 0);
 
   const setHomeworkMinutes = useCallback((id: string, minutes: number | null) => {
     setHomeworkMinutesState((prev) => {
@@ -27,61 +38,80 @@ export function DashboardWrapper({ data, demo }: DashboardWrapperProps) {
     });
   }, []);
 
-  const toggleHomework = useCallback((id: string) => {
-    const minutes = homeworkMinutes.get(id);
-    if (minutes === null || minutes === undefined || minutes < 1 || minutes > 1440) return;
-    setTickedHomework((prev) => {
-      const next = new Map(prev);
-      if (next.has(id)) next.delete(id);
-      else next.set(id, minutes);
-      return next;
-    });
-    setHomeworkMinutes(id, null);
-  }, [homeworkMinutes, setHomeworkMinutes]);
+  const onToggleHomework = useCallback(
+    async (id: string) => {
+      setError(null);
+      const minutes = homeworkMinutes.get(id);
+      if (minutes === null || minutes === undefined || minutes < 1 || minutes > 1440) return;
+      const result = await setHomeworkDoneAction({ homeworkId: id, minutes });
+      if (result.ok) {
+        setHomeworkMinutes(id, null);
+        router.refresh();
+      } else {
+        setError(result.error.message);
+      }
+    },
+    [homeworkMinutes],
+  );
 
-  const toggleBlock = useCallback((block: StudyBlock) => {
-    const key = studyBlockKey(block);
-    setTickedBlocks((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  }, []);
+  const onToggleBlock = useCallback(
+    async (block: StudyBlock) => {
+      setError(null);
+      const completed = !overview.goal?.completedBlocks.includes(
+        studyBlockKey(block),
+      );
+      const result = await toggleStudyBlockAction({
+        dayKey: block.dayKey,
+        startMinute: block.startMinute,
+        minutes: block.minutes,
+        subject: block.subject,
+        completed,
+      });
+      if (result.ok) router.refresh();
+      else setError(result.error.message);
+    },
+    [overview.goal?.completedBlocks],
+  );
 
-  const toggleMeal = useCallback((slot: string) => {
-    setEatenSlots((prev) => {
-      const next = new Set(prev);
-      if (next.has(slot)) next.delete(slot);
-      else next.add(slot);
-      return next;
-    });
-  }, []);
+  const onToggleMeal = useCallback(
+    async (slot: string) => {
+      setError(null);
+      const eaten = !(overview.meal.plan?.eatenSlots ?? []).includes(slot);
+      const result = await toggleMealSlotAction({ slot: slot as MealSlot, eaten });
+      if (result.ok) router.refresh();
+      else setError(result.error.message);
+    },
+    [overview.meal.plan?.eatenSlots],
+  );
 
-  const addTests = useCallback((delta: number) => {
-    setTestsDone((prev) => prev + delta);
-  }, []);
+  const onAddTests = useCallback(
+    async (delta: number) => {
+      setError(null);
+      const result = await addTestsAction({ delta });
+      if (result.ok) {
+        setTestsDone(result.data.testsDone);
+        router.refresh();
+      } else {
+        setError(result.error.message);
+      }
+    },
+    [],
+  );
 
-  const studiedMinutes = Array.from(tickedBlocks).reduce((sum, key) => {
-    const block = data.blocks.find((b) => studyBlockKey(b) === key);
-    return sum + (block?.minutes ?? 0);
-  }, 0);
+  const studiedMinutes = overview.goal?.studiedMinutes ?? 0;
 
   return (
     <DashboardView
-      data={data}
-      demo={demo}
-      tickedHomework={tickedHomework}
-      homeworkMinutes={homeworkMinutes}
-      tickedBlocks={tickedBlocks}
-      eatenSlots={eatenSlots}
-      testsDone={testsDone}
+      overview={overview}
       studiedMinutes={studiedMinutes}
-      onToggleHomework={toggleHomework}
+      homeworkMinutes={homeworkMinutes}
+      testsDone={testsDone}
       onSetHomeworkMinutes={setHomeworkMinutes}
-      onToggleBlock={toggleBlock}
-      onToggleMeal={toggleMeal}
-      onAddTests={addTests}
+      onToggleHomework={onToggleHomework}
+      onToggleBlock={onToggleBlock}
+      onToggleMeal={onToggleMeal}
+      onAddTests={onAddTests}
+      error={error}
     />
   );
 }

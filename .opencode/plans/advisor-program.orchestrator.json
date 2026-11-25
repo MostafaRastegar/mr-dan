@@ -29,9 +29,10 @@
   ],
   "sessions": {
     "architect": "ses_df38b78e6ffeyoQQbS0KxCKHE0",
-    "implementer": null,
+    "implementer": "ses_dee80259effeMG1jEgTwfPYg7C",
+    "implementer_tests": "ses_dee80259cffeI3u7zeq4366b2Q",
     "reviewer": null,
-    "test": null
+    "test": "ses_dee5ef57fffeypQUwZEpRCknV2"
   },
   "acceptance": {
     "total": 52,
@@ -40,34 +41,30 @@
     "deferred": 0
   },
   "changed_files": [
-    "src/constants/test-ids.ts",
-    "src/app/(advising)/counselor/students/[studentId]/_components/subject-progress.view.tsx",
-    "src/app/(advising)/counselor/students/[studentId]/_components/school-program-accordion.view.tsx",
-    "src/app/(advising)/counselor/students/[studentId]/counselor-student.fixture.ts",
+    "src/app/(advising)/counselor/students/[studentId]/page.tsx",
+    "src/app/(advising)/counselor/students/[studentId]/counselor-student.vm.tsx",
     "src/app/(advising)/counselor/students/[studentId]/counselor-student.view.tsx",
-    "src/app/(advising)/schedule/_components/school-program-table.view.tsx"
+    "src/app/(advising)/counselor/students/[studentId]/counselor-student.fixture.ts",
+    "src/app/(advising)/profile/_components/study-profile-form.view.tsx",
+    "src/app/(advising)/schedule/_components/school-program-form.vm.tsx",
+    "src/modules/advising/infrastructure/prisma-chapter-repository.ts",
+    "src/server/container.ts",
+    "test/fakes/advisor-program.ts",
+    "src/modules/advising/domain/chapters.test.ts",
+    "src/modules/advising/domain/free-time.test.ts",
+    "src/modules/advising/application/homework.test.ts",
+    "src/modules/advising/application/school-program.test.ts",
+    "src/modules/advising/application/study-plan.test.ts",
+    "src/modules/advising/application/study-profile.test.ts"
   ],
   "test_exit_codes": [
-    {
-      "command": "pnpm typecheck (orchestrator)",
-      "exit": 0
-    },
-    {
-      "command": "pnpm lint (orchestrator, zero src/app warnings)",
-      "exit": 0
-    },
-    {
-      "command": "pnpm build (orchestrator)",
-      "exit": 0
-    },
-    {
-      "command": "pnpm test --run test/architecture.test.ts (9 passed)",
-      "exit": 0
-    },
-    {
-      "command": "pnpm test (294 passed, 54 files)",
-      "exit": 0
-    }
+    { "command": "pnpm typecheck (implementer, app wiring)", "exit": 0 },
+    { "command": "pnpm lint (implementer, app wiring)", "exit": 0 },
+    { "command": "pnpm build (implementer, app wiring)", "exit": 0 },
+    { "command": "pnpm test --run test/architecture.test.ts (9 passed)", "exit": 0 },
+    { "command": "pnpm test (test-fixer, 373 passed / 59 files)", "exit": 0 },
+    { "command": "pnpm typecheck (test-fixer)", "exit": 0 },
+    { "command": "node .opencode/scripts/mro-doctor.mjs (orchestrator)", "exit": 0 }
   ],
   "review_round": 0,
   "severity_history": [],
@@ -78,9 +75,9 @@
   },
   "budget": {
     "turns_per_phase": 20,
-    "review_rounds": 3
+    "review_rounds": 2
   },
   "log": ".opencode/plans/lite-edition.log.jsonl",
-  "blockers": "S5 backend in progress (AP-1..AP-4); dump gate passed",
-  "notes": "S3-S5 of the cross-plan sequence. Depends on lite-edition S1 UI mock v2 + demo 1. Owns: SchoolProgramEntry, StudyPlan(+Entry), Need/Exam/StudentExamResult, SupplementaryCourse, User.schoolMode/needId/takesMockExams/otherOccupiedMinutes/homeworkAverageMinutes, Homework.spentMinutes. Free time = waking − schoolMinutes(day, derived) − otherOccupiedMinutes[day] − homeworkAverageMinutes."
+  "blockers": "16 AC verify: strings do not match the actual test titles; AC-25/28/49 need e2e; AC-30/31 need README + behavior doc",
+  "notes": "S3-S5 of the cross-plan sequence. Free time = waking − schoolMinutes(day, derived) − otherOccupiedMinutes[day] − homeworkAverageMinutes. UI mock stage complete and human-approved; fixtures deleted; counselor page reads Postgres through GetStudentStudyPlanUseCase."
 }

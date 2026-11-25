@@ -176,6 +176,10 @@ export interface WeeklyGoalRepositoryPort {
     subject: string;
     count: number;
   }): Promise<void>;
+  listSubjectTests(input: {
+    studentId: string;
+    weekKey: string;
+  }): Promise<{ subject: string; count: number }[]>;
 }
 
 export interface CatalogRepositoryPort {

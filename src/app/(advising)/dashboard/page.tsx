@@ -1,16 +1,17 @@
 import { DashboardWrapper } from "./dashboard.vm";
-import { DASHBOARD_FIXTURE, EMPTY_DASHBOARD } from "./dashboard.fixture";
-import { redirect } from "next/navigation";
+import { getContainer } from "@/server/container";
 import { requireSessionUser } from "@/server/advising-guards";
+import { redirect } from "next/navigation";
 
-type Demo = "success" | "empty" | "loading" | "error";
+export const metadata = { title: "داشبورد — mr-dan" };
 
-export default async function DashboardPage({
-  searchParams,
-}: Readonly<{ searchParams: { demo?: string } }>) {
+export default async function DashboardPage() {
   const { user } = await requireSessionUser();
   if (user.role === "counselor") redirect("/counselor/students");
-  const demo = (searchParams.demo ?? "success") as Demo;
-  const data = demo === "empty" ? EMPTY_DASHBOARD : DASHBOARD_FIXTURE;
-  return <DashboardWrapper data={data} demo={demo} />;
+
+  const overview = await getContainer().advising.dashboardOverview.execute({
+    actor: { id: user.id, role: user.role },
+  });
+
+  return <DashboardWrapper overview={overview} />;
 }

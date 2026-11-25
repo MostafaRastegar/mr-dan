@@ -36,7 +36,7 @@ describe("chapterAppliesTo", () => {
 
   it("rejects another grade", () => {
     expect(
-      chapterAppliesTo({ ...chapter, grade: "یازدهم" }, { ...target, grade: "یازدهم" }),
+      chapterAppliesTo({ ...chapter, grade: "یازدهم" }, target),
     ).toBe(false);
   });
 

@@ -8,8 +8,9 @@
  * Pure domain: no external imports.
  */
 
-import type { WeeklyGoal } from "./models";
+import type { WeeklyGoal, WeeklyScheduleEntry } from "./models";
 import { parseStudyBlockKey } from "./study-blocks";
+import { persianDayOf } from "./day-key";
 
 export type GoalProgress = {
   studyMinutes: number;
@@ -60,4 +61,28 @@ export function goalProgress(
 function clampPercent(value: number, target: number): number {
   if (target <= 0) return 0;
   return Math.min(100, Math.round((value / target) * 100));
+}
+
+/** Maps each completed study block to the schedule row it falls inside, then
+ * sums minutes per schedule subject. Blocks that hit no schedule row (or fall
+ * outside the plan) are intentionally omitted here — callers keep them in
+ * totals via `goalProgress.studyMinutes`. Pure domain, no external imports. */
+export function subjectStudiedMinutes(
+  completedBlocks: string[],
+  schedule: WeeklyScheduleEntry[],
+): Record<string, number> {
+  const bySubject: Record<string, number> = {};
+  for (const blockKey of completedBlocks) {
+    const parsed = parseStudyBlockKey(blockKey);
+    if (!parsed) continue;
+    const row = schedule.find(
+      (s) =>
+        s.dayOfWeek === persianDayOf(parsed.dayKey) &&
+        s.startMinute <= parsed.startMinute &&
+        parsed.startMinute < s.endMinute,
+    );
+    if (!row) continue;
+    bySubject[row.subject] = (bySubject[row.subject] ?? 0) + parsed.minutes;
+  }
+  return bySubject;
 }

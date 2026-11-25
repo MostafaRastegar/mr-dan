@@ -1,0 +1,152 @@
+$ pnpm test
+EXIT:1
+$ vitest run
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+{"level":30,"time":1795592413672,"service":"mr-dan","msg":"cache: cleared"}
+ ❯ test/advising/free-time-integration.test.ts (3 tests | 2 failed) 695ms
+    ❯ free-time integration (real Postgres) (3)
+      × concurrent plan writes keep the invariant 155ms
+      × budget shrink below planned writes nothing 50ms
+{"level":40,"time":1795592412776,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:26:15)\n    at expandQueries (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.ts:62:32)\n    at /home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:30:18\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"question":"q","msg":"query-expansion: LLM rewrite failed"}
+{"level":40,"time":1795592413008,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:49:15)\n    at LLMReranker.rerank (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.ts:100:39)\n    at /home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:54:32\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"query":"q","msg":"llm-reranker: LLM call failed, falling back to original order"}
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/advising/free-time-integration.test.ts > free-time integration (real Postgres) > concurrent plan writes keep the invariant
+AssertionError: expected DriverAdapterError: TransactionWriteConfl… to match object { code: 'plan_concurrent_write' }
+(5 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "plan_concurrent_write",
++ DriverAdapterError {
++   "message": "TransactionWriteConflict",
++   "cause": {
++     "kind": "TransactionWriteConflict",
++     "originalCode": "40001",
++     "originalMessage": "could not serialize access due to read/write dependencies among transactions",
++   },
++   "name": "DriverAdapterError",
+  }
+
+ ❯ test/advising/free-time-integration.test.ts:142:28
+    140|     if (!loser) throw new Error("expected exactly two outcomes");
+    141|     if (loser.status === "rejected") {
+    142|       expect(loser.reason).toMatchObject({ code: "plan_concurrent_writ…
+       |                            ^
+    } else {
+      expect(loser.value.ok).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/advising/free-time-integration.test.ts > free-time integration (real Postgres) > budget shrink below planned writes nothing
+DriverAdapterError: TransactionWriteConflict
+ ❯ PgTransaction.onError node_modules/.pnpm/@prisma+adapter-pg@7.10.1/node_modules/@prisma/adapter-pg/dist/index.mjs:666:11
+ ❯ PgTransaction.performIO node_modules/.pnpm/@prisma+adapter-pg@7.10.1/node_modules/@prisma/adapter-pg/dist/index.mjs:661:12
+ ❯ PgTransaction.executeRaw node_modules/.pnpm/@prisma+adapter-pg@7.10.1/node_modules/@prisma/adapter-pg/dist/index.mjs:634:13
+ ❯ n node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:538:13
+ ❯ #f node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:579:7
+ ❯ node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:322:9
+ ❯ node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:507:14
+ ❯ #m node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:523:14
+ ❯ #d node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:505:12
+
+{
+  originalCode: '40001',
+  originalMessage: 'could not serialize access due to read/write dependencies among transactions',
+  kind: 'TransactionWriteConflict',
+  name: 'Caused by',
+  stacks: []
+}
+Serialized Error: { originalCode: '40001', originalMessage: 'could not serialize access due to read/write dependencies among transactions', kind: 'TransactionWriteConflict' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 58 passed (59)
+     Tests  2 failed | 371 passed (373)
+   Start at  11:10:11
+   Duration  2.79s (tests 46%, import 36%, transform 15%, worker 3%)
+
+     Isolate  59 workers spawned · ~207ms startup each (spawn + environment, per file)
+              at least ~903ms faster with isolate: false — reuses workers across files instead of one per file
+
+[ELIFECYCLE] Test failed. See above for more details.
+EXIT:1
+
+$ pnpm test --run test/architecture.test.ts
+EXIT:0
+$ vitest run --run test/architecture.test.ts
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+  Test Files  1 passed (1)
+       Tests  9 passed (9)
+   Start at  11:09:10
+   Duration  151ms (import 55%, tests 26%, worker 9%, transform 9%)
+
+EXIT:0
+
+$ pnpm build
+EXIT:0
+$ next build
+▲ Next.js 16.4.6 (Turbopack)
+- Environments: .env
+✓ Running next.config.ts took 21ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 390ms
+  Running TypeScript ...
+  Finished TypeScript in 543ms ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/16) ...
+  Generating static pages using 11 workers (4/16) 
+  Generating static pages using 11 workers (8/16) 
+  Generating static pages using 11 workers (12/16) 
+✓ Generating static pages using 11 workers (16/16) in 343ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin/knowledge
+├ ƒ /api-docs
+├ ƒ /api/admin/cache/clear
+├ ƒ /api/admin/chunks
+├ ƒ /api/admin/chunks/[id]
+├ ƒ /api/admin/retrieval/debug
+├ ƒ /api/admin/stats
+├ ƒ /api/chat
+├ ƒ /api/chat/stream
+├ ƒ /api/conversations
+├ ƒ /api/conversations/[id]
+├ ƒ /api/documents
+├ ƒ /api/documents/[id]
+├ ƒ /api/health
+├ ƒ /api/ingest
+├ ƒ /api/metrics
+├ ƒ /api/openapi
+├ ƒ /api/search
+├ ƒ /api/upload
+├ ƒ /budget
+├ ƒ /chat
+├ ƒ /counselor/students
+├ ƒ /counselor/students/[studentId]
+├ ƒ /dashboard
+├ ƒ /homework
+├ ƒ /leisure
+├ ƒ /login
+├ ƒ /nutrition
+├ ƒ /profile
+├ ƒ /register
+└ ƒ /schedule
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+EXIT:0

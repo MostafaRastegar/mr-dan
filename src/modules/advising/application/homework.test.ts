@@ -171,7 +171,7 @@ describe("homework use cases", () => {
     ).rejects.toMatchObject({ code: "not_found" });
   });
 
-  it("AC-24: tick with 45 minutes → spentMinutes 45 and completedAt set", async () => {
+  it("AC-24: homework spent minutes (tick with 45 minutes → spentMinutes 45 and completedAt set)", async () => {
     const users = makeUsers();
     await seedUser(users, student.id, "student");
     const fakes = createPlanningFakes();
@@ -197,7 +197,7 @@ describe("homework use cases", () => {
     expect(done.completedAt).not.toBeNull();
   });
 
-  it("AC-24: tick without minutes → rejected, completedAt stays null", async () => {
+  it("AC-24: homework spent minutes (tick without minutes → rejected, completedAt stays null)", async () => {
     const users = makeUsers();
     await seedUser(users, student.id, "student");
     const fakes = createPlanningFakes();
@@ -215,14 +215,14 @@ describe("homework use cases", () => {
 
     await expect(
       toggle.execute({ actor: actorOf(student), homeworkId: item.id, completed: true }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     const stillPending = await fakes.homework.findById(item.id);
     expect(stillPending?.completedAt).toBeNull();
     expect(stillPending?.spentMinutes).toBeNull();
   });
 
-  it("AC-24: tick with 1441 minutes → rejected, completedAt stays null", async () => {
+  it("AC-24: homework spent minutes (tick with 1441 minutes → rejected, completedAt stays null)", async () => {
     const users = makeUsers();
     await seedUser(users, student.id, "student");
     const fakes = createPlanningFakes();
@@ -245,14 +245,14 @@ describe("homework use cases", () => {
         completed: true,
         spentMinutes: 1441,
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     const stillPending = await fakes.homework.findById(item.id);
     expect(stillPending?.completedAt).toBeNull();
     expect(stillPending?.spentMinutes).toBeNull();
   });
 
-  it("AC-24: untick clears completedAt and spentMinutes", async () => {
+  it("AC-24: homework spent minutes (untick clears completedAt and spentMinutes)", async () => {
     const users = makeUsers();
     await seedUser(users, student.id, "student");
     const fakes = createPlanningFakes();

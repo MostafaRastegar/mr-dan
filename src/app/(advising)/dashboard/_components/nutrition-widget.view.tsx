@@ -11,7 +11,6 @@ interface NutritionWidgetViewProps {
   targetCalories: number | null;
   hasPhysicalProfile: boolean;
   onToggleMeal: (slot: string) => void;
-  demo: "success" | "empty" | "loading" | "error";
 }
 
 function mealEaten(slot: MealSlot, eatenSlots: Set<string>): boolean {
@@ -19,18 +18,7 @@ function mealEaten(slot: MealSlot, eatenSlots: Set<string>): boolean {
 }
 
 export function NutritionWidgetView(props: NutritionWidgetViewProps): ReactNode {
-  const { eatenSlots, targetCalories, hasPhysicalProfile, onToggleMeal, demo } = props;
-
-  if (demo === "loading") {
-    return (
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-5"
-        data-testid={TEST_IDS.DASHBOARD.CARD("calorie")}
-      >
-        بارگذاری…
-      </section>
-    );
-  }
+  const { eatenSlots, targetCalories, hasPhysicalProfile, onToggleMeal } = props;
 
   if (!hasPhysicalProfile || !targetCalories) {
     return (

@@ -318,4 +318,31 @@ describe("planning integration (real Postgres)", () => {
       await prisma.freeTimeBudget.count({ where: { studentId: user.id, dayKey } }),
     ).toBe(1);
   });
+
+  it("dashboard-homework: done-with-minutes persists", async () => {
+    if (!live) return;
+
+    const user = await users.create(student("dashboard-hw"));
+    const task = await homework.create({
+      studentId: user.id,
+      title: "تکلیف ریاضی",
+      subject: null,
+      priority: 3,
+      deadline: new Date("2026-12-01T20:30:00Z"),
+    });
+
+    const done = await homework.setCompletion(task.id, {
+      completedAt: new Date("2026-12-01T21:00:00Z"),
+      spentMinutes: 45,
+    });
+    expect(done.completedAt).not.toBeNull();
+    expect(done.spentMinutes).toBe(45);
+
+    const readBack = await homework.findById(task.id);
+    expect(readBack?.completedAt).not.toBeNull();
+    expect(readBack?.spentMinutes).toBe(45);
+
+    await prisma.user.delete({ where: { id: user.id } });
+    expect(await prisma.homework.count({ where: { studentId: user.id } })).toBe(0);
+  });
 });

@@ -1,19 +1,29 @@
 import { CounselorStudentWrapper } from "./counselor-student.vm";
-import { EMPTY_COUNSELOR_STUDENT, COUNSELOR_STUDENT_FIXTURE } from "./counselor-student.fixture";
-import { requireCapability } from "@/server/advising-guards";
+import { redirect, notFound } from "next/navigation";
 
-type Demo = "success" | "empty" | "loading" | "error";
+import { requireCapability } from "@/server/advising-guards";
+import { getContainer } from "@/server/container";
+import { ForbiddenError, NotFoundError } from "@/modules/advising/domain/errors";
+import type { StudentStudyPlanView } from "@/modules/advising/application/study-plan";
 
 export default async function CounselorStudentPage({
-  searchParams,
-}: Readonly<{
-  searchParams: { demo?: string };
-  params: { studentId: string };
-}>) {
-  await requireCapability("group:manage");
+  params,
+}: Readonly<{ params: { studentId: string } }>) {
+  const session = await requireCapability("group:manage");
 
-  const demo = (searchParams.demo ?? "success") as Demo;
-  const data = demo === "empty" ? EMPTY_COUNSELOR_STUDENT : COUNSELOR_STUDENT_FIXTURE;
+  let view: StudentStudyPlanView;
+  try {
+    view = await getContainer().advising.getStudentStudyPlan.execute({
+      actor: { id: session.user.id, role: session.user.role },
+      studentId: params.studentId,
+    });
+  } catch (err) {
+    if (err instanceof ForbiddenError) redirect("/profile");
+    if (err instanceof NotFoundError) notFound();
+    throw err;
+  }
 
-  return <CounselorStudentWrapper data={data} demo={demo} />;
+  const chapters = await getContainer().advising.listChapters();
+
+  return <CounselorStudentWrapper studentId={params.studentId} view={view} chapters={chapters} />;
 }

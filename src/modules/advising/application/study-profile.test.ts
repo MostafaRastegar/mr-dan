@@ -47,7 +47,7 @@ function makeCatalogs() {
 }
 
 describe("UpdateStudyProfileUseCase", () => {
-  it("AC-17: unknown need → ValidationError, nothing written", async () => {
+  it("AC-17: unknown need is rejected (unknown need → ValidationError, nothing written)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const catalogs = makeCatalogs();
@@ -57,12 +57,12 @@ describe("UpdateStudyProfileUseCase", () => {
         actor,
         needId: "nope",
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     // The use case threw before calling updateProfile, so nothing was written.
   });
 
-  it("AC-17: inactive need → ValidationError, nothing written", async () => {
+  it("AC-17: unknown need is rejected (inactive need → ValidationError, nothing written)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const catalogs = makeCatalogs();
@@ -72,7 +72,7 @@ describe("UpdateStudyProfileUseCase", () => {
         actor,
         needId: "need-inactive",
       }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
 
     // The use case threw before calling updateProfile, so nothing was written.
   });
@@ -109,7 +109,7 @@ describe("UpdateStudyProfileUseCase", () => {
 });
 
 describe("SaveExamResultUseCase", () => {
-  it("AC-22: same exam twice → one row, newest تراز", async () => {
+  it("AC-22: exam result upserts by student and exam (same exam twice → one row, newest تراز)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const catalogs = makeCatalogs();
@@ -129,7 +129,7 @@ describe("SaveExamResultUseCase", () => {
     expect(recent[0].taraz).toBe(7000);
   });
 
-  it("AC-23: taraz −1 rejected", async () => {
+  it("AC-23: taraz bounds (taraz −1 rejected)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const catalogs = makeCatalogs();
@@ -139,10 +139,10 @@ describe("SaveExamResultUseCase", () => {
 
     await expect(
       useCase.execute({ actor, examId: "exam-1", taraz: -1 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
   });
 
-  it("AC-23: taraz 10001 rejected", async () => {
+  it("AC-23: taraz bounds (taraz 10001 rejected)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const catalogs = makeCatalogs();
@@ -152,10 +152,10 @@ describe("SaveExamResultUseCase", () => {
 
     await expect(
       useCase.execute({ actor, examId: "exam-1", taraz: 10001 }),
-    ).rejects.toMatchObject({ code: "validation_error" });
+    ).rejects.toMatchObject({ code: "invalid_input" });
   });
 
-  it("AC-23: taraz 0 accepted", async () => {
+  it("AC-23: taraz bounds (taraz 0 accepted)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const catalogs = makeCatalogs();
@@ -167,7 +167,7 @@ describe("SaveExamResultUseCase", () => {
     expect(result.taraz).toBe(0);
   });
 
-  it("AC-23: taraz 10000 accepted", async () => {
+  it("AC-23: taraz bounds (taraz 10000 accepted)", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);
     const catalogs = makeCatalogs();
