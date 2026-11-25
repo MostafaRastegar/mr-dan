@@ -5,39 +5,50 @@ description: "Project tech stack and conventions. Load before designing or imple
 
 # Project Stack
 
-This file is a placeholder. Fill it in once, then keep it current. Do not invent
-a stack: if a value is unknown, leave it as `unknown` and say so.
-
-`node .opencode/scripts/mro-doctor.mjs` derives these facts from the manifest on
-demand; use it as a starting point, then confirm the result by reading the files.
-
 ## Recorded facts
 
-- Framework: unknown
-- Language: unknown
-- Database / ORM: unknown
-- Styling / UI: unknown
-- Auth: unknown
-- Package manager: unknown
+- Framework: Next.js 16.4.6 (App Router), React 19.3.1
+- Language: TypeScript 7.0.2, strict (`tsc --noEmit`); no `any`
+- Database / ORM: PostgreSQL 16 + Prisma 7.10.1 (`@prisma/adapter-pg`; client
+  generated into `src/generated/prisma`); Chroma vector store on port 8001
+- Styling / UI: Ant Design 6.7.1 + `@ant-design/nextjs-registry`, Tailwind CSS
+  4.3.5; Persian RTL (`<html lang="fa" dir="rtl">`)
+- Auth: custom session cookies. scrypt password hashes
+  (`scrypt$N$r$p$salt$hash`, N=16384), sha256 token hash in `Session`, httpOnly
+  cookie; guards in `src/server/advising-guards.ts`; roles `student` |
+  `counselor` | `admin`
+- Package manager: pnpm (`pnpm-lock.yaml`)
 
-Report the derived stack in one short block before designing. If two files
-disagree, stop and ask. Keep this file consistent with the Project Profile in
-`AGENTS.md`; if they disagree, the profile wins for commands.
+## Conventions
 
-## Discovery (use when a fact above is `unknown`)
+- Modules live in `src/modules/<module>/{domain,application,infrastructure,presentation}`
+  (existing modules: `rag`, `advising`).
+- Server code: composition root `src/server/container.ts` (only place that wires
+  adapters to ports); thin `src/app/**/route.ts` handlers
+  (`parse → use case → serialize`, max 40 lines); Server Actions in
+  `src/app/**/<area>.actions.ts` with `'use server'`.
+- Pages use the triad `page.tsx` + `<x>.vm.tsx` + `<x>.view.tsx` side by side;
+  route-private components in `_components/`.
+- Naming: English, domain-oriented (`ingestDocument`, not `processData`); one
+  file = one responsibility; functions over 40 lines are a smell.
+- Errors: `AppError` subclasses in `src/utils/app-error.ts`; adapters wrap
+  library errors and keep `cause`.
+- Action checkpoints: `src/utils/app-error.ts`, `src/utils/server-action.ts`,
+  `src/utils/use-form-action.ts` are the only mutation path and form bridge.
 
-Read, in this order, and derive only what the files prove:
+## Forbidden
 
-1. The dependency manifest for this ecosystem (for example `package.json`,
-   `pyproject.toml`, or `go.mod`) — runtime, framework, scripts.
-2. The language's typechecker or strictness config, if one exists.
-3. The lockfile or dependency lock — the real package manager.
-4. Container and environment files — services, database, external APIs.
-5. Schema or migration directory — the data layer.
+- `any`; domain importing anything external; `application` importing
+  `infrastructure`; domain logic inside `route.ts` or React components.
+- Direct Prisma/Chroma calls from endpoints; DI frameworks; `BaseRepository`;
+  speculative abstractions.
+- pgvector, Redis, BullMQ, scheduler, scraper (this phase).
+- `npm install prisma@latest`; unapproved dependency or version bumps.
 
-## Conventions (fill in for this project)
+## Deep skills
 
-- New modules live in: unknown
-- Server-side code lives in: unknown
-- Naming: unknown
-- Forbidden patterns: unknown
+Architecture: `mr-dan-architecture` · API: `mr-dan-api` · UI: `mr-dan-frontend`
+· frontend bugs: `mr-dan-frontend-debugging` · Prisma: `mr-dan-persistence` ·
+ingestion: `mr-dan-ingestion` · retrieval: `mr-dan-rag` · tests/parity:
+`mr-dan-testing-parity` · env/docker/CI: `mr-dan-devops` · new feature:
+`mr-dan-feature-workflow`.

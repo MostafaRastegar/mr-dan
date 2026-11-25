@@ -30,11 +30,10 @@
   // be a paid model. Change: use any id from `opencode models`.
   "model": "9router/deep",
 
-  // New sessions start in the Orchestrator, which plans, delegates, and gates
-  // approval before any code is written. Why: matches the Orchestrated Workflow
-  // in AGENTS.md. Change: "mro-architect" for the manual flow, "build" for a
-  // plain session, "mro-implementer" to go straight to code.
-  "default_agent": "mro-orchestrator",
+  // New sessions start in `build`: a single agent, no project-manager preflight
+  // on every question. Why: the Orchestrator pays a doctor + model check +
+  // skill inventory before it can answer anything. Change: "mro-orchestrator"
+  // to go back to the gated workflow, or use /mro-orchestrate per feature.
 
   // Format every file the write/edit/patch tools touch.
   // Why: keeps agent output aligned with the project style. Change: false to
