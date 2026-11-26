@@ -7,29 +7,29 @@ import type { StudentStudyPlanView } from "@/modules/advising/application/study-
 
 export default async function CounselorStudentPage({
   params,
-}: Readonly<{ params: { studentId: string } }>) {
+}: Readonly<{ params: Promise<{ studentId: string }> }>) {
+  const { studentId } = await params;
+  if (!studentId) notFound();
   const session = await requireCapability("group:manage");
   const container = getContainer();
   let view: StudentStudyPlanView;
   try {
     view = await container.advising.getStudentStudyPlan.execute({
       actor: { id: session.user.id, role: session.user.role },
-      studentId: params.studentId,
+      studentId,
     });
   } catch (err) {
     if (err instanceof ForbiddenError) redirect("/profile");
     if (err instanceof NotFoundError) notFound();
     throw err;
   }
-
   const [chapters, catalog] = await Promise.all([
     container.advising.listChapters(),
     container.advising.catalogOptions.execute(),
   ]);
-
   return (
     <CounselorStudentWrapper
-      studentId={params.studentId}
+      studentId={studentId}
       view={view}
       chapters={chapters}
       subjects={catalog.subjects}

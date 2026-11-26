@@ -95,7 +95,11 @@ export class CounselorRosterUseCase {
 
   async execute(input: {
     actor: Actor;
-  }): Promise<{ groups: GroupSummary[]; students: StudentSummary[] }> {
+  }): Promise<{
+    groups: GroupSummary[];
+    myStudents: StudentSummary[];
+    unassigned: StudentSummary[];
+  }> {
     assertCapability(input.actor, "group:manage");
 
     const [groups, students] = await Promise.all([
@@ -103,6 +107,15 @@ export class CounselorRosterUseCase {
       this.users.listAssignableStudents(input.actor.id),
     ]);
 
-    return { groups, students };
+    // One pass, disjoint by construction: the query only returns students
+    // owned by this counselor or by nobody.
+    const myStudents: StudentSummary[] = [];
+    const unassigned: StudentSummary[] = [];
+    for (const student of students) {
+      if (student.counselorId === input.actor.id) myStudents.push(student);
+      else if (student.counselorId === null) unassigned.push(student);
+    }
+
+    return { groups, myStudents, unassigned };
   }
 }

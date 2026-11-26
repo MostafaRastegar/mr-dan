@@ -5,19 +5,22 @@ import { CounselorRosterView } from "./counselor-roster.view";
 
 export function CounselorRosterWrapper({
   groups,
-  students,
+  myStudents,
+  unassigned,
   fieldOptions,
   gradeOptions,
 }: {
   groups: GroupSummary[];
-  students: StudentSummary[];
+  myStudents: StudentSummary[];
+  unassigned: StudentSummary[];
   fieldOptions: string[];
   gradeOptions: string[];
 }) {
   return (
     <CounselorRosterView
       groups={groups}
-      students={students}
+      myStudents={myStudents}
+      unassigned={unassigned}
       fieldOptions={fieldOptions}
       gradeOptions={gradeOptions}
     />

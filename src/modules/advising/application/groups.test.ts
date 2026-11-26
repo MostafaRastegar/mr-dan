@@ -178,10 +178,71 @@ describe("groups", () => {
       fakes.groups,
     ).execute({ actor: { id: first.id, role: first.role } });
 
-    const ids = roster.students.map((student) => student.id);
-    expect(ids).toContain(mine.id);
-    expect(ids).toContain(unassigned.id);
-    expect(ids).not.toContain(foreign.id);
+    const mineIds = roster.myStudents.map((student) => student.id);
+    const unassignedIds = roster.unassigned.map((student) => student.id);
+    expect(mineIds).toEqual([mine.id]);
+    expect(unassignedIds).toEqual([unassigned.id]);
+    expect([...mineIds, ...unassignedIds]).not.toContain(foreign.id);
     expect(roster.groups).toHaveLength(1);
+  });
+
+  it("foreign students stay out of another counselor's roster and assign pool", async () => {
+    const owner = await createUser("counselor1", "counselor");
+    const other = await createUser("counselor2", "counselor");
+    const student = await createUser("student1", "student");
+    const group = await createGroup({ id: owner.id, role: owner.role });
+
+    await assign({ id: owner.id, role: owner.role }, student.id, group.id);
+
+    const pool = await fakes.users.listAssignableStudents(other.id);
+    expect(pool.map((row) => row.id)).not.toContain(student.id);
+
+    const roster = await new CounselorRosterUseCase(
+      fakes.users,
+      fakes.groups,
+    ).execute({ actor: { id: other.id, role: other.role } });
+    expect(roster.myStudents).toEqual([]);
+    expect(roster.unassigned).toEqual([]);
+  });
+
+  it("partition keeps mine and unassigned disjoint and complete", async () => {
+    const counselor = await createUser("counselor1", "counselor");
+    const mine = await createUser("student1", "student");
+    const free = await createUser("student2", "student");
+    const group = await createGroup({ id: counselor.id, role: counselor.role });
+    await assign({ id: counselor.id, role: counselor.role }, mine.id, group.id);
+
+    const roster = await new CounselorRosterUseCase(
+      fakes.users,
+      fakes.groups,
+    ).execute({ actor: { id: counselor.id, role: counselor.role } });
+
+    expect(roster.myStudents.map((row) => row.id)).toEqual([mine.id]);
+    expect(roster.unassigned.map((row) => row.id)).toEqual([free.id]);
+    const allIds = [...roster.myStudents, ...roster.unassigned].map((row) => row.id);
+    const sourceIds = (await fakes.users.listAssignableStudents(counselor.id)).map(
+      (row) => row.id,
+    );
+    expect(new Set(allIds)).toEqual(new Set(sourceIds));
+  });
+
+  it("reassign of a foreign student is forbidden and writes nothing", async () => {
+    const owner = await createUser("counselor1", "counselor");
+    const other = await createUser("counselor2", "counselor");
+    const student = await createUser("student1", "student");
+    const ownerGroup = await createGroup({ id: owner.id, role: owner.role });
+    const otherGroup = await createGroup(
+      { id: other.id, role: other.role },
+      "گروه دو",
+    );
+    await assign({ id: owner.id, role: owner.role }, student.id, ownerGroup.id);
+
+    await expect(
+      assign({ id: other.id, role: other.role }, student.id, otherGroup.id),
+    ).rejects.toMatchObject({ code: "forbidden" });
+
+    const row = fakes.users.rowByUsername("student1");
+    expect(row?.counselorId).toBe(owner.id);
+    expect(row?.groupId).toBe(ownerGroup.id);
   });
 });

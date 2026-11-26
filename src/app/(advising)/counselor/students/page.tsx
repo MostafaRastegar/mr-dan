@@ -18,7 +18,8 @@ export default async function CounselorStudentsPage() {
   return (
     <CounselorRosterWrapper
       groups={roster.groups}
-      students={roster.students}
+      myStudents={roster.myStudents}
+      unassigned={roster.unassigned}
       fieldOptions={catalog.fields.map((row) => row.label)}
       gradeOptions={catalog.grades.map((row) => row.label)}
     />

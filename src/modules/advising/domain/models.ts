@@ -71,6 +71,7 @@ export interface StudentSummary {
   schoolName: string | null;
   groupId: string | null;
   groupName: string | null;
+  counselorId: string | null;
 }
 
 export interface FieldRow {
@@ -114,7 +115,14 @@ export interface AdminUserRow {
   fullName: string;
   email: string | null;
   role: Role;
+  counselorId: string | null;
+  counselorUsername: string | null;
   createdAt: string;
+}
+
+export interface AdminCounselorOption {
+  id: string;
+  username: string;
 }
 
 export interface Page<T> {

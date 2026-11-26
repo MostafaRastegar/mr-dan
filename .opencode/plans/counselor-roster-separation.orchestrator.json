@@ -1,0 +1,124 @@
+{
+  "feature": "counselor-roster-separation",
+  "phase": "done",
+  "plan": ".opencode/plans/counselor-roster-separation.md",
+  "plan_sha256": "(uncommitted)",
+  "review": ".opencode/reviews/counselor-roster-separation.md",
+  "test_log": ".opencode/reviews/counselor-roster-separation.tests.log",
+  "readme": {
+    "path": "README.md",
+    "state": "updated"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "written"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-persistence",
+    "mr-dan-feature-workflow",
+    "mr-dan-frontend",
+    "mro-project-stack",
+    "mro-data-model"
+  ],
+  "sessions": {
+    "architect": "ses_de9a1e4c9ffe7o5oQroWpwTIyz",
+    "implementer": "ses_de9616d29ffewpW570ZOTY49cx",
+    "reviewer": "ses_de8ad67c0ffer6be5Wpo5LWrzP",
+    "test": null
+  },
+  "acceptance": {
+    "total": 5,
+    "confirmed": 5,
+    "pending": 0,
+    "deferred": 0
+  },
+  "changed_files": [
+    "src/modules/advising/domain/models.ts",
+    "src/modules/advising/application/groups.ts (+test)",
+    "src/modules/advising/infrastructure/prisma-user-repository.ts (+new test)",
+    "src/app/(advising)/counselor/students/{page.tsx,counselor-roster.vm.tsx,counselor-roster.view.tsx}",
+    "src/app/(advising)/counselor/students/[studentId]/page.tsx",
+    "src/constants/test-ids.ts",
+    "test/fakes/advising.ts",
+    "tests/e2e/access-control.spec.ts",
+    "README.md",
+    "docs/behaviors/counselor-roster-separation.md (new)",
+    "src/app/(advising)/counselor/students/counselor-roster.view.tsx (h1 retitled)"
+  ],
+  "test_exit_codes": [
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0
+    }
+  ],
+  "review_level": "reviewed",
+  "review_round": 2,
+  "severity_history": [
+    {
+      "round": 1,
+      "critical": 1,
+      "high": 1,
+      "medium": 0,
+      "low": 4,
+      "note": "CRITICAL is the manual_smoke gate only; HIGH is AC-1 lacking evidence (screenshot pending, e2e blocked by a wedged next-server on :3000); zero code CRITICAL/HIGH; 4 LOW being fixed (guard comment, behavior-doc source_files, duplicate heading, label wording documented)"
+    },
+    {
+      "round": 2,
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 1,
+      "note": "PASS. Round-1 CRITICAL (manual smoke gate) resolved by human confirmation; three LOW fixes confirmed; residual LOW is a cosmetic comment clause in prisma-user-repository.ts:199-202 (deferred)"
+    }
+  ],
+  "approvals": {
+    "plan": "2026-11-26T10:20:00Z",
+    "ui": null,
+    "manual_smoke": "2026-11-26T10:29:40Z",
+    "final": "2026-11-26T11:28:57Z"
+  },
+  "verified_current_state": {
+    "assigned_student_hidden_from_other_counselors": "already true (prisma-user-repository.ts:284-289 OR {counselorId, null}) — becomes a regression test, not new code",
+    "grouped_and_ungrouped_mixed": "true today — groups.ts:103 returns one array, counselor-roster.view.tsx:100-112 renders one table",
+    "multi_counselor_impossible": "counselorId is scalar; assigning a foreign student throws ForbiddenError (groups.ts:76-78); removing from a group never clears counselorId"
+  },
+  "serialization": {
+    "order": [
+      "counselor-roster-separation",
+      "admin-panel-catalog delta AC-16"
+    ],
+    "shared_seams": [
+      "src/modules/advising/domain/models.ts",
+      "test/fakes/advising.ts"
+    ]
+  },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 2
+  },
+  "log": ".opencode/plans/counselor-roster-separation.log.jsonl",
+  "blockers": "none",
+  "pending_acceptance": [
+    "AC-1 (human screenshot: two separate sections on /counselor/students)"
+  ],
+  "refreshed_skills": [
+    ".opencode/skills/mro-code-review-checklist/SKILL.md",
+    ".opencode/skills/mro-behavior-docs/SKILL.md",
+    ".opencode/skills/mro-project-stack/SKILL.md",
+    ".opencode/skills/mro-data-model/SKILL.md",
+    ".opencode/skills/mr-dan-architecture/SKILL.md"
+  ]
+}

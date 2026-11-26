@@ -226,6 +226,7 @@ export class FakeUserRepository implements UserRepositoryPort {
         groupName: row.groupId
           ? this.state.groupNames.get(row.groupId) ?? null
           : null,
+        counselorId: row.counselorId,
       }));
   }
 

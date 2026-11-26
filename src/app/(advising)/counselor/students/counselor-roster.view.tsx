@@ -31,20 +31,30 @@ const columns: TableProps<StudentSummary>["columns"] = [
   },
 ];
 
+// Unowned students have no study-plan page yet, so no "مشاهده" link.
+const unassignedColumns = columns.filter(
+  (column) => column.key !== "program" && column.key !== "groupName",
+);
+
 export function CounselorRosterView({
   groups,
-  students,
+  myStudents,
+  unassigned,
   fieldOptions,
   gradeOptions,
 }: {
   groups: GroupSummary[];
-  students: StudentSummary[];
+  myStudents: StudentSummary[];
+  unassigned: StudentSummary[];
   fieldOptions: string[];
   gradeOptions: string[];
 }): ReactNode {
+  // The assign pool mirrors the use-case guard: unowned students plus mine.
+  const assignable = [...unassigned, ...myStudents];
+
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-bold">دانش‌آموزان من</h1>
+      <h1 className="text-2xl font-bold">پنل مشاور</h1>
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <IconPlus size={20} stroke={1.8} />
@@ -53,6 +63,28 @@ export function CounselorRosterView({
         <GroupCreateFormWrapper
           fieldOptions={fieldOptions}
           gradeOptions={gradeOptions}
+        />
+      </section>
+
+      <section
+        className="rounded-xl border border-slate-200 bg-white p-5"
+        data-testid={TEST_IDS.ROSTER.UNASSIGNED_SECTION}
+      >
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+          <IconUser size={20} stroke={1.8} />
+          بدون گروه
+        </h2>
+        <p className="mb-4 text-sm text-slate-600">
+          دانش‌آموزانی که هنوز به شما تخصیص نیافته‌اند.
+        </p>
+        <Table<StudentSummary>
+          rowKey="id"
+          size="small"
+          pagination={false}
+          scroll={{ x: 480 }}
+          columns={unassignedColumns}
+          dataSource={unassigned}
+          locale={{ emptyText: <Empty description="دانش‌آموز بدون گروهی وجود ندارد" /> }}
         />
       </section>
 
@@ -88,24 +120,24 @@ export function CounselorRosterView({
           <IconUser size={20} stroke={1.8} />
           تخصیص دانش‌آموز به گروه
         </h2>
-        {groups.length === 0 || students.length === 0 ? (
+        {groups.length === 0 || assignable.length === 0 ? (
           <p className="text-sm text-slate-600">
             برای تخصیص، باید حداقل یک گروه و یک دانش‌آموز وجود داشته باشد.
           </p>
         ) : (
-          <AssignStudentFormWrapper groups={groups} students={students} />
+          <AssignStudentFormWrapper groups={groups} students={assignable} />
         )}
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="mb-4 text-lg font-semibold">دانش‌آموزان</h2>
+        <h2 className="mb-4 text-lg font-semibold">دانش‌آموزان من</h2>
         <Table<StudentSummary>
           rowKey="id"
           size="small"
           pagination={false}
           scroll={{ x: 480 }}
           columns={columns}
-          dataSource={students}
+          dataSource={myStudents}
           data-testid={TEST_IDS.ROSTER.TABLE}
           locale={{ emptyText: <Empty description="هنوز دانش‌آموزی ندارید" /> }}
         />

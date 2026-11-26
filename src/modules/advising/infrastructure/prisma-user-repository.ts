@@ -196,6 +196,10 @@ export class PrismaUserRepository implements UserRepositoryPort {
   }
 
   async findById(id: string): Promise<UserAccount | null> {
+    // An empty/undefined id can never match a row, and building a Prisma
+    // `where` from it throws PrismaClientValidationError; return null before
+    // the client call.
+    if (!id) return null;
     const row = await this.client.user.findUnique({
       where: { id },
       select: USER_SELECT,
@@ -204,6 +208,7 @@ export class PrismaUserRepository implements UserRepositoryPort {
   }
 
   async findProfileById(id: string): Promise<ProfileView | null> {
+    if (!id) return null;
     const row = await this.client.user.findUnique({
       where: { id },
       select: {
@@ -296,6 +301,7 @@ export class PrismaUserRepository implements UserRepositoryPort {
         schoolName: true,
         groupId: true,
         group: { select: { name: true } },
+        counselorId: true,
       },
       orderBy: { fullName: "asc" },
     });
@@ -308,6 +314,7 @@ export class PrismaUserRepository implements UserRepositoryPort {
       schoolName: row.schoolName,
       groupId: row.groupId,
       groupName: row.group?.name ?? null,
+      counselorId: row.counselorId,
     }));
   }
 
