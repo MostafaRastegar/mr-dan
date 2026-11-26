@@ -94,7 +94,8 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
             />
           </Form.Item>
 
-          {isStudent ? (
+          {/* Kept mounted for counselors so the action never receives undefined. */}
+          <div hidden={!isStudent}>
             <>
               <Form.Item name="grade" label="پایهٔ تحصیلی">
                 <Select
@@ -142,7 +143,7 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
                 />
               </Form.Item>
             </>
-          ) : null}
+          </div>
 
           <fieldset className="mb-4 flex flex-col gap-3 rounded-lg border border-slate-200 p-4">
             <legend className="px-1 text-sm text-slate-700">

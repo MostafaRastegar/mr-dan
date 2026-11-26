@@ -1,7 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+import { useActionMutation } from "@/utils/use-form-action";
 
 import { toggleHomeworkAction, deleteHomeworkAction } from "../homework.actions";
 import { HomeworkControlsView } from "./homework-controls.view";
@@ -12,30 +14,29 @@ interface HomeworkControlsVMProps {
 }
 
 export function HomeworkControlsVM({ itemId, completed }: HomeworkControlsVMProps) {
-  const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { state: toggleState, run: runToggle, pending: togglePending } =
+    useActionMutation(toggleHomeworkAction);
+  const { state: deleteState, run: runDelete, pending: deletePending } =
+    useActionMutation(deleteHomeworkAction);
 
-  const handleToggle = () => {
-    startTransition(async () => {
-      await toggleHomeworkAction(itemId, !completed);
-      router.refresh();
-    });
-  };
+  useEffect(() => {
+    if (!toggleState?.ok) return;
+    router.refresh();
+  }, [toggleState, router]);
 
-  const handleDelete = () => {
-    startTransition(async () => {
-      await deleteHomeworkAction(itemId);
-      router.refresh();
-    });
-  };
+  useEffect(() => {
+    if (!deleteState?.ok) return;
+    router.refresh();
+  }, [deleteState, router]);
 
   return (
     <HomeworkControlsView
       itemId={itemId}
       completed={completed}
-      isPending={isPending}
-      onToggle={handleToggle}
-      onDelete={handleDelete}
+      isPending={togglePending || deletePending}
+      onToggle={() => runToggle({ id: itemId, completed: !completed })}
+      onDelete={() => runDelete({ id: itemId })}
     />
   );
 }

@@ -4,13 +4,10 @@ import { redirect } from "next/navigation";
 
 import { homeworkSchema } from "@/modules/advising/presentation/homework-schemas";
 import { runAction } from "@/utils/server-action";
+import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
 import { getSessionContext } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
-
-function formValues(formData: FormData): Record<string, FormDataEntryValue> {
-  return Object.fromEntries(formData);
-}
 
 export async function createHomeworkAction(
   _previous: ActionState<{ id: string }> | null,
@@ -30,13 +27,15 @@ export async function createHomeworkAction(
 }
 
 export async function toggleHomeworkAction(
-  id: string,
-  completed: boolean,
+  _previous: ActionState<{ id: string }> | null,
+  formData: FormData,
 ): Promise<ActionState<{ id: string }>> {
   const session = await getSessionContext();
   if (!session) redirect("/login");
 
   return runAction(async () => {
+    const id = String(formData.get("id") ?? "");
+    const completed = formData.get("completed") === "true";
     await getContainer().advising.setHomeworkCompletion.execute({
       actor: { id: session.user.id, role: session.user.role },
       homeworkId: id,
@@ -47,12 +46,14 @@ export async function toggleHomeworkAction(
 }
 
 export async function deleteHomeworkAction(
-  id: string,
+  _previous: ActionState<{ id: string }> | null,
+  formData: FormData,
 ): Promise<ActionState<{ id: string }>> {
   const session = await getSessionContext();
   if (!session) redirect("/login");
 
   return runAction(async () => {
+    const id = String(formData.get("id") ?? "");
     await getContainer().advising.deleteHomework.execute({
       actor: { id: session.user.id, role: session.user.role },
       homeworkId: id,

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Button, Form, TimePicker, type FormInstance } from "antd";
+import { Button, Form, Input, type FormInstance } from "antd";
 
 import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
@@ -14,11 +14,20 @@ interface FreeTimeFormViewProps {
   formError: string | null;
   freeMinutes: number | null;
   suggestedMinutes: number;
+  initialValues: Record<string, unknown>;
 }
 
 export function FreeTimeFormView(props: FreeTimeFormViewProps): ReactNode {
-  const { form, state, submit, pending, formError, freeMinutes, suggestedMinutes } =
-    props;
+  const {
+    form,
+    state,
+    submit,
+    pending,
+    formError,
+    freeMinutes,
+    suggestedMinutes,
+    initialValues,
+  } = props;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
@@ -36,12 +45,13 @@ export function FreeTimeFormView(props: FreeTimeFormViewProps): ReactNode {
         requiredMark={false}
         onFinish={submit}
         data-testid={TEST_IDS.BUDGET.FORM}
+        initialValues={initialValues}
       >
         <Form.Item name="freeTime" label="وقت آزاد (ساعت:دقیقه)">
-          <TimePicker
-            format="HH:mm"
-            minuteStep={5}
+          <Input
+            type="time"
             placeholder="مثلاً ۰۸:۳۰"
+            dir="ltr"
             data-testid={TEST_IDS.FORM.INPUT("freeTime")}
           />
         </Form.Item>

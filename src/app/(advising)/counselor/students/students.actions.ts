@@ -4,13 +4,10 @@ import { redirect } from "next/navigation";
 
 import { createGroupSchema, assignStudentSchema } from "@/modules/advising/presentation/schemas";
 import { runAction } from "@/utils/server-action";
+import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
 import { getSessionContext } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
-
-function formValues(formData: FormData): Record<string, FormDataEntryValue> {
-  return Object.fromEntries(formData);
-}
 
 export async function createGroupAction(
   _previous: ActionState<{ groupId: string }> | null,

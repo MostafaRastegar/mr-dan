@@ -8,41 +8,21 @@ import {
   courseSchema,
 } from "@/modules/advising/presentation/advisor-schemas";
 import { runAction } from "@/utils/server-action";
+import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
 import { getSessionContext } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
-
-function formValues(formData: FormData): Record<string, FormDataEntryValue> {
-  return Object.fromEntries(formData);
-}
 
 export async function updateStudyProfileAction(
   _previous: ActionState<{ userId: string }> | null,
   formData: FormData,
 ): Promise<ActionState<{ userId: string }>> {
-  console.log("formData :>> ", formData);
   const session = await getSessionContext();
   if (!session) redirect("/login");
 
   return runAction(async () => {
     const values = studyProfileSchema.parse(formValues(formData));
     const actor = { id: session.user.id, role: session.user.role };
-    console.log("object :>> ", {
-      actor,
-      schoolMode: values.schoolMode ?? undefined,
-      needId: values.needId ?? undefined,
-      takesMockExams: values.takesMockExams ?? undefined,
-      otherOccupiedHours: [
-        values.otherOccupied0 ?? 0,
-        values.otherOccupied1 ?? 0,
-        values.otherOccupied2 ?? 0,
-        values.otherOccupied3 ?? 0,
-        values.otherOccupied4 ?? 0,
-        values.otherOccupied5 ?? 0,
-        values.otherOccupied6 ?? 0,
-      ],
-      homeworkAverageHours: values.homeworkAverageHours ?? undefined,
-    });
     await getContainer().advising.updateStudyProfile.execute({
       actor,
       schoolMode: values.schoolMode ?? undefined,
@@ -62,13 +42,14 @@ export async function updateStudyProfileAction(
 
     // The exam result is submitted together with the profile card.
     const takesMockExams = formData.get("takesMockExams") === "true";
-    const examId = String(formData.get("examId") ?? "");
-    const taraz = Number(formData.get("taraz"));
-    if (takesMockExams && examId && Number.isFinite(taraz)) {
+    const examId = String(formData.get("examId") ?? "").trim();
+    const taraz = String(formData.get("taraz") ?? "").trim();
+    if (takesMockExams && examId && taraz) {
+      const input = examResultSchema.parse({ examId, taraz });
       await getContainer().advising.saveExamResult.execute({
         actor,
-        examId,
-        taraz,
+        examId: input.examId,
+        taraz: input.taraz,
       });
     }
 
@@ -115,12 +96,14 @@ export async function addCourseAction(
 }
 
 export async function deleteCourseAction(
-  id: string,
+  _previous: ActionState<{ id: string }> | null,
+  formData: FormData,
 ): Promise<ActionState<{ id: string }>> {
   const session = await getSessionContext();
   if (!session) redirect("/login");
 
   return runAction(async () => {
+    const id = String(formData.get("id") ?? "");
     await getContainer().advising.deleteSupplementaryCourse.execute({
       actor: { id: session.user.id, role: session.user.role },
       courseId: id,

@@ -6,12 +6,9 @@ import { sessionExpiry } from "@/modules/advising/application/session";
 import { loginSchema, registerSchema } from "@/modules/advising/presentation/schemas";
 import { writeSessionCookie } from "@/modules/advising/presentation/session-cookie";
 import { runAction } from "@/utils/server-action";
+import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
 import { getContainer } from "@/server/container";
-
-function formValues(formData: FormData): Record<string, FormDataEntryValue> {
-  return Object.fromEntries(formData);
-}
 
 export async function registerAction(
   _previous: ActionState<{ userId: string }> | null,

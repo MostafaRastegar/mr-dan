@@ -9,6 +9,7 @@ export const TEST_IDS = {
     INPUT: (name: string) => `form-input-${name}`,
     SELECT: (name: string) => `form-select-${name}`,
     SUBMIT: (name: string) => `form-submit-${name}`,
+    CANCEL: (name: string) => `form-cancel-${name}`,
     ERROR: (name: string) => `form-error-${name}`,
   },
   AUTH: {
@@ -58,6 +59,7 @@ export const TEST_IDS = {
   },
   PROFILE: {
     FORM: "profile-form",
+    STUDY_FORM: "study-profile-form",
     GROUP: "profile-group",
     COUNSELOR: "profile-counselor",
     SAVED: "profile-saved",
@@ -101,6 +103,8 @@ export const TEST_IDS = {
     SCHOOL_TABLE: "counselor-school-table",
     EXAM_SUMMARY: "counselor-exam-summary",
     PLAN_EDITOR: "counselor-plan-editor",
+    HEADER_FORM: "counselor-plan-header-form",
+    ENTRY_FORM: "counselor-plan-entry-form",
     TESTS_TARGET: "counselor-tests-target",
     PLAN_ENTRY_FORM: "counselor-plan-entry-form",
     PLAN_TABLE: "counselor-plan-table",

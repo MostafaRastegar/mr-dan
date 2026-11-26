@@ -18,10 +18,11 @@ export interface SchoolProgramEntry {
 interface SchoolProgramFormViewProps {
   form: FormInstance;
   entries: SchoolProgramEntry[];
-  savedAt: boolean | null;
+  fieldOfStudy: string | null;
+  saved: boolean;
   formError: string | null;
   pending: boolean;
-  handleAdd: (dayOfWeek: number, subject: string, hours: number) => void;
+  submit: (values: Record<string, unknown>) => void;
   handleDelete: (id: string) => void;
 }
 
@@ -34,14 +35,13 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
   const {
     form,
     entries,
-    savedAt,
+    fieldOfStudy,
+    saved,
     formError,
     pending,
-    handleAdd,
+    submit,
     handleDelete,
   } = props;
-
-  const fieldOfStudy = "ریاضی فیزیک";
 
   return (
     <section
@@ -57,6 +57,7 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
         form={form}
         layout="vertical"
         requiredMark={false}
+        onFinish={submit}
         data-testid={TEST_IDS.SCHOOL_PROGRAM.FORM}
       >
         <div className="grid gap-3 sm:grid-cols-4 mb-6">
@@ -100,7 +101,12 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
             label="ساعت"
             rules={[
               { required: true, message: "ساعت را وارد کنید" },
-              { min: 0.25, max: 12, message: "بین ۰.۲۵ تا ۱۲ ساعت" },
+              {
+                type: "number",
+                min: 0.25,
+                max: 12,
+                message: "بین ۰.۲۵ تا ۱۲ ساعت",
+              },
             ]}
           >
             <InputNumber
@@ -116,15 +122,8 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
           <Form.Item label=" " colon={false} className="mb-0 flex items-end">
             <Button
               type="primary"
-              disabled={pending}
-              onClick={() => {
-                const dayOfWeekVal = form.getFieldValue("dayOfWeek");
-                const subjectVal = form.getFieldValue("subject") as string;
-                const hoursVal = Number(form.getFieldValue("hours"));
-                if (!dayOfWeekVal || !subjectVal || !hoursVal) return;
-                handleAdd(Number(dayOfWeekVal), subjectVal, hoursVal);
-                form.resetFields();
-              }}
+              htmlType="submit"
+              loading={pending}
               data-testid={TEST_IDS.SCHOOL_PROGRAM.ADD_ROW}
             >
               افزودن ردیف
@@ -132,7 +131,7 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
           </Form.Item>
         </div>
 
-        {(savedAt) ? (
+        {saved ? (
           <p className="mb-4 text-sm text-teal-700" role="status" data-testid={TEST_IDS.SCHEDULE.SAVED}>
             ذخیره شد.
           </p>

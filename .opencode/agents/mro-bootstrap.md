@@ -1,7 +1,7 @@
 ---
 description: "Bootstrap the generic mro template from this repository, and refresh it when facts drift."
 mode: all
-model: 9router/nemo
+model: 9router/deep
 steps: 40
 permissions:
   # This agent fills template files. Everything else is read-only.

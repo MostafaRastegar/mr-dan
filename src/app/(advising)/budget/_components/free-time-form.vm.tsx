@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Form } from "antd";
 
-import { durationToMinutes } from "@/modules/advising/presentation/time-value";
 import {
   useFormAction,
   useServerFormErrors,
@@ -21,11 +20,19 @@ interface FreeTimeFormProps {
   suggestedMinutes: number;
 }
 
+function minutesToHHMM(minutes: number | null): string {
+  if (minutes === null) return "";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 export function FreeTimeForm({ dayKey, freeMinutes, suggestedMinutes }: FreeTimeFormProps) {
   const [form] = Form.useForm();
   const router = useRouter();
   const { state, submit, pending } = useFormAction(setFreeTimeAction);
   const formError = useServerFormErrors(state, form);
+  const initialValues = { freeTime: minutesToHHMM(freeMinutes) };
 
   useEffect(() => {
     if (!state?.ok) return;
@@ -33,15 +40,8 @@ export function FreeTimeForm({ dayKey, freeMinutes, suggestedMinutes }: FreeTime
   }, [state, router]);
 
   const onFinish = (values: FormValues) => {
-    const minutes = durationToMinutes(values.freeTime);
-    // An empty picker means "use the suggestion"; `""` is how that is said on the wire.
-    const freeTime =
-      minutes === null
-        ? ""
-        : `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(
-            minutes % 60,
-          ).padStart(2, "0")}`;
-    submit({ date: dayKey, freeTime });
+    // An empty input means "use the suggestion"; `""` is how that is said on the wire.
+    submit({ date: dayKey, freeTime: values.freeTime ?? "" });
   };
 
   return (
@@ -53,6 +53,7 @@ export function FreeTimeForm({ dayKey, freeMinutes, suggestedMinutes }: FreeTime
       formError={formError}
       freeMinutes={freeMinutes}
       suggestedMinutes={suggestedMinutes}
+      initialValues={initialValues}
     />
   );
 }

@@ -1,7 +1,7 @@
 ---
 description: "Project manager: plans, delegates, gates, and reports. Never writes code."
 mode: primary
-model: 9router/deep
+model: 9router/glm
 steps: 80
 permissions:
   # The orchestrator owns the workflow, not the work.

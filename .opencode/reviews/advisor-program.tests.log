@@ -1,113 +1,83 @@
+============================================================
+PART 1 — full gate (advisor-program test log)
+Generated: Wed Nov 25 2026
+Commands run one at a time from repo root.
+Each block: command, then complete raw output, then exit code.
+============================================================
+
+# 1. pnpm typecheck
+$ pnpm typecheck
+$ tsc --noEmit
+EXIT_CODE=0
+
+# 2. pnpm lint
+$ pnpm lint
+$ oxlint src test
+src/app/(advising)/profile/_components/study-profile-form.view.tsx:52:23: warning eslint(no-unused-vars): Variable 'submit' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+src/modules/rag/application/text-normalizer.ts:40:28: warning eslint(no-control-regex): Unexpected control character help: Avoid matching control characters in regular expressions. If intentional, disable this rule for the expression.
+src/modules/rag/application/text-normalizer.ts:40:51: warning eslint(no-control-regex): Unexpected control character help: Avoid matching control characters in regular expressions. If intentional, disable this rule for the expression.
+test/advising/advisor-program-integration.test.ts:23:7: warning eslint(no-unused-vars): Variable 'catalogs' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+test/advising/advisor-program-integration.test.ts:285:11: warning eslint(no-unused-vars): Variable 'plan' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+src/modules/advising/application/study-profile.test.ts:185:11: warning eslint(no-unused-vars): Variable 'catalogs' is declared but never used. Unused variables should start with a '_'. help: Consider removing this declaration.
+EXIT_CODE=0
+
+# 3. pnpm test
 $ pnpm test
-EXIT:1
 $ vitest run
 
  RUN  v5.1.1 /home/mr/project/mr-dan
 
-{"level":30,"time":1795592413672,"service":"mr-dan","msg":"cache: cleared"}
- ❯ test/advising/free-time-integration.test.ts (3 tests | 2 failed) 695ms
-    ❯ free-time integration (real Postgres) (3)
-      × concurrent plan writes keep the invariant 155ms
-      × budget shrink below planned writes nothing 50ms
-{"level":40,"time":1795592412776,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:26:15)\n    at expandQueries (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.ts:62:32)\n    at /home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:30:18\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"question":"q","msg":"query-expansion: LLM rewrite failed"}
-{"level":40,"time":1795592413008,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:49:15)\n    at LLMReranker.rerank (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.ts:100:39)\n    at /home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:54:32\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"query":"q","msg":"llm-reranker: LLM call failed, falling back to original order"}
+{"level":30,"time":1795619635804,"service":"mr-dan","msg":"cache: cleared"}
+{"level":40,"time":1795619635030,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:49:15)\n    at LLMReranker.rerank (/home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.ts:100:39)\n    at /home/mr/project/mr-dan/src/modules/rag/infrastructure/llm-reranker.test.ts:54:32\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"query":"q","msg":"llm-reranker: LLM call failed, falling back to original order"}
+{"level":40,"time":1795619635379,"service":"mr-dan","err":{"type":"Error","message":"down","stack":"Error: down\n    at Object.complete (/home/mr/project/mr-dan/src/modules/rag/infrastructure/multi-query.test.ts:26:15)\n    at expandQueries (/home/mr/project/mr-dan/src/modules/rag/application/multi-query.ts:62:32)\n    at /home/mr/project/mr-dan/src/modules/rag/application/multi-query.test.ts:30:18\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:1695:35\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:2864:26\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3402:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3397:10)\n    at file:///home/mr/project/mr-dan/node_modules/.pnpm/vitest@5.1.1_@types+node@22.20.5_vite@8.3.8_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/vitest/dist/chunks/run.zBhXlcZQ.js:3381:20\n    at new Promise (<anonymous>)"},"question":"q","msg":"query-expansion: LLM rewrite failed"}
 
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  60 passed (60)
+      Tests  381 passed (381)
+   Start at  18:43:53
+   Duration  2.61s (tests 50%, import 36%, transform 10%, worker 4%)
 
- FAIL  test/advising/free-time-integration.test.ts > free-time integration (real Postgres) > concurrent plan writes keep the invariant
-AssertionError: expected DriverAdapterError: TransactionWriteConfl… to match object { code: 'plan_concurrent_write' }
-(5 matching properties omitted from actual)
+    Isolate  60 workers spawned · ~198ms startup each (spawn + environment, per file)
+             at least ~882ms faster with isolate: false — reuses workers across files instead of one per file
 
-- Expected
-+ Received
+EXIT_CODE=0
 
-- {
--   "code": "plan_concurrent_write",
-+ DriverAdapterError {
-+   "message": "TransactionWriteConflict",
-+   "cause": {
-+     "kind": "TransactionWriteConflict",
-+     "originalCode": "40001",
-+     "originalMessage": "could not serialize access due to read/write dependencies among transactions",
-+   },
-+   "name": "DriverAdapterError",
-  }
-
- ❯ test/advising/free-time-integration.test.ts:142:28
-    140|     if (!loser) throw new Error("expected exactly two outcomes");
-    141|     if (loser.status === "rejected") {
-    142|       expect(loser.reason).toMatchObject({ code: "plan_concurrent_writ…
-       |                            ^
-    } else {
-      expect(loser.value.ok).toBe(false);
-
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
-
- FAIL  test/advising/free-time-integration.test.ts > free-time integration (real Postgres) > budget shrink below planned writes nothing
-DriverAdapterError: TransactionWriteConflict
- ❯ PgTransaction.onError node_modules/.pnpm/@prisma+adapter-pg@7.10.1/node_modules/@prisma/adapter-pg/dist/index.mjs:666:11
- ❯ PgTransaction.performIO node_modules/.pnpm/@prisma+adapter-pg@7.10.1/node_modules/@prisma/adapter-pg/dist/index.mjs:661:12
- ❯ PgTransaction.executeRaw node_modules/.pnpm/@prisma+adapter-pg@7.10.1/node_modules/@prisma/adapter-pg/dist/index.mjs:634:13
- ❯ n node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:538:13
- ❯ #f node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:579:7
- ❯ node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:322:9
- ❯ node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+react-dom@19.3.0_@types+_e9ec546a1e525682cdcedaf4a59e5552/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:507:14
- ❯ #m node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:523:14
- ❯ #d node_modules/.pnpm/@prisma+client@7.10.1_prisma@7.10.1_@types+node@22.20.5_@types+node@22.20.5_esbuild@0.28.2_jiti@2.7.0_tsx@4.23.15_yaml@2.9.1_/node_modules/@prisma/client-engine-runtime/src/transaction-manager/transaction-manager.ts:505:12
-
-{
-  originalCode: '40001',
-  originalMessage: 'could not serialize access due to read/write dependencies among transactions',
-  kind: 'TransactionWriteConflict',
-  name: 'Caused by',
-  stacks: []
-}
-Serialized Error: { originalCode: '40001', originalMessage: 'could not serialize access due to read/write dependencies among transactions', kind: 'TransactionWriteConflict' }
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
-
-
- Test Files  1 failed | 58 passed (59)
-     Tests  2 failed | 371 passed (373)
-   Start at  11:10:11
-   Duration  2.79s (tests 46%, import 36%, transform 15%, worker 3%)
-
-     Isolate  59 workers spawned · ~207ms startup each (spawn + environment, per file)
-              at least ~903ms faster with isolate: false — reuses workers across files instead of one per file
-
-[ELIFECYCLE] Test failed. See above for more details.
-EXIT:1
-
+# 4. pnpm test --run test/architecture.test.ts
 $ pnpm test --run test/architecture.test.ts
-EXIT:0
 $ vitest run --run test/architecture.test.ts
 
  RUN  v5.1.1 /home/mr/project/mr-dan
 
 
-  Test Files  1 passed (1)
-       Tests  9 passed (9)
-   Start at  11:09:10
-   Duration  151ms (import 55%, tests 26%, worker 9%, transform 9%)
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  18:44:00
+   Duration  147ms (import 54%, tests 26%, worker 10%, transform 9%)
 
-EXIT:0
+EXIT_CODE=0
 
+# 5. pnpm build
 $ pnpm build
-EXIT:0
 $ next build
 ▲ Next.js 16.4.6 (Turbopack)
 - Environments: .env
-✓ Running next.config.ts took 21ms
+✓ Running next.config.ts took 22ms
 
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
   Creating an optimized production build ...
-✓ Compiled successfully in 390ms
+✓ Compiled successfully in 388ms
   Running TypeScript ...
-  Finished TypeScript in 543ms ...
+  Finished TypeScript in 559ms ...
   Collecting page data using 11 workers ...
   Generating static pages using 11 workers (0/16) ...
   Generating static pages using 11 workers (4/16) 
   Generating static pages using 11 workers (8/16) 
   Generating static pages using 11 workers (12/16) 
-✓ Generating static pages using 11 workers (16/16) in 343ms
+✓ Generating static pages using 11 workers (16/16) in 327ms
   Finalizing page optimization ...
 
 Route (app)
@@ -124,14 +94,6 @@ Route (app)
 ├ ƒ /api/chat/stream
 ├ ƒ /api/conversations
 ├ ƒ /api/conversations/[id]
-├ ƒ /api/documents
-├ ƒ /api/documents/[id]
-├ ƒ /api/health
-├ ƒ /api/ingest
-├ ƒ /api/metrics
-├ ƒ /api/openapi
-├ ƒ /api/search
-├ ƒ /api/upload
 ├ ƒ /budget
 ├ ƒ /chat
 ├ ƒ /counselor/students
@@ -146,7 +108,223 @@ Route (app)
 └ ƒ /schedule
 
 
+ƒ Proxy (Middleware)
+
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
 
-EXIT:0
+EXIT_CODE=0
+
+# 6. pnpm exec prisma migrate status
+$ pnpm exec prisma migrate status
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "mr_dan", schema "public" at "localhost:5432"
+
+7 migrations found in prisma/migrations
+
+Database schema is up to date!
+EXIT_CODE=0
+
+# 7. pnpm prisma validate
+$ pnpm prisma validate
+$ prisma validate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+The schema at prisma/schema.prisma is valid 🚀
+EXIT_CODE=0
+
+============================================================
+PART 1 complete — all 7 gate commands exit 0.
+typecheck: 0 | lint: 0 (warnings only) | test: 0 (381 passed) | architecture: 0 (9 passed) | build: 0 | migrate status: 0 | prisma validate: 0
+===============================================
+
+## AC verify matrix (part 2)
+Appended: Wed Nov 25 2026
+Commands run one at a time from repo root.
+Each block: command, then raw output, then exit code.
+AC numbers map to the verify sections in .opencode/plans/advisor-program.md.
+
+# AC-23 — pnpm test -t "taraz bounds"
+$ pnpm test -t "taraz bounds"
+$ vitest run -t 'taraz bounds'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  4 passed | 377 skipped (381)
+   Start at  18:47:24
+   Duration  7.07s (import 77%, transform 16%, worker 7%)
+
+    Isolate  60 workers spawned · ~704ms startup each (spawn + environment, per file)
+             at least ~3.14s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-24 — pnpm test -t "homework spent minutes"
+$ pnpm test -t "homework spent minutes"
+$ vitest run -t 'homework spent minutes'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  4 passed | 377 skipped (381)
+   Start at  18:47:24
+   Duration  7.01s (import 75%, transform 19%, worker 6%)
+
+    Isolate  60 workers spawned · ~640ms startup each (spawn + environment, per file)
+             at least ~2.85s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-44 — pnpm test -t "unknown chapter is rejected"
+$ pnpm test -t "unknown chapter is rejected"
+$ vitest run -t 'unknown chapter is rejected'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  2 passed | 379 skipped (381)
+   Start at  18:47:24
+   Duration  7.05s (import 64%, transform 26%, worker 11%)
+
+    Isolate  60 workers spawned · ~717ms startup each (spawn + environment, per file)
+             at least ~3.19s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-45 — pnpm test -t "chapter must match the student subject grade and field"
+$ pnpm test -t "chapter must match the student subject grade and field"
+$ vitest run -t 'chapter must match the student subject grade and field'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  3 passed | 378 skipped (381)
+   Start at  18:47:24
+   Duration  7.11s (import 80%, transform 15%, worker 5%)
+
+    Isolate  60 workers spawned · ~693ms startup each (spawn + environment, per file)
+             at least ~3.09s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-46 — pnpm test -t "chapter ids dedupe and note trims"
+$ pnpm test -t "chapter ids dedupe and note trims"
+$ vitest run -t 'chapter ids dedupe and note trims'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  4 passed | 377 skipped (381)
+   Start at  18:47:38
+   Duration  6.79s (import 69%, transform 23%, worker 8%)
+
+    Isolate  60 workers spawned · ~744ms startup each (spawn + environment, per file)
+             at least ~3.31s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-51 — pnpm test -t "subject progress read model"
+$ pnpm test -t "subject progress read model"
+$ vitest run -t 'subject progress read model'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  1 passed | 380 skipped (381)
+   Start at  18:47:38
+   Duration  7.11s (import 75%, transform 19%, worker 5%)
+
+    Isolate  60 workers spawned · ~702ms startup each (spawn + environment, per file)
+             at least ~3.13s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-13 — pnpm test -t "catalog and chapter seed is idempotent"
+$ pnpm test -t "catalog and chapter seed is idempotent"
+$ vitest run -t 'catalog and chapter seed is idempotent'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  1 passed | 380 skipped (381)
+   Start at  18:47:38
+   Duration  7.02s (import 68%, transform 20%, tests 6%, worker 6%)
+
+    Isolate  60 workers spawned · ~674ms startup each (spawn + environment, per file)
+             at least ~3.00s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-32 — pnpm test -t "school and non-school each subtract once"
+$ pnpm test -t "school and non-school each subtract once"
+$ vitest run -t 'school and non-school each subtract once'
+
+ RUN  v5.1.1 /home/mr/project/mr-dan
+
+
+ Test Files  1 passed | 59 skipped (60)
+      Tests  1 passed | 380 skipped (381)
+   Start at  18:47:38
+   Duration  6.96s (import 70%, transform 20%, worker 9%)
+
+    Isolate  60 workers spawned · ~735ms startup each (spawn + environment, per file)
+             at least ~3.28s faster with isolate: false — reuses workers across files instead of one per file
+
+EXIT_CODE=0
+
+# AC-9 — shell predicate (schema models absent / no migration dir / no use server)
+$ ! grep -q "model StudyPlan\|model SchoolProgramEntry\|model Need\b" prisma/schema.prisma && ! git status --short -- prisma/migrations | grep -q . && ! grep -rl "use server" "src/app/(advising)/profile" "src/app/(advising)/counselor/students" | grep -q .
+(no stdout)
+EXIT_CODE=1
+
+# AC-12 — shell predicate (prisma validate + column checks)
+$ pnpm prisma validate && ! grep -q "studyMinutesTarget" prisma/schema.prisma && ! sed -n "/^model WeeklyGoal/,/^}/p" prisma/schema.prisma | grep -q "testsTarget" && sed -n "/^model StudyPlan /,/^}/p" prisma/schema.prisma | grep -q "testsTarget" && grep -q "otherOccupiedMinutes" prisma/schema.prisma && ! grep -qE "^[[:space:]]*occupiedMinutes" prisma/schema.prisma && sed -n "/^model Chapter/,/^}/p" prisma/schema.prisma | grep -q "@@unique(\[subject, field, grade, number\])" && sed -n "/^model StudyPlanEntry/,/^}/p" prisma/schema.prisma | grep -q "chapterIds String\[\]" && sed -n "/^model StudyPlanEntry/,/^}/p" prisma/schema.prisma | grep -q "note "
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+The schema at prisma/schema.prisma is valid 🚀
+EXIT_CODE=0
+
+# AC-29 — shell predicate (fixtures removed / domain imports no external)
+$ test -z "$(find src \( -name 'study-profile.fixture.ts' -o -name 'counselor-student.fixture.ts' \) -print -quit)" && ! grep -rn '^import .* from "zod"\|^import .* from "next\|^import .* from "@prisma' src/modules/advising/domain
+(no stdout)
+EXIT_CODE=0
+
+# AC-30 — shell predicate (README checks)
+$ grep -q "برنامهٔ ثابت مدرسه" README.md && grep -q "occupied\|اشغال" README.md && ! grep -q "بدون صفحهٔ UI تا فاز ۵.۴" README.md
+(no stdout)
+EXIT_CODE=1
+
+# AC-31 — shell predicate (behaviors doc header)
+$ head -3 docs/behaviors/advisor-program.md | grep -q last_verified && head -3 docs/behaviors/advisor-program.md | grep -q source_files
+head: cannot open 'docs/behaviors/advisor-program.md' for reading: No such file or directory
+EXIT_CODE=1
+
+# AC-43 — shell predicate (dashboard redirect / no client effect)
+$ ! grep -n "use client\|useEffect" "src/app/(advising)/dashboard/page.tsx" && grep -q 'role === "counselor"' "src/app/(advising)/dashboard/page.tsx" && grep -q 'redirect("/counselor/students")' "src/app/(advising)/dashboard/page.tsx"
+(no stdout)
+EXIT_CODE=0
+
+# AC-13 (seed run) — pnpm tsx scripts/seed-advising.ts
+$ pnpm tsx scripts/seed-advising.ts
+demo accounts seeded: counselor student
+demo password: demo-123456
+group: کلاس دوازدهم تجربی 91d79433-a212-494e-b2b6-e4282c0072e3
+catalogs seeded: { needs: 3, exams: 4, chapters: 6 }
+EXIT_CODE=0
+
+===============================================
+PART 2 complete — AC verify matrix recorded.
+AC-9: 1 | AC-12: 0 | AC-13: 0 | AC-23: 0 | AC-24: 0 | AC-29: 0 | AC-30: 1 | AC-31: 1 | AC-32: 0 | AC-43: 0 | AC-44: 0 | AC-45: 0 | AC-46: 0 | AC-51: 0
+============================================================

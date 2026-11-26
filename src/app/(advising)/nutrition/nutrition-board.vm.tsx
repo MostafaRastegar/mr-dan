@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+import { useActionMutation } from "@/utils/use-form-action";
 import type { NutritionOverview } from "@/modules/advising/application/nutrition";
-import type { ActionState } from "@/utils/app-error";
 
 import { saveMealPlanAction } from "./nutrition.actions";
 import { NutritionBoardView } from "./nutrition-board.view";
@@ -19,24 +19,20 @@ export function NutritionBoardWrapper({
   canWrite,
 }: NutritionBoardWrapperProps) {
   const router = useRouter();
-  const [saveState, setSaveState] = useState<ActionState<{ dayKey: string }> | null>(null);
-  const [pending, startTransition] = useTransition();
+  const { state, run, pending } = useActionMutation(saveMealPlanAction);
 
-  const onSavePlan = () => {
-    startTransition(async () => {
-      const result = await saveMealPlanAction();
-      setSaveState(result);
-      if (result.ok) router.refresh();
-    });
-  };
+  useEffect(() => {
+    if (!state?.ok) return;
+    router.refresh();
+  }, [state, router]);
 
   return (
     <NutritionBoardView
       overview={overview}
       canWrite={canWrite}
-      saveState={saveState}
+      saveState={state}
       pending={pending}
-      onSavePlan={onSavePlan}
+      onSavePlan={() => run()}
     />
   );
 }

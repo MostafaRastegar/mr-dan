@@ -1,7 +1,7 @@
 ---
 description: "Independent read-only review: correctness, security, types, tests."
 mode: subagent
-model: 9router/nemo
+model: 9router/glm
 steps: 40
 permissions:
   - action: edit

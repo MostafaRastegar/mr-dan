@@ -8,13 +8,10 @@ import {
   readSessionToken,
 } from "@/modules/advising/presentation/session-cookie";
 import { runAction } from "@/utils/server-action";
+import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
 import { getSessionContext } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
-
-function formValues(formData: FormData): Record<string, FormDataEntryValue> {
-  return Object.fromEntries(formData);
-}
 
 export async function logoutAction(_formData: FormData): Promise<void> {
   const token = await readSessionToken();

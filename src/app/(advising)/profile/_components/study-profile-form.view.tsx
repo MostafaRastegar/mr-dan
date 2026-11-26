@@ -21,24 +21,20 @@ interface StudyProfileFormViewProps {
   data: StudyProfileView;
   submit: (values: Record<string, unknown>) => void;
   pending: boolean;
+  coursePending: boolean;
+  deletePending: boolean;
   formError: string | null;
   initialValues: Record<string, unknown>;
-  takesMockExams: boolean;
-  toggleTakesMockExams: (checked: boolean) => void;
-  handleSubmit: (values: Record<string, unknown>) => void;
+  saved: boolean;
   handleAddCourse: () => void;
   handleRemoveCourse: (id: string) => void;
 }
 
-const hoursInput = (
-  testId: string,
-  defaultValue?: number,
-) => (
+const hoursInput = (testId: string) => (
   <InputNumber
     min={0}
     max={24}
     step={0.25}
-    defaultValue={defaultValue ?? undefined}
     dir="ltr"
     data-testid={testId}
     className="w-[5rem]"
@@ -49,7 +45,19 @@ const hoursInput = (
 export function StudyProfileFormView(
   props: StudyProfileFormViewProps,
 ): ReactNode {
-  const { form, data, submit, pending, formError, initialValues, takesMockExams, toggleTakesMockExams, handleSubmit, handleAddCourse, handleRemoveCourse } = props;
+  const {
+    form,
+    data,
+    submit,
+    pending,
+    coursePending,
+    deletePending,
+    formError,
+    initialValues,
+    saved,
+    handleAddCourse,
+    handleRemoveCourse,
+  } = props;
 
   return (
     <section
@@ -62,27 +70,19 @@ export function StudyProfileFormView(
         form={form}
         layout="vertical"
         requiredMark={false}
-        onFinish={handleSubmit}
-        data-testid={TEST_IDS.PROFILE.FORM}
+        onFinish={submit}
+        data-testid={TEST_IDS.PROFILE.STUDY_FORM}
         initialValues={initialValues}
       >
         <div className="grid gap-4 sm:grid-cols-2 mb-6">
-          <Form.Item
-            name="schoolMode"
-            label="حالت مدرسه"
-            data-testid={TEST_IDS.PROFILE.SCHOOL_MODE}
-          >
+          <Form.Item name="schoolMode" label="حالت مدرسه">
             <Select allowClear data-testid={TEST_IDS.PROFILE.SCHOOL_MODE}>
               <Select.Option value="in_person">حضوری</Select.Option>
               <Select.Option value="virtual">مجازی</Select.Option>
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="needId"
-            label="نیاز"
-            data-testid={TEST_IDS.PROFILE.NEED}
-          >
+          <Form.Item name="needId" label="نیاز">
             <Select allowClear data-testid={TEST_IDS.PROFILE.NEED}>
               {data.needs.map((n: Need) => (
                 <Select.Option key={n.id} value={n.id}>
@@ -98,50 +98,50 @@ export function StudyProfileFormView(
             آزمونهای آزمایشی
           </legend>
 
-          <div className="flex items-center gap-3">
+          <Form.Item
+            name="takesMockExams"
+            valuePropName="checked"
+            className="mb-0"
+          >
             <Switch
-              checked={takesMockExams}
-              onChange={toggleTakesMockExams}
               data-testid={TEST_IDS.PROFILE.MOCK_EXAMS}
               checkedChildren="بله"
               unCheckedChildren="خیر"
             />
-            <span className="text-sm text-slate-600">
-              شرکت در آزمونهای آزمایشی
-            </span>
-          </div>
+          </Form.Item>
 
-          {takesMockExams ? (
-            <div className="grid gap-4 sm:grid-cols-3">
-              <Form.Item
-                name="examId"
-                label="آزمون"
-                data-testid={TEST_IDS.PROFILE.EXAM}
-              >
-                <Select allowClear data-testid={TEST_IDS.PROFILE.EXAM}>
-                  {data.exams.map((e: Exam) => (
-                    <Select.Option key={e.id} value={e.id}>
-                      {e.label}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prev, next) =>
+              prev.takesMockExams !== next.takesMockExams
+            }
+          >
+            {({ getFieldValue }) =>
+              getFieldValue("takesMockExams") ? (
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <Form.Item name="examId" label="آزمون">
+                    <Select allowClear data-testid={TEST_IDS.PROFILE.EXAM}>
+                      {data.exams.map((e: Exam) => (
+                        <Select.Option key={e.id} value={e.id}>
+                          {e.label}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
 
-              <Form.Item
-                name="taraz"
-                label="تراز"
-                data-testid={TEST_IDS.PROFILE.TARAZ}
-              >
-                <InputNumber
-                  min={0}
-                  max={10000}
-                  dir="ltr"
-                  data-testid={TEST_IDS.PROFILE.TARAZ}
-                  className="w-full"
-                />
-              </Form.Item>
-            </div>
-          ) : null}
+                  <Form.Item name="taraz" label="تراز">
+                    <InputNumber
+                      min={0}
+                      max={10000}
+                      dir="ltr"
+                      data-testid={TEST_IDS.PROFILE.TARAZ}
+                      className="w-full"
+                    />
+                  </Form.Item>
+                </div>
+              ) : null
+            }
+          </Form.Item>
 
           {data.examResults.length > 0 ? (
             <div className="mt-3">
@@ -200,32 +200,27 @@ export function StudyProfileFormView(
           </legend>
           <p className="text-xs text-slate-500">ساعة روز، شنبه تا جمعه</p>
           <div className="grid gap-2 md:grid-cols-7">
-            {DAYS_OF_WEEK.map((day) => {
-              const minutes = data.user.otherOccupiedMinutes?.[day.day] ?? null;
-              const hours = minutes == null ? undefined : Math.round(minutes / 60);
-              return (
-                <div key={day.day} className="flex flex-col items-center gap-1">
-                  <label className="text-xs text-slate-500" title={day.label}>
-                    {day.label}
-                  </label>
-                  <Form.Item
-                    name={`otherOccupied${day.day}`}
+            {DAYS_OF_WEEK.map((day) => (
+              <div key={day.day} className="flex flex-col items-center gap-1">
+                <label className="text-xs text-slate-500" title={day.label}>
+                  {day.label}
+                </label>
+                <Form.Item
+                  name={`otherOccupied${day.day}`}
+                  className="w-full"
+                >
+                  <InputNumber
+                    min={0}
+                    max={24}
+                    step={0.25}
+                    dir="ltr"
+                    className="w-[5rem]"
+                    placeholder="۰"
                     data-testid={`${TEST_IDS.PROFILE.OCCUPIED_HOURS}-${day.day}`}
-                    className="w-full"
-                  >
-                    <InputNumber
-                      min={0}
-                      max={24}
-                      step={0.25}
-                      defaultValue={hours}
-                      dir="ltr"
-                      className="w-[5rem]"
-                      placeholder="۰"
-                    />
-                  </Form.Item>
-                </div>
-              );
-            })}
+                  />
+                </Form.Item>
+              </div>
+            ))}
           </div>
         </fieldset>
 
@@ -233,14 +228,8 @@ export function StudyProfileFormView(
           <Form.Item
             name="homeworkAverageHours"
             label="میانگین روزانه تکلیف مدرسه (ساعت)"
-            rules={[{ min: 0, max: 12, message: "حداکثر ۱۲ ساعت" }]}
           >
-            {hoursInput(
-              TEST_IDS.PROFILE.HOMEWORK_AVG,
-              data.user.homeworkAverageMinutes != null
-                ? Math.round(data.user.homeworkAverageMinutes / 60)
-                : undefined,
-            )}
+            {hoursInput(TEST_IDS.PROFILE.HOMEWORK_AVG)}
           </Form.Item>
         </div>
 
@@ -274,6 +263,7 @@ export function StudyProfileFormView(
                     <Button
                       size="small"
                       danger
+                      loading={deletePending}
                       onClick={() => handleRemoveCourse(course.id)}
                       data-testid={TEST_IDS.PROFILE.COURSE_DELETE}
                     >
@@ -289,7 +279,6 @@ export function StudyProfileFormView(
             <Form.Item
               name="courseTitle"
               label="عنوان"
-              rules={[{ required: true, message: "عنوان کلاس را وارد کنید" }]}
             >
               <Input
                 placeholder="مثلاً کلاس ریاضی خصوصی"
@@ -315,6 +304,7 @@ export function StudyProfileFormView(
             <Form.Item label=" " colon={false} className="mb-0 flex items-end">
               <Button
                 type="primary"
+                loading={coursePending}
                 onClick={handleAddCourse}
                 data-testid={TEST_IDS.PROFILE.COURSE_ADD}
               >
@@ -323,6 +313,16 @@ export function StudyProfileFormView(
             </Form.Item>
           </div>
         </fieldset>
+
+        {saved ? (
+          <p
+            className="mb-4 text-sm text-teal-700"
+            role="status"
+            data-testid={TEST_IDS.PROFILE.STUDY_SAVED}
+          >
+            ذخیره شد.
+          </p>
+        ) : null}
 
         {formError ? (
           <p

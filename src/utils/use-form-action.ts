@@ -8,7 +8,13 @@
  * transition so `pending` is accurate.
  */
 
-import { startTransition, useActionState, useEffect } from "react";
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import type { FormInstance } from "antd";
 
 import type { ActionState } from "./app-error";
@@ -46,6 +52,24 @@ export function useFormAction<T>(action: ServerFormAction<T>) {
   };
 
   return { state, submit, pending };
+}
+
+/**
+ * Bridge for fieldless mutations (row delete, toggle, one-click action).
+ * Same `(previous, formData)` contract as `useFormAction`, without an antd form.
+ */
+export function useActionMutation<T>(action: ServerFormAction<T>) {
+  const [state, setState] = useState<ActionState<T> | null>(null);
+  const [pending, startMutation] = useTransition();
+
+  const run = (values: FormValues = {}) => {
+    const formData = toFormData(values);
+    startMutation(async () => {
+      setState(await action(null, formData));
+    });
+  };
+
+  return { state, run, pending };
 }
 
 /**

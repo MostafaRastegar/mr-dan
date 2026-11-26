@@ -1,23 +1,27 @@
 "use client";
 
-import { useTransition } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+import { useActionMutation } from "@/utils/use-form-action";
 
 import { deleteScheduleEntryAction } from "../schedule.actions";
 import { ScheduleControlsView } from "./schedule-controls.view";
 
 export function ScheduleControlsVM({ entryId }: { entryId: string }) {
-  const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { state, run, pending } = useActionMutation(deleteScheduleEntryAction);
 
-  const handleDelete = () => {
-    startTransition(async () => {
-      await deleteScheduleEntryAction(entryId);
-      router.refresh();
-    });
-  };
+  useEffect(() => {
+    if (!state?.ok) return;
+    router.refresh();
+  }, [state, router]);
 
   return (
-    <ScheduleControlsView entryId={entryId} isPending={isPending} onDelete={handleDelete} />
+    <ScheduleControlsView
+      entryId={entryId}
+      isPending={pending}
+      onDelete={() => run({ id: entryId })}
+    />
   );
 }

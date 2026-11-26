@@ -7,10 +7,9 @@ import type { DayBudget } from "@/modules/advising/application/free-time";
 import { dateToDayKey } from "@/modules/advising/presentation/time-value";
 import { TEST_IDS } from "@/constants/test-ids";
 
-import { PlanListView } from "./_components/plan-list.view";
+import { PlanList } from "./_components/plan-list.vm";
 import { FreeTimeForm } from "./_components/free-time-form.vm";
 import { PlanForm } from "./_components/plan-form.vm";
-import { deletePlanAction } from "./budget.actions";
 
 import { BudgetDayView } from "./budget-day.view";
 
@@ -48,13 +47,7 @@ export function BudgetDayWrapper({ day, canWrite }: BudgetDayVMProps) {
         />
       }
       planForm={<PlanForm dayKey={day.dayKey} candidates={day.candidates} />}
-      planList={
-        <PlanListView
-          plans={day.plans}
-          canWrite={canWrite}
-          deletePlan={deletePlanAction}
-        />
-      }
+      planList={<PlanList plans={day.plans} canWrite={canWrite} />}
     />
   );
 }

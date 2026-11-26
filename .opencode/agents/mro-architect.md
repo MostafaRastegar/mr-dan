@@ -1,7 +1,7 @@
 ---
 description: "Designs implementation plans. Writes only to .opencode/plans/."
 mode: all
-model: 9router/deep
+model: 9router/glm
 permissions:
   - action: edit
     resource: "*"

@@ -116,7 +116,7 @@ export function HomeworkFormView(props: HomeworkFormViewProps): ReactNode {
         <Form.Item className="mb-0 flex justify-end gap-2">
           <Button
             onClick={onClose}
-            data-testid={TEST_IDS.FORM.SUBMIT("homework-cancel")}
+            data-testid={TEST_IDS.FORM.CANCEL("homework")}
           >
             انصراف
           </Button>

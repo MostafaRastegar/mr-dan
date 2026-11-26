@@ -1,7 +1,7 @@
 ---
 description: "Implements the Architect's plan, runs tests, fixes failures."
 mode: all
-model: 9router/nemo
+model: 9router/deep
 steps: 150
 permissions:
   # No broad edit rule: the base policy already allows edits, and omitting an

@@ -141,7 +141,10 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
         />
       )}
 
-      <SchoolProgramForm initialEntries={schoolProgramEntries} />
+      <SchoolProgramForm
+        initialEntries={schoolProgramEntries}
+        fieldOfStudy={fieldOfStudy}
+      />
     </div>
   );
 }

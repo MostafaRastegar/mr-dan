@@ -134,7 +134,7 @@ export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactN
         <Form.Item className="mb-0 flex justify-end gap-2">
           <Button
             onClick={onClose}
-            data-testid={TEST_IDS.FORM.SUBMIT("schedule-cancel")}
+            data-testid={TEST_IDS.FORM.CANCEL("schedule")}
           >
             انصراف
           </Button>
