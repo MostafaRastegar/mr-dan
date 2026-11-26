@@ -1,16 +1,18 @@
 import type { ReactNode } from "react";
 import {
   Button,
-  Empty,
   Form,
   Input,
   InputNumber,
   Popconfirm,
   Select,
-  Table,
   Tag,
   type FormInstance,
 } from "antd";
+import { IconPlus } from "@tabler/icons-react";
+
+import { FormSheet } from "@/app/_components/form-sheet";
+import { ResponsiveTable } from "@/app/_components/responsive-table";
 import type { ColumnType } from "antd/es/table";
 
 import { TEST_IDS } from "@/constants/test-ids";
@@ -25,6 +27,8 @@ import type {
 interface CatalogManagerViewProps<T extends CatalogRow> {
   form: FormInstance;
   config: CatalogConfig;
+  isFormOpen: boolean;
+  onOpenCreate: () => void;
   rows: readonly T[];
   total: number;
   currentPage: number;
@@ -50,6 +54,8 @@ export function CatalogManagerView<T extends CatalogRow>(
   const {
     form,
     config,
+    isFormOpen,
+    onOpenCreate,
     rows,
     total,
     currentPage,
@@ -125,8 +131,15 @@ export function CatalogManagerView<T extends CatalogRow>(
 
   return (
     <section className="space-y-6">
-      <header className="space-y-2">
+      <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{config.title}</h1>
+        <Button
+          icon={<IconPlus size={16} stroke={2} aria-hidden="true" />}
+          onClick={onOpenCreate}
+          data-testid={config.createTestId}
+        >
+          افزودن
+        </Button>
       </header>
 
       {readFailed ? (
@@ -138,14 +151,17 @@ export function CatalogManagerView<T extends CatalogRow>(
         </p>
       ) : (
         <>
-          <Form
-            form={form}
-            layout="vertical"
-            requiredMark={false}
-            onFinish={submit}
-            data-testid={config.createTestId}
-            className="rounded-lg border border-slate-200 bg-white p-4 md:p-6"
+          <FormSheet
+            open={isFormOpen}
+            onClose={onCancelEdit}
+            title={editingId ? `ویرایش — ${config.title}` : `افزودن — ${config.title}`}
           >
+            <Form
+              form={form}
+              layout="vertical"
+              requiredMark={false}
+              onFinish={submit}
+            >
             <div className="grid gap-4 sm:grid-cols-2">
               {config.fields.map((field) => (
                 <Form.Item
@@ -186,34 +202,28 @@ export function CatalogManagerView<T extends CatalogRow>(
             ) : null}
 
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Button type="primary" htmlType="submit" loading={pending}>
+              <Button type="primary" htmlType="submit" loading={pending} block>
                 {editingId ? "ذخیرهٔ ویرایش" : "افزودن"}
               </Button>
-              {editingId ? (
-                <Button onClick={onCancelEdit}>انصراف</Button>
-              ) : null}
             </div>
           </Form>
+          </FormSheet>
 
-          <div data-testid={config.tableTestId}>
-            <Table<T>
-              rowKey="id"
-              columns={columns}
-              dataSource={rows as T[]}
-              loading={loading}
-              scroll={{ x: 720 }}
-              pagination={{
-                current: currentPage,
-                pageSize,
-                total,
-                showSizeChanger: false,
-                onChange: onPageChange,
-              }}
-              locale={{
-                emptyText: <Empty description="موردی ثبت نشده است" />,
-              }}
-            />
-          </div>
+          <ResponsiveTable<T>
+            testId={config.tableTestId}
+            rowKey="id"
+            columns={columns}
+            dataSource={rows as T[]}
+            loading={loading}
+            emptyText="موردی ثبت نشده است"
+            pagination={{
+              current: currentPage,
+              pageSize,
+              total,
+              showSizeChanger: false,
+              onChange: onPageChange,
+            }}
+          />
         </>
       )}
     </section>

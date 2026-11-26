@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Form } from "antd";
 import { useRouter } from "next/navigation";
 
@@ -26,6 +26,7 @@ export function StudyPlanEntryForm({
 }) {
   const [form] = Form.useForm();
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
   const { state, submit, pending } = useFormAction(addStudyPlanEntryAction);
   const formError = useServerFormErrors(state, form);
   const subject = Form.useWatch("subject", form) as string | undefined;
@@ -37,6 +38,7 @@ export function StudyPlanEntryForm({
     if (!state?.ok) return;
     form.resetFields();
     router.refresh();
+    setIsOpen(false);
   }, [state, form, router]);
 
   const onFinish = (values: FormValues) => {
@@ -52,11 +54,13 @@ export function StudyPlanEntryForm({
 
   return (
     <StudyPlanEntryFormView
+      open={isOpen}
+      onOpen={() => setIsOpen(true)}
+      onClose={() => setIsOpen(false)}
       form={form}
       submit={onFinish}
       pending={pending}
       formError={formError}
-      saved={Boolean(state?.ok)}
       availableChapters={availableChapters}
       subjectOptions={subjectOptions}
     />

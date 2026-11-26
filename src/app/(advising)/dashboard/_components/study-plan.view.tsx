@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Button } from "antd";
+import { IconBook } from "@tabler/icons-react";
 import type { StudyBlock } from "@/modules/advising/domain/study-blocks";
 import { studyBlockKey } from "@/modules/advising/domain/study-blocks";
 import { labelOf } from "@/modules/advising/domain/catalog";
@@ -23,7 +24,12 @@ export function StudyPlanView(props: StudyPlanViewProps): ReactNode {
       className="rounded-xl border border-slate-200 bg-white p-5"
       data-testid={TEST_IDS.DASHBOARD.CARD("plan")}
     >
-      <h2 className="mb-3 text-lg font-semibold">برنامه امروز</h2>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700" aria-hidden="true">
+          <IconBook size={18} stroke={1.8} />
+        </span>
+        <h2 className="text-lg font-semibold">برنامه امروز</h2>
+      </div>
       <ul className="flex flex-col gap-2 mb-4">
         {blocks.map((block) => {
           const key = studyBlockKey(block);

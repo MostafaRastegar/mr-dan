@@ -19,6 +19,7 @@ import type {
   HomeworkPlanEntry,
   NewHomework,
   NewScheduleEntry,
+  Page,
   ScheduleEntryPatch,
   WeeklyScheduleEntry,
 } from "@/modules/advising/domain/models";
@@ -133,7 +134,16 @@ export class FakeHomeworkRepository implements HomeworkRepositoryPort {
     studentId: string,
     filter: HomeworkFilter,
   ): Promise<HomeworkItem[]> {
-    return [...this.rows.values()]
+    return (await this.listByStudentPaged(studentId, filter, 1, 2 ** 30)).items;
+  }
+
+  async listByStudentPaged(
+    studentId: string,
+    filter: HomeworkFilter,
+    page: number,
+    pageSize: number,
+  ): Promise<Page<HomeworkItem>> {
+    const all = [...this.rows.values()]
       .filter((r) => r.studentId === studentId)
       .filter((r) => {
         if (filter === "pending") return r.completedAt === null;
@@ -148,6 +158,13 @@ export class FakeHomeworkRepository implements HomeworkRepositoryPort {
             HOMEWORK_PRIORITY_RANK[a.priority] ||
           a.deadline.getTime() - b.deadline.getTime(),
       );
+    const start = (page - 1) * pageSize;
+    return {
+      items: all.slice(start, start + pageSize),
+      page,
+      pageSize,
+      total: all.length,
+    };
   }
 
   async findById(id: string): Promise<HomeworkItem | null> {

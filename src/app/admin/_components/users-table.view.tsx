@@ -1,18 +1,21 @@
 import type { ReactNode } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { IconFilter } from "@tabler/icons-react";
 import {
   Button,
-  Empty,
   Form,
   Input,
   Modal,
   Popconfirm,
   Select,
-  Table,
   Tag,
   type FormInstance,
 } from "antd";
 import type { ColumnType } from "antd/es/table";
+
+import { FormSheet } from "@/app/_components/form-sheet";
+import { ResponsiveTable } from "@/app/_components/responsive-table";
 
 import type {
   AdminCounselorOption,
@@ -35,6 +38,13 @@ const ROLE_OPTIONS = (Object.keys(ROLE_LABELS) as Role[]).map((role) => ({
 }));
 
 const ROLE_FILTER_OPTIONS = [{ value: "", label: "همه" }, ...ROLE_OPTIONS];
+
+function activeFilterCount(filters: UsersFilterValues): number {
+  return [filters.role, filters.counselorId, filters.q.trim()].filter(
+    Boolean,
+  ).length;
+}
+
 
 export interface UsersFilterValues {
   role: string;
@@ -80,6 +90,7 @@ interface UsersTableViewProps {
 }
 
 export function UsersTableView(props: UsersTableViewProps): ReactNode {
+  const [filterOpen, setFilterOpen] = useState(false);
   const {
     rows,
     total,
@@ -223,7 +234,17 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
         className="space-y-3 rounded-lg border border-slate-200 bg-white p-4"
         data-testid={TEST_IDS.ADMIN.FILTER_FORM}
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="flex items-center justify-between gap-2 md:hidden">
+          <h2 className="text-lg font-semibold">کاربران</h2>
+          <Button
+            icon={<IconFilter size={16} stroke={2} aria-hidden="true" />}
+            onClick={() => setFilterOpen(true)}
+          >
+            فیلتر
+            {activeFilterCount(filters) ? ` (${activeFilterCount(filters)})` : ""}
+          </Button>
+        </div>
+        <div className="hidden flex-col gap-3 md:flex md:flex-row md:flex-wrap md:items-end">
           <div className="space-y-1.5">
             <label htmlFor="admin-filter-role" className="text-sm">
               نقش
@@ -299,6 +320,81 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
             </Button>
           </div>
         </div>
+
+        <FormSheet
+          open={filterOpen}
+          onClose={() => setFilterOpen(false)}
+          title="فیلتر کاربران"
+        >
+          <div className="grid gap-3">
+            <div className="space-y-1.5">
+              <label htmlFor="admin-filter-role-m" className="text-sm">
+                نقش
+              </label>
+              <Select<string>
+                id="admin-filter-role-m"
+                size="large"
+                className="w-full"
+                value={filters.role}
+                options={ROLE_FILTER_OPTIONS}
+                onChange={(role) => onFilterChange({ role })}
+              />
+            </div>
+            {counselorOptionsFailed ? (
+              <p role="alert" className="text-sm text-red-600">
+                فهرست مشاوران بارگذاری نشد.
+              </p>
+            ) : (
+              <div className="space-y-1.5">
+                <label htmlFor="admin-filter-counselor-m" className="text-sm">
+                  مشاور
+                </label>
+                <Select<string>
+                  id="admin-filter-counselor-m"
+                  size="large"
+                  className="w-full"
+                  value={filters.counselorId}
+                  options={[
+                    { value: "", label: "همه" },
+                    ...counselorOptions.map((option) => ({
+                      value: option.id,
+                      label: option.username,
+                    })),
+                  ]}
+                  onChange={(counselorId) => onFilterChange({ counselorId })}
+                />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <label htmlFor="admin-filter-q-m" className="text-sm">
+                جستجو
+              </label>
+              <Input
+                id="admin-filter-q-m"
+                size="large"
+                placeholder="نام کاربری یا نام کامل"
+                value={filters.q}
+                onChange={(event) => onFilterChange({ q: event.target.value })}
+                onPressEnter={onApplyFilters}
+              />
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => {
+                onApplyFilters();
+                setFilterOpen(false);
+              }}
+            >
+              اعمال
+            </Button>
+            <Button size="large" href={basePath}>
+              پاک کردن
+            </Button>
+          </div>
+        </FormSheet>
       </div>
 
       {successMessage ? (
@@ -325,23 +421,21 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
           خطا در دریافت فهرست کاربران. دوباره تلاش کنید.
         </p>
       ) : (
-        <div data-testid={TEST_IDS.ADMIN.USERS_TABLE}>
-          <Table<AdminUserRow>
-            rowKey="id"
-            columns={columns}
-            dataSource={rows as AdminUserRow[]}
-            loading={loading}
-            scroll={{ x: 880 }}
-            pagination={{
-              current: currentPage,
-              pageSize,
-              total,
-              showSizeChanger: false,
-              onChange: onPageChange,
-            }}
-            locale={{ emptyText: <Empty description="کاربری یافت نشد" /> }}
-          />
-        </div>
+        <ResponsiveTable<AdminUserRow>
+          testId={TEST_IDS.ADMIN.USERS_TABLE}
+          rowKey="id"
+          columns={columns}
+          dataSource={rows as AdminUserRow[]}
+          loading={loading}
+          emptyText="کاربری یافت نشد"
+          pagination={{
+            current: currentPage,
+            pageSize,
+            total,
+            showSizeChanger: false,
+            onChange: onPageChange,
+          }}
+        />
       )}
 
       <Modal
@@ -359,14 +453,10 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
         </p>
       </Modal>
 
-      <Modal
+      <FormSheet
         open={editTarget !== null}
+        onClose={onCloseEdit}
         title={`ویرایش ${editTarget?.username ?? ""}`}
-        okText="ذخیره"
-        cancelText="انصراف"
-        confirmLoading={supportPending}
-        onOk={() => form.submit()}
-        onCancel={onCloseEdit}
       >
         <Form
           form={form}
@@ -395,8 +485,16 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
               {supportError}
             </p>
           ) : null}
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={supportPending}
+            block
+          >
+            ذخیره
+          </Button>
         </Form>
-      </Modal>
+      </FormSheet>
     </section>
   );
 }

@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { Button, Empty, InputNumber } from "antd";
+import { IconListCheck } from "@tabler/icons-react";
 import type { HomeworkItem } from "@/modules/advising/domain/models";
 import { labelOf } from "@/modules/advising/domain/catalog";
-import { formatDeadline } from "@/modules/advising/presentation/planning-format";
+import { formatDeadline, formatNumber } from "@/modules/advising/presentation/planning-format";
 
 import { TEST_IDS } from "@/constants/test-ids";
 
@@ -47,7 +48,12 @@ export function HomeworkTodayView(props: HomeworkTodayViewProps): ReactNode {
       className="rounded-xl border border-slate-200 bg-white p-5"
       data-testid={TEST_IDS.DASHBOARD.CARD("homework")}
     >
-      <h2 className="mb-3 text-lg font-semibold">تکالیف امروز و فردا</h2>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700" aria-hidden="true">
+          <IconListCheck size={18} stroke={1.8} />
+        </span>
+        <h2 className="text-lg font-semibold">تکالیف امروز و فردا</h2>
+      </div>
       <ul className="flex flex-col gap-2">
         {pending.map((item) => {
           const minutes = homeworkMinutes.get(item.id);
@@ -69,6 +75,7 @@ export function HomeworkTodayView(props: HomeworkTodayViewProps): ReactNode {
                   value={minutes ?? null}
                   onChange={(v) => onSetHomeworkMinutes(item.id, v ?? null)}
                   data-testid={TEST_IDS.DASHBOARD.HOMEWORK_MINUTES(item.id)}
+                  aria-label="مدت مطالعه (دقیقه)"
                   className="w-[6rem]"
                 />
                 <Button
@@ -92,8 +99,8 @@ export function HomeworkTodayView(props: HomeworkTodayViewProps): ReactNode {
             >
               <span className="text-sm line-through">{item.title}</span>
               <span className="text-xs text-slate-500" dir="ltr" />
-              <span className="text-xs text-teal-700 font-medium" dir="ltr">
-                انجام شده — {minutes} دقیقه
+              <span className="text-xs text-teal-700 font-medium">
+                انجام شده — {formatNumber(minutes)} دقیقه
               </span>
             </li>
           );

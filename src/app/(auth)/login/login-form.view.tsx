@@ -32,6 +32,7 @@ export function LoginFormView(props: LoginFormViewProps): ReactNode {
           <Input
             autoComplete="username"
             dir="ltr"
+            spellCheck={false}
             data-testid={TEST_IDS.FORM.INPUT("username")}
           />
         </Form.Item>

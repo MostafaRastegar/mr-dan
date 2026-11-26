@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Button, Form, Input, Select, type FormInstance } from "antd";
+import { FormSheet } from "@/app/_components/form-sheet";
 import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
 import { DAYS_OF_WEEK, type SubjectRow } from "@/modules/advising/domain/models";
@@ -8,6 +9,7 @@ import { subjectOptions } from "@/modules/advising/domain/catalog";
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface ScheduleEntryFormViewProps {
+  open: boolean;
   form: FormInstance;
   state: ActionState<unknown> | null;
   submit: (values: FormValues) => void;
@@ -21,6 +23,7 @@ interface ScheduleEntryFormViewProps {
 
 export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactNode {
   const {
+    open,
     form,
     state,
     submit,
@@ -33,11 +36,12 @@ export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactN
   } = props;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-xl font-bold">افزودن برنامه درسی</h2>
-      </div>
-
+    <FormSheet
+      open={open}
+      onClose={onClose}
+      title="افزودن برنامه درسی"
+      testId={TEST_IDS.SCHEDULE.CREATE_FORM}
+    >
       <Form
         form={form}
         layout="vertical"
@@ -70,6 +74,7 @@ export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactN
         >
           <Input
             type="text"
+            inputMode="numeric"
             placeholder="۰۸:۳۰"
             dir="ltr"
             data-testid={TEST_IDS.FORM.INPUT("startTime")}
@@ -83,6 +88,7 @@ export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactN
         >
           <Input
             type="text"
+            inputMode="numeric"
             placeholder="۰۸:۳۰"
             dir="ltr"
             data-testid={TEST_IDS.FORM.INPUT("endTime")}
@@ -153,6 +159,6 @@ export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactN
           </Button>
         </Form.Item>
       </Form>
-    </div>
+    </FormSheet>
   );
 }

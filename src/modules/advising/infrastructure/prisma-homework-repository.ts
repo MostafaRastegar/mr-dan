@@ -17,6 +17,7 @@ import {
   NotFoundError,
 } from "@/modules/advising/domain/errors";
 import type { HomeworkRepositoryPort } from "@/modules/advising/domain/ports";
+import type { Page } from "@/modules/advising/domain/models";
 
 const HOMEWORK_SELECT = {
   id: true,
@@ -70,20 +71,54 @@ function isP2025(error: unknown): error is { code: "P2025" } {
 export class PrismaHomeworkRepository implements HomeworkRepositoryPort {
   constructor(private readonly client: PrismaClient = prisma) {}
 
+  private whereOf(studentId: string, filter: HomeworkFilter) {
+    return {
+      studentId,
+      ...(filter === "pending" ? { completedAt: null } : {}),
+      ...(filter === "done" ? { completedAt: { not: null } } : {}),
+    };
+  }
+
   async listByStudent(
     studentId: string,
     filter: HomeworkFilter,
   ): Promise<HomeworkItem[]> {
     const rows = await this.client.homework.findMany({
-      where: {
-        studentId,
-        ...(filter === "pending" ? { completedAt: null } : {}),
-        ...(filter === "done" ? { completedAt: { not: null } } : {}),
-      },
+      where: this.whereOf(studentId, filter),
       select: HOMEWORK_SELECT,
       orderBy: [{ completedAt: "asc" }, { priority: "desc" }, { deadline: "asc" }],
     });
     return rows.map(mapHomework);
+  }
+
+  async listByStudentPaged(
+    studentId: string,
+    filter: HomeworkFilter,
+    page: number,
+    pageSize: number,
+  ): Promise<Page<HomeworkItem>> {
+    const where = this.whereOf(studentId, filter);
+    const orderBy = [
+      { completedAt: "asc" as const },
+      { priority: "desc" as const },
+      { deadline: "asc" as const },
+    ];
+    const [rows, total] = await Promise.all([
+      this.client.homework.findMany({
+        where,
+        select: HOMEWORK_SELECT,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.client.homework.count({ where }),
+    ]);
+    return {
+      items: rows.map(mapHomework),
+      page,
+      pageSize,
+      total,
+    };
   }
 
   async findById(id: string): Promise<HomeworkItem | null> {

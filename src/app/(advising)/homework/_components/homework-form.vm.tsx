@@ -12,11 +12,13 @@ import { createHomeworkAction } from "../homework.actions";
 import { HomeworkFormView } from "./homework-form.view";
 
 interface HomeworkFormVMProps {
+  open: boolean;
   onClose: () => void;
   subjectOptions: SubjectOption[];
 }
 
 export function HomeworkForm({
+  open,
   onClose,
   subjectOptions,
 }: HomeworkFormVMProps) {
@@ -29,7 +31,8 @@ export function HomeworkForm({
     if (!state?.ok) return;
     form.resetFields();
     router.refresh();
-  }, [state, form, router]);
+    onClose();
+  }, [state, form, router, onClose]);
 
   const initialValues = {
     title: "",
@@ -40,6 +43,7 @@ export function HomeworkForm({
 
   return (
     <HomeworkFormView
+      open={open}
       form={form}
       state={state as ActionState<unknown> | null}
       submit={submit}

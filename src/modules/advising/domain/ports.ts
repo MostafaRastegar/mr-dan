@@ -59,6 +59,12 @@ export interface UserRepositoryPort {
   updateProfile(id: string, patch: ProfilePatch): Promise<UserAccount>;
   updatePassword(id: string, passwordHash: string): Promise<void>;
   listAssignableStudents(counselorId: string): Promise<StudentSummary[]>;
+  listStudentsPaged(
+    scope: "mine" | "unassigned",
+    counselorId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<Page<StudentSummary>>;
   assignToGroup(input: {
     studentId: string;
     groupId: string | null;
@@ -102,6 +108,12 @@ export interface ScheduleRepositoryPort {
 
 export interface HomeworkRepositoryPort {
   listByStudent(studentId: string, filter: HomeworkFilter): Promise<HomeworkItem[]>;
+  listByStudentPaged(
+    studentId: string,
+    filter: HomeworkFilter,
+    page: number,
+    pageSize: number,
+  ): Promise<Page<HomeworkItem>>;
   findById(id: string): Promise<HomeworkItem | null>;
   create(input: NewHomework): Promise<HomeworkItem>;
   setCompletion(id: string, input: { completedAt: Date | null; spentMinutes: number | null }): Promise<HomeworkItem>;

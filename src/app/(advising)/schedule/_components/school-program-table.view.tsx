@@ -68,7 +68,7 @@ export function SchoolProgramTableView(props: SchoolProgramTableViewProps): Reac
                 {dayEntries.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="p-2 text-center text-slate-400 text-sm">
-                      برنامهای ثبت نشده
+                      برنامه‌ای ثبت نشده
                     </td>
                   </tr>
                 ) : (

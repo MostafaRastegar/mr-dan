@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { Button } from "antd";
+import { IconApple } from "@tabler/icons-react";
 import Link from "next/link";
 import type { MealPlanRecord } from "@/modules/advising/domain/models";
 import { mealDistribution, type MealSlot } from "@/modules/advising/domain/energy";
+import { formatNumber } from "@/modules/advising/presentation/planning-format";
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface NutritionWidgetViewProps {
@@ -26,7 +28,12 @@ export function NutritionWidgetView(props: NutritionWidgetViewProps): ReactNode 
         className="rounded-xl border border-slate-200 bg-white p-5"
         data-testid={TEST_IDS.DASHBOARD.CARD("calorie")}
       >
-        <h2 className="mb-3 text-lg font-semibold">کالوری امروز</h2>
+        <div className="mb-3 flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700" aria-hidden="true">
+          <IconApple size={18} stroke={1.8} />
+        </span>
+        <h2 className="text-lg font-semibold">کالوری امروز</h2>
+      </div>
         <p className="mb-3 text-sm text-slate-500">
           اطلاعات فیزیکی را در تنظیمات تغذیه کامل کنید
         </p>
@@ -52,12 +59,19 @@ export function NutritionWidgetView(props: NutritionWidgetViewProps): ReactNode 
       className="rounded-xl border border-slate-200 bg-white p-5"
       data-testid={TEST_IDS.DASHBOARD.CARD("calorie")}
     >
-      <h2 className="mb-3 text-lg font-semibold">کالوری امروز</h2>
-      <div className="mb-3 flex items-baseline gap-1">
-        <span className="text-lg font-mono font-bold text-slate-900" dir="ltr">
-          {eatenCalories}
+      <div className="mb-3 flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700" aria-hidden="true">
+          <IconApple size={18} stroke={1.8} />
         </span>
-        <span className="text-xs text-slate-500">/{targetCalories} کالوری</span>
+        <h2 className="text-lg font-semibold">کالوری امروز</h2>
+      </div>
+      <div className="mb-3 flex items-baseline gap-1">
+        <span className="text-lg font-bold text-slate-900">
+          {formatNumber(eatenCalories)}
+        </span>
+        <span className="text-xs text-slate-500">
+          /{formatNumber(targetCalories)} کالوری
+        </span>
       </div>
       <ul className="flex flex-col gap-2 mb-4">
         {mealDistribution(targetCalories).map((item) => {
@@ -68,7 +82,7 @@ export function NutritionWidgetView(props: NutritionWidgetViewProps): ReactNode 
               className="flex items-center justify-between gap-2 rounded border border-slate-200 p-2"
             >
               <span className="text-sm">
-                {item.label} — {item.calories} کالوری
+                {item.label} — {formatNumber(item.calories)} کالوری
               </span>
               <Button
                 size="small"
@@ -88,8 +102,8 @@ export function NutritionWidgetView(props: NutritionWidgetViewProps): ReactNode 
           );
         })}
       </ul>
-      <div className="text-xs text-slate-500" dir="ltr">
-        مصرف شده: {percent}%
+      <div className="text-xs text-slate-500">
+        مصرف شده: {formatNumber(percent)}٪
       </div>
     </section>
   );

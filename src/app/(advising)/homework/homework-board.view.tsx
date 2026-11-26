@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Table, Button, Empty } from "antd";
+import { Button, Empty } from "antd";
+import { ResponsiveTable } from "@/app/_components/responsive-table";
 import type { HomeworkItem } from "@/modules/advising/domain/models";
 import type { SubjectOption } from "@/modules/advising/domain/catalog";
 import { labelOf } from "@/modules/advising/domain/catalog";
@@ -13,6 +14,9 @@ import { TEST_IDS } from "@/constants/test-ids";
 
 interface HomeworkBoardViewProps {
   items: HomeworkItem[];
+  onPageChange: (page: number) => void;
+  currentPage: number;
+  total: number;
   canWrite: boolean;
   todayKey: string;
   labels: Record<string, string>;
@@ -38,6 +42,9 @@ const STATUS_LABEL: Record<string, string> = {
 export function HomeworkBoardView(props: HomeworkBoardViewProps): ReactNode {
   const {
     items,
+    onPageChange,
+    currentPage,
+    total,
     canWrite,
     todayKey,
     labels,
@@ -111,12 +118,19 @@ export function HomeworkBoardView(props: HomeworkBoardViewProps): ReactNode {
           <Empty description="هیچ تکلیفی ثبت نشده است" />
         </div>
       ) : (
-        <Table
-          data-testid={TEST_IDS.HOMEWORK.TABLE}
+        <ResponsiveTable
+          testId={TEST_IDS.HOMEWORK.TABLE}
           rowKey="id"
-          scroll={{ x: "max-content" }}
           dataSource={items}
           columns={columns}
+          emptyText="هیچ تکلیفی ثبت نشده است"
+          pagination={{
+            current: currentPage,
+            pageSize: 10,
+            total,
+            showSizeChanger: false,
+            onChange: onPageChange,
+          }}
         />
       )}
 
@@ -129,9 +143,11 @@ export function HomeworkBoardView(props: HomeworkBoardViewProps): ReactNode {
         </Button>
       )}
 
-      {isFormOpen && canWrite && (
-        <HomeworkForm onClose={onCloseForm} subjectOptions={subjectOptions} />
-      )}
+      <HomeworkForm
+        open={isFormOpen && canWrite}
+        onClose={onCloseForm}
+        subjectOptions={subjectOptions}
+      />
     </div>
   );
 }

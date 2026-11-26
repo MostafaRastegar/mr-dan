@@ -1,13 +1,15 @@
 import type { ReactNode } from "react";
 import { Button, Form, Select, type FormInstance } from "antd";
 
+import { FormSheet } from "@/app/_components/form-sheet";
 import { TEST_IDS } from "@/constants/test-ids";
 import type { GroupSummary, StudentSummary } from "@/modules/advising/domain/models";
-import type { ActionState } from "@/utils/app-error";
 
 interface AssignStudentFormViewProps {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   form: FormInstance;
-  state: ActionState<unknown> | null;
   submit: (values: Record<string, unknown>) => void;
   pending: boolean;
   formError: string | null;
@@ -17,8 +19,10 @@ interface AssignStudentFormViewProps {
 
 export function AssignStudentFormView(props: AssignStudentFormViewProps): ReactNode {
   const {
+    open,
+    onOpen,
+    onClose,
     form,
-    state,
     submit,
     pending,
     formError,
@@ -27,66 +31,65 @@ export function AssignStudentFormView(props: AssignStudentFormViewProps): ReactN
   } = props;
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      requiredMark={false}
-      onFinish={submit}
-      data-testid={TEST_IDS.ROSTER.ASSIGN_FORM}
-    >
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Form.Item
-          name="studentId"
-          label="دانش‌آموز"
-          rules={[{ required: true, message: "دانش‌آموز را انتخاب کنید" }]}
+    <>
+      <Button onClick={onOpen} data-testid={TEST_IDS.ROSTER.OPEN_ASSIGN_FORM}>
+        تخصیص دانش‌آموز
+      </Button>
+
+      <FormSheet open={open} onClose={onClose} title="تخصیص دانش‌آموز به گروه">
+        <Form
+          form={form}
+          layout="vertical"
+          requiredMark={false}
+          onFinish={submit}
+          data-testid={TEST_IDS.ROSTER.ASSIGN_FORM}
         >
-          <Select
-            showSearch
-            optionFilterProp="label"
-            placeholder="انتخاب کنید"
-            options={students.map((student) => ({
-              value: student.id,
-              label: `${student.fullName} (${student.username})`,
-            }))}
-            data-testid={TEST_IDS.FORM.SELECT("studentId")}
-          />
-        </Form.Item>
+          <Form.Item
+            name="studentId"
+            label="دانش‌آموز"
+            rules={[{ required: true, message: "دانش‌آموز را انتخاب کنید" }]}
+          >
+            <Select
+              showSearch
+              optionFilterProp="label"
+              placeholder="انتخاب کنید"
+              options={students.map((student) => ({
+                value: student.id,
+                label: `${student.fullName} (${student.username})`,
+              }))}
+              data-testid={TEST_IDS.FORM.SELECT("studentId")}
+            />
+          </Form.Item>
 
-        <Form.Item name="groupId" label="گروه">
-          <Select
-            allowClear
-            placeholder="بدون گروه"
-            options={groups.map((group) => ({
-              value: group.id,
-              label: group.name,
-            }))}
-            data-testid={TEST_IDS.FORM.SELECT("groupId")}
-          />
-        </Form.Item>
+          <Form.Item name="groupId" label="گروه">
+            <Select
+              allowClear
+              placeholder="بدون گروه"
+              options={groups.map((group) => ({
+                value: group.id,
+                label: group.name,
+              }))}
+              data-testid={TEST_IDS.FORM.SELECT("groupId")}
+            />
+          </Form.Item>
 
-        <Form.Item label=" " colon={false} className="mb-0">
+          {formError ? (
+            <p className="mb-4 text-sm text-red-600" role="alert">
+              {formError}
+            </p>
+          ) : null}
+
           <Button
             type="primary"
             htmlType="submit"
             loading={pending}
+            block
             data-testid={TEST_IDS.FORM.SUBMIT("assign")}
           >
             تخصیص
           </Button>
-        </Form.Item>
-      </div>
-
-      {state?.ok ? (
-        <p className="text-sm text-teal-700" role="status" data-testid={TEST_IDS.ROSTER.ASSIGNED}>
-          تخصیص انجام شد.
-        </p>
-      ) : null}
-
-      {formError ? (
-        <p className="text-sm text-red-600" role="alert">
-          {formError}
-        </p>
-      ) : null}
-    </Form>
+        </Form>
+      </FormSheet>
+    </>
   );
 }

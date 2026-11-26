@@ -1,12 +1,17 @@
 import Link from "next/link";
-import { Empty, Table } from "antd";
+import { Empty } from "antd";
+import { ResponsiveTable } from "@/app/_components/responsive-table";
 import type { TableProps } from "antd";
-import { IconPlus, IconUser, IconUsers } from "@tabler/icons-react";
+import { IconUser, IconUsers } from "@tabler/icons-react";
 
 import { AssignStudentFormWrapper } from "./_components/assign-student-form.vm";
 import { GroupCreateFormWrapper } from "./_components/group-create-form.vm";
 import { TEST_IDS } from "@/constants/test-ids";
-import type { GroupSummary, StudentSummary } from "@/modules/advising/domain/models";
+import type {
+  GroupSummary,
+  Page,
+  StudentSummary,
+} from "@/modules/advising/domain/models";
 
 import type { ReactNode } from "react";
 
@@ -40,59 +45,47 @@ export function CounselorRosterView({
   groups,
   myStudents,
   unassigned,
+  assignable,
+  onPageMy,
+  onPageUnassigned,
   fieldOptions,
   gradeOptions,
 }: {
   groups: GroupSummary[];
-  myStudents: StudentSummary[];
-  unassigned: StudentSummary[];
+  myStudents: Page<StudentSummary>;
+  unassigned: Page<StudentSummary>;
+  assignable: StudentSummary[];
+  onPageMy: (page: number) => void;
+  onPageUnassigned: (page: number) => void;
   fieldOptions: string[];
   gradeOptions: string[];
 }): ReactNode {
-  // The assign pool mirrors the use-case guard: unowned students plus mine.
-  const assignable = [...unassigned, ...myStudents];
+  const rosterPager = (
+    current: number,
+    total: number,
+    onChange: (page: number) => void,
+  ) => ({
+    current,
+    pageSize: 10,
+    total,
+    showSizeChanger: false,
+    onChange,
+  });
 
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-2xl font-bold">پنل مشاور</h1>
       <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <IconPlus size={20} stroke={1.8} />
-          ساخت گروه
-        </h2>
-        <GroupCreateFormWrapper
-          fieldOptions={fieldOptions}
-          gradeOptions={gradeOptions}
-        />
-      </section>
-
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-5"
-        data-testid={TEST_IDS.ROSTER.UNASSIGNED_SECTION}
-      >
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <IconUser size={20} stroke={1.8} />
-          بدون گروه
-        </h2>
-        <p className="mb-4 text-sm text-slate-600">
-          دانش‌آموزانی که هنوز به شما تخصیص نیافته‌اند.
-        </p>
-        <Table<StudentSummary>
-          rowKey="id"
-          size="small"
-          pagination={false}
-          scroll={{ x: 480 }}
-          columns={unassignedColumns}
-          dataSource={unassigned}
-          locale={{ emptyText: <Empty description="دانش‌آموز بدون گروهی وجود ندارد" /> }}
-        />
-      </section>
-
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-          <IconUsers size={20} stroke={1.8} />
-          گروه‌های من
-        </h2>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <IconUsers size={20} stroke={1.8} />
+            گروه‌های من
+          </h2>
+          <GroupCreateFormWrapper
+            fieldOptions={fieldOptions}
+            gradeOptions={gradeOptions}
+          />
+        </div>
         {groups.length === 0 ? (
           <Empty description="هنوز گروهی نساخته‌اید" />
         ) : (
@@ -116,6 +109,19 @@ export function CounselorRosterView({
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="mb-4 text-lg font-semibold">دانش‌آموزان من</h2>
+        <ResponsiveTable<StudentSummary>
+          testId={TEST_IDS.ROSTER.TABLE}
+          rowKey="id"
+          size="small"
+          columns={columns ?? []}
+          dataSource={myStudents.items}
+          emptyText="هنوز دانش‌آموزی ندارید"
+          pagination={rosterPager(myStudents.page, myStudents.total, onPageMy)}
+        />
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
           <IconUser size={20} stroke={1.8} />
           تخصیص دانش‌آموز به گروه
@@ -129,17 +135,24 @@ export function CounselorRosterView({
         )}
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h2 className="mb-4 text-lg font-semibold">دانش‌آموزان من</h2>
-        <Table<StudentSummary>
+      <section
+        className="rounded-xl border border-slate-200 bg-white p-5"
+        data-testid={TEST_IDS.ROSTER.UNASSIGNED_SECTION}
+      >
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+          <IconUser size={20} stroke={1.8} />
+          بدون گروه
+        </h2>
+        <p className="mb-4 text-sm text-slate-600">
+          دانش‌آموزانی که هنوز به شما تخصیص نیافته‌اند.
+        </p>
+        <ResponsiveTable<StudentSummary>
           rowKey="id"
           size="small"
-          pagination={false}
-          scroll={{ x: 480 }}
-          columns={columns}
-          dataSource={myStudents}
-          data-testid={TEST_IDS.ROSTER.TABLE}
-          locale={{ emptyText: <Empty description="هنوز دانش‌آموزی ندارید" /> }}
+          columns={unassignedColumns}
+          dataSource={unassigned.items}
+          emptyText="دانش‌آموز بدون گروهی وجود ندارد"
+          pagination={rosterPager(unassigned.page, unassigned.total, onPageUnassigned)}
         />
       </section>
     </div>

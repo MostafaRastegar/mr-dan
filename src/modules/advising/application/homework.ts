@@ -18,6 +18,7 @@ import {
 import type {
   HomeworkFilter,
   HomeworkItem,
+  Page,
 } from "@/modules/advising/domain/models";
 import type {
   HomeworkRepositoryPort,
@@ -27,6 +28,8 @@ import type {
 function ownerIdOf(input: { studentId?: string; actor: Actor }): string {
   return input.studentId ?? input.actor.id;
 }
+
+const HOMEWORK_PAGE_SIZE = 10;
 
 export class ListHomeworkUseCase {
   constructor(
@@ -38,10 +41,17 @@ export class ListHomeworkUseCase {
     actor: Actor;
     studentId?: string;
     filter?: HomeworkFilter;
-  }): Promise<HomeworkItem[]> {
+    page?: string | undefined;
+  }): Promise<Page<HomeworkItem>> {
     const ownerId = ownerIdOf(input);
     await assertPlanRead(this.users, input.actor, ownerId);
-    return this.homework.listByStudent(ownerId, input.filter ?? "all");
+    const page = Math.max(1, Number(input.page ?? "1") || 1);
+    return this.homework.listByStudentPaged(
+      ownerId,
+      input.filter ?? "all",
+      page,
+      HOMEWORK_PAGE_SIZE,
+    );
   }
 }
 

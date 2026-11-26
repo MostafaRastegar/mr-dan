@@ -11,6 +11,7 @@ import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/shared/prisma";
 import type {
   NewUser,
+  Page,
   PhysicalProfile,
   PhysicalProfilePatch,
   ProfilePatch,
@@ -316,6 +317,54 @@ export class PrismaUserRepository implements UserRepositoryPort {
       groupName: row.group?.name ?? null,
       counselorId: row.counselorId,
     }));
+  }
+
+  async listStudentsPaged(
+    scope: "mine" | "unassigned",
+    counselorId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<Page<StudentSummary>> {
+    const where = {
+      role: "student" as const,
+      counselorId: scope === "mine" ? counselorId : null,
+    };
+    const [rows, total] = await Promise.all([
+      this.client.user.findMany({
+        where,
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
+          grade: true,
+          fieldOfStudy: true,
+          schoolName: true,
+          groupId: true,
+          group: { select: { name: true } },
+          counselorId: true,
+        },
+        orderBy: { fullName: "asc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.client.user.count({ where }),
+    ]);
+    return {
+      items: rows.map((row) => ({
+        id: row.id,
+        username: row.username,
+        fullName: row.fullName,
+        grade: row.grade,
+        fieldOfStudy: row.fieldOfStudy,
+        schoolName: row.schoolName,
+        groupId: row.groupId,
+        groupName: row.group?.name ?? null,
+        counselorId: row.counselorId,
+      })),
+      page,
+      pageSize,
+      total,
+    };
   }
 
   async assignToGroup(input: {

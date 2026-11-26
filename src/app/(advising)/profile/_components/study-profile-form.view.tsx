@@ -7,10 +7,12 @@ import {
   Select,
   Switch,
   Empty,
+  Popconfirm,
   type FormInstance,
 } from "antd";
 
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
+import { formatNumber } from "@/modules/advising/presentation/planning-format";
 
 import { TEST_IDS } from "@/constants/test-ids";
 import type { Need, Exam } from "@/modules/advising/domain/models";
@@ -100,6 +102,7 @@ export function StudyProfileFormView(
 
           <Form.Item
             name="takesMockExams"
+            label="شرکت در آزمون آزمایشی"
             valuePropName="checked"
             className="mb-0"
           >
@@ -175,11 +178,12 @@ export function StudyProfileFormView(
                           {r.taraz}
                         </td>
                         <td className="py-1 border-b border-slate-100 text-xs text-slate-500">
-                          {r.createdAt.toLocaleDateString("fa-IR", {
+                          {new Intl.DateTimeFormat("fa-IR", {
                             year: "numeric",
                             month: "2-digit",
                             day: "2-digit",
-                          })}
+                            timeZone: "Asia/Tehran",
+                          }).format(r.createdAt)}
                         </td>
                       </tr>
                     );
@@ -202,7 +206,11 @@ export function StudyProfileFormView(
           <div className="grid gap-2 md:grid-cols-7">
             {DAYS_OF_WEEK.map((day) => (
               <div key={day.day} className="flex flex-col items-center gap-1">
-                <label className="text-xs text-slate-500" title={day.label}>
+                <label
+                  htmlFor={`otherOccupied${day.day}`}
+                  className="text-xs text-slate-500"
+                  title={day.label}
+                >
                   {day.label}
                 </label>
                 <Form.Item
@@ -210,6 +218,7 @@ export function StudyProfileFormView(
                   className="w-full"
                 >
                   <InputNumber
+                    id={`otherOccupied${day.day}`}
                     min={0}
                     max={24}
                     step={0.25}
@@ -254,21 +263,27 @@ export function StudyProfileFormView(
                     className="flex items-center justify-between gap-2 p-2 border border-slate-100 rounded"
                   >
                     <span className="text-sm flex-1">{course.title}</span>
-                    <span className="text-xs text-slate-500 dir-ltr">
+                    <span className="text-xs text-slate-500">
                       {course.mode === "in_person" ? "حضوری" : "مجازی"}
                       {course.weeklyMinutes != null
-                        ? ` · ${Math.round(course.weeklyMinutes / 60)} س/س`
+                        ? ` · ${formatNumber(Math.round(course.weeklyMinutes / 60))} س/س`
                         : ""}
                     </span>
-                    <Button
-                      size="small"
-                      danger
-                      loading={deletePending}
-                      onClick={() => handleRemoveCourse(course.id)}
-                      data-testid={TEST_IDS.PROFILE.COURSE_DELETE}
+                    <Popconfirm
+                      title="این کلاس حذف شود؟"
+                      onConfirm={() => handleRemoveCourse(course.id)}
+                      okText="حذف"
+                      cancelText="لغو"
                     >
-                      حذف
-                    </Button>
+                      <Button
+                        size="small"
+                        danger
+                        loading={deletePending}
+                        data-testid={TEST_IDS.PROFILE.COURSE_DELETE}
+                      >
+                        حذف
+                      </Button>
+                    </Popconfirm>
                   </li>
                 ),
               )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Form } from "antd";
 import { useRouter } from "next/navigation";
 
@@ -34,6 +34,7 @@ export function SchoolProgramForm({
 }: SchoolProgramFormVMProps) {
   const [form] = Form.useForm();
   const router = useRouter();
+  const [isAddOpen, setIsAddOpen] = useState(false);
 
   const {
     state: addState,
@@ -52,6 +53,7 @@ export function SchoolProgramForm({
     if (!addState?.ok) return;
     form.resetFields();
     router.refresh();
+    setIsAddOpen(false);
   }, [addState, form, router]);
 
   useEffect(() => {
@@ -65,6 +67,9 @@ export function SchoolProgramForm({
 
   return (
     <SchoolProgramFormView
+      isAddOpen={isAddOpen}
+      onOpenAdd={() => setIsAddOpen(true)}
+      onCloseAdd={() => setIsAddOpen(false)}
       form={form}
       entries={initialEntries}
       fieldOfStudy={fieldOfStudy}

@@ -66,6 +66,7 @@ export function RegisterFormView(props: RegisterFormViewProps): ReactNode {
           <Input
             autoComplete="username"
             dir="ltr"
+            spellCheck={false}
             data-testid={TEST_IDS.FORM.INPUT("username")}
           />
         </Form.Item>
@@ -90,6 +91,7 @@ export function RegisterFormView(props: RegisterFormViewProps): ReactNode {
             type="email"
             autoComplete="email"
             dir="ltr"
+            spellCheck={false}
             data-testid={TEST_IDS.FORM.INPUT("email")}
           />
         </Form.Item>

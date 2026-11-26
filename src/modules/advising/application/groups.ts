@@ -11,7 +11,7 @@ import {
   ValidationError,
 } from "../domain/errors";
 import { hasCapability, type Capability } from "../domain/capabilities";
-import type { GroupSummary, StudentSummary } from "../domain/models";
+import type { GroupSummary, Page, StudentSummary } from "../domain/models";
 import type {
   GroupRepositoryPort,
   UserRepositoryPort,
@@ -87,6 +87,8 @@ export class AssignStudentToGroupUseCase {
   }
 }
 
+const ROSTER_PAGE_SIZE = 10;
+
 export class CounselorRosterUseCase {
   constructor(
     private readonly users: UserRepositoryPort,
@@ -95,27 +97,39 @@ export class CounselorRosterUseCase {
 
   async execute(input: {
     actor: Actor;
+    myPage?: string | undefined;
+    unassignedPage?: string | undefined;
   }): Promise<{
     groups: GroupSummary[];
-    myStudents: StudentSummary[];
-    unassigned: StudentSummary[];
+    myStudents: Page<StudentSummary>;
+    unassigned: Page<StudentSummary>;
+    // Full pool for the assign sheet's search select (client-side search).
+    assignable: StudentSummary[];
   }> {
     assertCapability(input.actor, "group:manage");
 
-    const [groups, students] = await Promise.all([
+    const myPage = Math.max(1, Number(input.myPage ?? "1") || 1);
+    const unassignedPage = Math.max(
+      1,
+      Number(input.unassignedPage ?? "1") || 1,
+    );
+    const [groups, myStudents, unassigned, assignable] = await Promise.all([
       this.groups.listByCounselor(input.actor.id),
+      this.users.listStudentsPaged(
+        "mine",
+        input.actor.id,
+        myPage,
+        ROSTER_PAGE_SIZE,
+      ),
+      this.users.listStudentsPaged(
+        "unassigned",
+        input.actor.id,
+        unassignedPage,
+        ROSTER_PAGE_SIZE,
+      ),
       this.users.listAssignableStudents(input.actor.id),
     ]);
 
-    // One pass, disjoint by construction: the query only returns students
-    // owned by this counselor or by nobody.
-    const myStudents: StudentSummary[] = [];
-    const unassigned: StudentSummary[] = [];
-    for (const student of students) {
-      if (student.counselorId === input.actor.id) myStudents.push(student);
-      else if (student.counselorId === null) unassigned.push(student);
-    }
-
-    return { groups, myStudents, unassigned };
+    return { groups, myStudents, unassigned, assignable };
   }
 }

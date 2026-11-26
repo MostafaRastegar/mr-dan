@@ -36,6 +36,7 @@ export function BudgetDayWrapper({ day, canWrite }: BudgetDayVMProps) {
           onChange={pickDate}
           allowClear={false}
           placeholder="انتخاب روز"
+          aria-label="انتخاب روز"
           data-testid={TEST_IDS.BUDGET.DAY_PICKER}
         />
       }

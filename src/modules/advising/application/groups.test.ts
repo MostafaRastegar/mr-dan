@@ -178,8 +178,8 @@ describe("groups", () => {
       fakes.groups,
     ).execute({ actor: { id: first.id, role: first.role } });
 
-    const mineIds = roster.myStudents.map((student) => student.id);
-    const unassignedIds = roster.unassigned.map((student) => student.id);
+    const mineIds = roster.myStudents.items.map((student) => student.id);
+    const unassignedIds = roster.unassigned.items.map((student) => student.id);
     expect(mineIds).toEqual([mine.id]);
     expect(unassignedIds).toEqual([unassigned.id]);
     expect([...mineIds, ...unassignedIds]).not.toContain(foreign.id);
@@ -201,8 +201,8 @@ describe("groups", () => {
       fakes.users,
       fakes.groups,
     ).execute({ actor: { id: other.id, role: other.role } });
-    expect(roster.myStudents).toEqual([]);
-    expect(roster.unassigned).toEqual([]);
+    expect(roster.myStudents.items).toEqual([]);
+    expect(roster.unassigned.items).toEqual([]);
   });
 
   it("partition keeps mine and unassigned disjoint and complete", async () => {
@@ -217,12 +217,14 @@ describe("groups", () => {
       fakes.groups,
     ).execute({ actor: { id: counselor.id, role: counselor.role } });
 
-    expect(roster.myStudents.map((row) => row.id)).toEqual([mine.id]);
-    expect(roster.unassigned.map((row) => row.id)).toEqual([free.id]);
-    const allIds = [...roster.myStudents, ...roster.unassigned].map((row) => row.id);
-    const sourceIds = (await fakes.users.listAssignableStudents(counselor.id)).map(
-      (row) => row.id,
-    );
+    expect(roster.myStudents.items.map((row) => row.id)).toEqual([mine.id]);
+    expect(roster.unassigned.items.map((row) => row.id)).toEqual([free.id]);
+    expect(roster.myStudents.total).toBe(1);
+    const allIds = [
+      ...roster.myStudents.items,
+      ...roster.unassigned.items,
+    ].map((row) => row.id);
+    const sourceIds = roster.assignable.map((row) => row.id);
     expect(new Set(allIds)).toEqual(new Set(sourceIds));
   });
 

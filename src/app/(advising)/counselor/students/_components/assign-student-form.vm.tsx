@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Form } from "antd";
 
@@ -19,6 +19,7 @@ export function AssignStudentFormWrapper({
 }) {
   const router = useRouter();
   const [form] = Form.useForm();
+  const [isOpen, setIsOpen] = useState(false);
   const { state, submit, pending } = useFormAction(assignStudentAction);
   const formError = useServerFormErrors(state, form);
 
@@ -26,12 +27,15 @@ export function AssignStudentFormWrapper({
     if (!state?.ok) return;
     form.resetFields(["studentId"]);
     router.refresh();
+    setIsOpen(false);
   }, [state, form, router]);
 
   return (
     <AssignStudentFormView
+      open={isOpen}
+      onOpen={() => setIsOpen(true)}
+      onClose={() => setIsOpen(false)}
       form={form}
-      state={state}
       submit={submit}
       pending={pending}
       formError={formError}

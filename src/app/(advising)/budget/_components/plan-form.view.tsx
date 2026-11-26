@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Button, Form, Select, TimePicker, type FormInstance } from "antd";
+import { FormSheet } from "@/app/_components/form-sheet";
 
 import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
@@ -8,6 +9,9 @@ import { formatDeadline } from "@/modules/advising/presentation/planning-format"
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface PlanFormViewProps {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   form: FormInstance;
   state: ActionState<{
     homeworkId: string;
@@ -21,21 +25,35 @@ interface PlanFormViewProps {
 }
 
 export function PlanFormView(props: PlanFormViewProps): ReactNode {
-  const { form, state, submit, pending, formError, candidates } = props;
+  const { open, onOpen, onClose, form, state, submit, pending, formError, candidates } = props;
 
   if (candidates.length === 0) {
     return (
-      <p className="text-sm text-slate-600">
-        تکلیف بازی برای برنامه‌ریزی در این روز نیست.
-      </p>
+      <section className="rounded-xl border border-slate-200 bg-white p-5">
+        <h2 className="text-lg font-semibold">برنامه‌ریزی زمان تکلیف</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          تکلیف بازی برای برنامه‌ریزی در این روز نیست.
+        </p>
+      </section>
     );
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="mb-4 text-xl font-bold">برنامه‌ریزی زمان تکلیف</h2>
+    <section className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <h2 className="text-lg font-semibold">برنامه‌ریزی زمان تکلیف</h2>
+        <Button onClick={onOpen} data-testid={TEST_IDS.BUDGET.PLAN_OPEN_FORM}>
+          افزودن برنامه
+        </Button>
+      </div>
 
-      <Form
+      <FormSheet
+        open={open}
+        onClose={onClose}
+        title="افزودن برنامه"
+        testId={TEST_IDS.BUDGET.PLAN_FORM}
+      >
+        <Form
         form={form}
         layout="vertical"
         requiredMark={false}
@@ -88,11 +106,13 @@ export function PlanFormView(props: PlanFormViewProps): ReactNode {
           type="primary"
           htmlType="submit"
           loading={pending}
+          block
           data-testid={TEST_IDS.FORM.SUBMIT("budget-plan")}
         >
           ثبت برنامه
         </Button>
       </Form>
-    </div>
+      </FormSheet>
+    </section>
   );
 }

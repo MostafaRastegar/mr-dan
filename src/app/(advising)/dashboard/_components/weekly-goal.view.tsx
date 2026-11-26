@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { Button, Progress } from "antd";
+import { IconTargetArrow } from "@tabler/icons-react";
 import type { DashboardGoal } from "@/modules/advising/application/dashboard";
+import { formatNumber } from "@/modules/advising/presentation/planning-format";
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface WeeklyGoalViewProps {
@@ -27,7 +29,12 @@ export function WeeklyGoalView(props: WeeklyGoalViewProps): ReactNode {
       className="rounded-xl border border-slate-200 bg-white p-5"
       data-testid={TEST_IDS.DASHBOARD.CARD("goal")}
     >
-      <h2 className="mb-3 text-lg font-semibold">هدف هفته</h2>
+      <div className="mb-3 flex items-center gap-2">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-teal-50 text-teal-700" aria-hidden="true">
+          <IconTargetArrow size={18} stroke={1.8} />
+        </span>
+        <h2 className="text-lg font-semibold">هدف هفته</h2>
+      </div>
 
       {!goal ? (
         <p className="mb-4 text-sm text-slate-500">{needLabel}</p>
@@ -36,8 +43,8 @@ export function WeeklyGoalView(props: WeeklyGoalViewProps): ReactNode {
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-500">ساعت مطالعه</span>
-              <span className="text-slate-900" dir="ltr">
-                {studiedMinutes} / {goal.studyMinutesTarget} دقیقه
+              <span className="text-slate-900">
+                {formatNumber(studiedMinutes)} / {formatNumber(goal.studyMinutesTarget)} دقیقه
               </span>
             </div>
             <Progress
@@ -49,8 +56,8 @@ export function WeeklyGoalView(props: WeeklyGoalViewProps): ReactNode {
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-1">
               <span className="text-slate-500">تست‌ها</span>
-              <span className="text-slate-900" dir="ltr">
-                {testsDone} / {goal.testsTarget}
+              <span className="text-slate-900">
+                {formatNumber(testsDone)} / {formatNumber(goal.testsTarget)}
               </span>
             </div>
             <Progress

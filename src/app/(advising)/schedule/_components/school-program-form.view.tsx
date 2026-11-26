@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 import { Button, Form, InputNumber, Select, type FormInstance } from "antd";
+import { IconPlus } from "@tabler/icons-react";
+
+import { FormSheet } from "@/app/_components/form-sheet";
 
 import { DAYS_OF_WEEK, type SubjectRow } from "@/modules/advising/domain/models";
 import { labelOf, subjectOptions } from "@/modules/advising/domain/catalog";
@@ -16,6 +19,9 @@ export interface SchoolProgramEntry {
 }
 
 interface SchoolProgramFormViewProps {
+  isAddOpen: boolean;
+  onOpenAdd: () => void;
+  onCloseAdd: () => void;
   form: FormInstance;
   entries: SchoolProgramEntry[];
   fieldOfStudy: string | null;
@@ -35,6 +41,9 @@ function dayLabel(dayOfWeek: number): string {
 
 export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactNode {
   const {
+    isAddOpen,
+    onOpenAdd,
+    onCloseAdd,
     form,
     entries,
     fieldOfStudy,
@@ -52,19 +61,35 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
       className="rounded-xl border border-slate-200 bg-white p-5"
       data-testid={TEST_IDS.SCHOOL_PROGRAM.SECTION}
     >
-      <h2 className="mb-4 text-lg font-semibold">برنامهٔ ثابت مدرسه</h2>
-      <p className="mb-4 text-sm text-slate-500">
-        روز + درس + ساعت (بدون محدوده زمانی). ساعت‌ها برای برنامه‌ریزی استفاده می‌شوند.
-      </p>
+      <div className="mb-4 flex items-start justify-between gap-2">
+        <div>
+          <h2 className="text-lg font-semibold">برنامهٔ ثابت مدرسه</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            روز + درس + ساعت (بدون محدوده زمانی).
+          </p>
+        </div>
+        <Button
+          icon={<IconPlus size={16} stroke={2} aria-hidden="true" />}
+          onClick={onOpenAdd}
+          data-testid={TEST_IDS.SCHOOL_PROGRAM.OPEN_FORM}
+        >
+          افزودن ردیف
+        </Button>
+      </div>
 
-      <Form
-        form={form}
-        layout="vertical"
-        requiredMark={false}
-        onFinish={submit}
-        data-testid={TEST_IDS.SCHOOL_PROGRAM.FORM}
+      <FormSheet
+        open={isAddOpen}
+        onClose={onCloseAdd}
+        title="افزودن ردیف برنامهٔ مدرسه"
+        testId={TEST_IDS.SCHOOL_PROGRAM.FORM}
       >
-        <div className="grid gap-3 sm:grid-cols-4 mb-6">
+        <Form
+          form={form}
+          layout="vertical"
+          requiredMark={false}
+          onFinish={submit}
+          data-testid={TEST_IDS.SCHOOL_PROGRAM.FORM}
+        >
           <Form.Item
             name="dayOfWeek"
             label="روز"
@@ -126,7 +151,18 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
             />
           </Form.Item>
 
-          <Form.Item label=" " colon={false} className="mb-0 flex items-end">
+          {saved ? (
+            <p className="mb-4 text-sm text-teal-700" role="status" data-testid={TEST_IDS.SCHEDULE.SAVED}>
+              ذخیره شد.
+            </p>
+          ) : null}
+          {formError ? (
+            <p className="mb-4 text-sm text-red-600" role="alert">
+              {formError}
+            </p>
+          ) : null}
+
+          <Form.Item className="mb-0 flex justify-end">
             <Button
               type="primary"
               htmlType="submit"
@@ -136,19 +172,8 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
               افزودن ردیف
             </Button>
           </Form.Item>
-        </div>
-
-        {saved ? (
-          <p className="mb-4 text-sm text-teal-700" role="status" data-testid={TEST_IDS.SCHEDULE.SAVED}>
-            ذخیره شد.
-          </p>
-        ) : null}
-        {formError ? (
-          <p className="mb-4 text-sm text-red-600" role="alert">
-            {formError}
-          </p>
-        ) : null}
-      </Form>
+        </Form>
+      </FormSheet>
 
       <SchoolProgramTableView
         entries={entries}

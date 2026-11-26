@@ -33,9 +33,10 @@ export function HomeworkControlsView(props: {
         okText="حذف"
       >
         <Button
-          icon={<IconTrash size={14} stroke={1.6} />}
+          icon={<IconTrash size={14} stroke={1.6} aria-hidden="true" />}
           size="small"
           danger
+          aria-label="حذف تکلیف"
           data-testid={`${TEST_IDS.HOMEWORK.DELETE}-${itemId}`}
         />
       </Popconfirm>

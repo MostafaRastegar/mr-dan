@@ -23,7 +23,9 @@ export function ChatPageWrapper(): React.ReactNode {
   const msgEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    msgEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches;
+    msgEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
   }, [messages]);
 
   const currentInputRef = useRef(input);

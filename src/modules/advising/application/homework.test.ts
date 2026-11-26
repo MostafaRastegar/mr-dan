@@ -63,22 +63,32 @@ describe("homework use cases", () => {
     });
 
     const all = await list.execute({ actor: actorOf(student), studentId: student.id });
-    expect(all).toHaveLength(2);
+    expect(all.items).toHaveLength(2);
+    expect(all.total).toBe(2);
+
+    const paged = await list.execute({
+      actor: actorOf(student),
+      studentId: student.id,
+      page: "1",
+    });
+    expect(paged.items).toHaveLength(2);
+    expect(paged.page).toBe(1);
+    expect(paged.pageSize).toBe(10);
 
     const pending = await list.execute({
       actor: actorOf(student),
       studentId: student.id,
       filter: "pending",
     });
-    expect(pending).toHaveLength(2);
+    expect(pending.items).toHaveLength(2);
 
-    await fakes.homework.setCompletion(all[0].id, { completedAt: new Date(), spentMinutes: null });
+    await fakes.homework.setCompletion(all.items[0].id, { completedAt: new Date(), spentMinutes: null });
     const done = await list.execute({
       actor: actorOf(student),
       studentId: student.id,
       filter: "done",
     });
-    expect(done).toHaveLength(1);
+    expect(done.items).toHaveLength(1);
   });
 
   it("toggle sets then clears completedAt", async () => {

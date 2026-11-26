@@ -16,6 +16,7 @@ import type {
   GroupSummary,
   NewGroup,
   NewUser,
+  Page,
   PhysicalProfile,
   PhysicalProfilePatch,
   ProfilePatch,
@@ -228,6 +229,27 @@ export class FakeUserRepository implements UserRepositoryPort {
           : null,
         counselorId: row.counselorId,
       }));
+  }
+
+  async listStudentsPaged(
+    scope: "mine" | "unassigned",
+    counselorId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<Page<StudentSummary>> {
+    const all = (await this.listAssignableStudents(counselorId)).filter(
+      (row) =>
+        scope === "mine"
+          ? row.counselorId === counselorId
+          : row.counselorId === null,
+    );
+    const start = (page - 1) * pageSize;
+    return {
+      items: all.slice(start, start + pageSize),
+      page,
+      pageSize,
+      total: all.length,
+    };
   }
 
   async assignToGroup(input: {

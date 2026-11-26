@@ -124,6 +124,11 @@ Hard rules:
 - Layout with Tailwind breakpoints: `grid gap-3 sm:grid-cols-3`, `flex flex-col gap-4 lg:flex-row`. No device store and no `window` branch in render.
 - Tap targets ≥ 44px, 200% zoom safe, `focus-visible` never removed.
 - A modal becomes a bottom sheet below `lg`; until a page has a modal, do not implement the rule.
+- Every list page paginates — no open-ended lists. Desktop gets an AntD pager
+  (client-side `pageSize: 10` default, server-side when the page query supports
+  it); mobile gets the local pager inside `ResponsiveTable`. `pagination={false}`
+  is only allowed on scoped child lists (a single day, a single week, the rows
+  under one parent entry) where the parent bounds the size.
 
 ## Access control
 

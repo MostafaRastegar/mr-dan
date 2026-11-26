@@ -36,6 +36,7 @@ export function CatalogManagerWrapper<T extends CatalogRow>(
   const router = useRouter();
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [navigating, startNavigation] = useTransition();
 
   const create = useFormAction(actions.create);
@@ -49,6 +50,7 @@ export function CatalogManagerWrapper<T extends CatalogRow>(
     if (!create.state?.ok) return;
     form.resetFields();
     setEditingId(null);
+    setIsFormOpen(false);
     router.refresh();
   }, [create.state, form, router]);
 
@@ -56,6 +58,7 @@ export function CatalogManagerWrapper<T extends CatalogRow>(
     if (!update.state?.ok) return;
     form.resetFields();
     setEditingId(null);
+    setIsFormOpen(false);
     router.refresh();
   }, [update.state, form, router]);
 
@@ -72,11 +75,13 @@ export function CatalogManagerWrapper<T extends CatalogRow>(
   const startEdit = (row: T) => {
     setEditingId(row.id);
     form.setFieldsValue(readFormValues(row, config.fields));
+    setIsFormOpen(true);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     form.resetFields();
+    setIsFormOpen(false);
   };
 
   const submit = (values: FormValues) => {
@@ -92,6 +97,8 @@ export function CatalogManagerWrapper<T extends CatalogRow>(
     <CatalogManagerView
       form={form}
       config={config}
+      isFormOpen={isFormOpen}
+      onOpenCreate={() => setIsFormOpen(true)}
       rows={page.items}
       total={page.total}
       currentPage={page.page}

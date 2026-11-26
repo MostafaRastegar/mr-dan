@@ -52,14 +52,16 @@ export function DashboardView(props: DashboardViewProps): ReactNode {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Card 0 — greeting */}
+      {/* Hero — the one bold element: brand green greeting card */}
       <section
-        className="rounded-xl border border-slate-200 bg-white p-6"
+        className="rounded-2xl bg-teal-600 px-6 py-7 text-white"
         data-testid={TEST_IDS.DASHBOARD.CARD("greeting")}
       >
-        <h1 className="text-xl font-bold">{overview.profile.fullName} عزیز، سلام</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          امروز چه کار دارید؟ برنامه کلاس‌ها، تکالیف و وقت آزادتان در یک نگاه.
+        <h1 className="text-2xl font-bold text-balance">
+          سلام {overview.profile.fullName.split(" ")[0]}!
+        </h1>
+        <p className="mt-2 text-sm text-teal-50">
+          امروز چه کار داری؟ تکالیف، برنامه مطالعه و وقت آزادت همین‌جاست.
         </p>
       </section>
 

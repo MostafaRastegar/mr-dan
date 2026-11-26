@@ -61,7 +61,7 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
         </p>
       ) : null}
 
-      <div className="overflow-x-auto">
+      <div className="hidden overflow-x-auto md:block">
         <table
           className="w-full text-sm border-collapse"
           data-testid={TEST_IDS.COUNSELOR_PLAN.PLAN_TABLE}
@@ -126,6 +126,54 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
           </tbody>
         </table>
       </div>
+
+      <ul className="grid gap-3 md:hidden" data-testid={`${TEST_IDS.COUNSELOR_PLAN.PLAN_TABLE}-card`}>
+        {entries.length === 0 ? (
+          <li className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+            هنوز ردیفی ثبت نشده است
+          </li>
+        ) : null}
+        {entries.map((entry) => (
+          <li
+            key={entry.id}
+            className="rounded-xl border border-slate-200 bg-white p-4"
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[15px] font-semibold text-slate-900">
+                {dayLabel(entry.dayOfWeek)} · {labelOf(labels, entry.subject)}
+              </span>
+              <span className="dir-ltr text-sm text-slate-700">
+                {formatDuration(entry.minutes)}
+              </span>
+            </div>
+            <dl className="mt-2 grid gap-1.5 text-sm">
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="shrink-0 text-slate-500">فصل‌ها</dt>
+                <dd className="min-w-0 text-right">
+                  {chapterList(entry.chapterIds, chapters)}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="shrink-0 text-slate-500">یادداشت</dt>
+                <dd className="min-w-0 text-right">
+                  {entry.note ?? "—"}
+                </dd>
+              </div>
+            </dl>
+            <div className="mt-3 border-t border-slate-200/70 pt-2 text-left">
+              <Button
+                size="small"
+                danger
+                loading={pending}
+                onClick={() => onDelete(entry.id)}
+                data-testid={TEST_IDS.COUNSELOR_PLAN.PLAN_ROW_DELETE}
+              >
+                حذف
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ul>
 
       <div className="grid gap-2 sm:grid-cols-3">
         {Object.entries(subjectTotals).map(([subject, totalMinutes]) => (

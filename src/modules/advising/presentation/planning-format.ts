@@ -16,6 +16,11 @@ const timeFormatter = new Intl.NumberFormat("fa-IR", {
 /** Persian digits without leading-zero padding (for chapter numbers, etc.). */
 const persianDigits = new Intl.NumberFormat("fa-IR");
 
+/** Persian-digit plain number for view layer. */
+export function formatNumber(value: number): string {
+  return persianDigits.format(value);
+}
+
 export function formatClock(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

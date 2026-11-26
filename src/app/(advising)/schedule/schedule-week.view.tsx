@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Table, Button, Empty } from "antd";
+import { Button, Empty } from "antd";
+import { ResponsiveTable } from "@/app/_components/responsive-table";
 import type { SubjectRow, WeeklyScheduleEntry } from "@/modules/advising/domain/models";
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
 import { labelOf } from "@/modules/advising/domain/catalog";
@@ -121,12 +122,12 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
           <Empty description="هیچ برنامه‌ای ثبت نشده است" />
         </div>
       ) : (
-        <Table
-          data-testid={TEST_IDS.SCHEDULE.TABLE}
+        <ResponsiveTable
+          testId={TEST_IDS.SCHEDULE.TABLE}
           rowKey="id"
-          scroll={{ x: "max-content" }}
           dataSource={entries}
           columns={columns}
+          emptyText="هیچ برنامه‌ای ثبت نشده است"
         />
       )}
 
@@ -139,13 +140,12 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
         </Button>
       )}
 
-      {isFormOpen && canWrite && (
-        <ScheduleEntryForm
-          fieldOfStudy={fieldOfStudy}
-          subjects={subjects}
-          onClose={onCloseForm}
-        />
-      )}
+      <ScheduleEntryForm
+        open={isFormOpen && canWrite}
+        fieldOfStudy={fieldOfStudy}
+        subjects={subjects}
+        onClose={onCloseForm}
+      />
 
       <SchoolProgramForm
         initialEntries={schoolProgramEntries}

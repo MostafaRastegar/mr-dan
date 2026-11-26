@@ -12,12 +12,14 @@ import { createScheduleEntryAction } from "../schedule.actions";
 import { ScheduleEntryFormView } from "./schedule-entry-form.view";
 
 interface ScheduleEntryFormVMProps {
+  open: boolean;
   fieldOfStudy: string | null;
   subjects: SubjectRow[];
   onClose: () => void;
 }
 
 export function ScheduleEntryForm({
+  open,
   fieldOfStudy,
   subjects,
   onClose,
@@ -31,7 +33,8 @@ export function ScheduleEntryForm({
     if (!state?.ok) return;
     form.resetFields();
     router.refresh();
-  }, [state, form, router]);
+    onClose();
+  }, [state, form, router, onClose]);
 
   const initialValues = {
     dayOfWeek: "",
@@ -44,6 +47,7 @@ export function ScheduleEntryForm({
 
   return (
     <ScheduleEntryFormView
+      open={open}
       form={form}
       state={state as ActionState<unknown> | null}
       submit={submit}

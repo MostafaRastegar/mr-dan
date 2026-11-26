@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Button, Form, Input, Select, type FormInstance } from "antd";
+import { FormSheet } from "@/app/_components/form-sheet";
 import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
 import type { SubjectOption } from "@/modules/advising/domain/catalog";
@@ -13,6 +14,7 @@ const PRIORITY_OPTIONS = [
 ];
 
 interface HomeworkFormViewProps {
+  open: boolean;
   form: FormInstance;
   state: ActionState<unknown> | null;
   submit: (values: FormValues) => void;
@@ -25,6 +27,7 @@ interface HomeworkFormViewProps {
 
 export function HomeworkFormView(props: HomeworkFormViewProps): ReactNode {
   const {
+    open,
     form,
     state,
     submit,
@@ -36,11 +39,12 @@ export function HomeworkFormView(props: HomeworkFormViewProps): ReactNode {
   } = props;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-xl font-bold">افزودن تکلیف</h2>
-      </div>
-
+    <FormSheet
+      open={open}
+      onClose={onClose}
+      title="افزودن تکلیف"
+      testId={TEST_IDS.HOMEWORK.FORM}
+    >
       <Form
         form={form}
         layout="vertical"
@@ -55,7 +59,6 @@ export function HomeworkFormView(props: HomeworkFormViewProps): ReactNode {
           rules={[{ required: true, message: "عنوان را وارد کنید" }]}
         >
           <Input
-            autoComplete="title"
             data-testid={TEST_IDS.FORM.INPUT("title")}
           />
         </Form.Item>
@@ -132,6 +135,6 @@ export function HomeworkFormView(props: HomeworkFormViewProps): ReactNode {
           </Button>
         </Form.Item>
       </Form>
-    </div>
+    </FormSheet>
   );
 }

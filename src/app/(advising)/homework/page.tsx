@@ -7,17 +7,23 @@ import { subjectOptions } from "@/modules/advising/domain/catalog";
 
 export const metadata = { title: "تکالیف — mr-dan" };
 
-export default async function HomeworkPage() {
+export default async function HomeworkPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { user } = await requireCapability("homework:read");
+  const { page } = await searchParams;
   const container = getContainer();
   const catalog = await container.advising.catalogOptions.execute();
   const items = await container.advising.listHomework.execute({
     actor: { id: user.id, role: user.role },
     filter: "all",
+    page,
   });
   return (
     <HomeworkBoardWrapper
-      items={items}
+      pageData={items}
       canWrite={hasCapability(user.role, "homework:write")}
       todayKey={iranDayKey(new Date())}
       labels={catalog.subjectLabels}

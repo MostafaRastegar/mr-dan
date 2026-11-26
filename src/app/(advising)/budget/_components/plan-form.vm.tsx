@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Form } from "antd";
 
@@ -24,13 +24,16 @@ interface PlanFormProps {
 export function PlanForm({ dayKey, candidates }: PlanFormProps) {
   const [form] = Form.useForm();
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
   const { state, submit, pending } = useFormAction(planHomeworkAction);
   const formError = useServerFormErrors(state, form);
 
   useEffect(() => {
     if (!state?.ok) return;
+    form.resetFields();
     router.refresh();
-  }, [state, router]);
+    setIsOpen(false);
+  }, [state, form, router]);
 
   const onFinish = (values: FormValues) => {
     const minutes = durationToMinutes(values.plannedTime);
@@ -45,6 +48,9 @@ export function PlanForm({ dayKey, candidates }: PlanFormProps) {
 
   return (
     <PlanFormView
+      open={isOpen}
+      onOpen={() => setIsOpen(true)}
+      onClose={() => setIsOpen(false)}
       form={form}
       state={state}
       submit={onFinish}

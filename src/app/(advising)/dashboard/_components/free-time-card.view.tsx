@@ -35,7 +35,6 @@ export function FreeTimeCardView(props: FreeTimeCardViewProps): ReactNode {
         <span className="text-sm text-slate-500">وقت آزاد امروز</span>
         <span
           className="text-xl font-bold text-slate-900"
-          dir="ltr"
           data-testid={TEST_IDS.DASHBOARD.FREE_MINUTES}
         >
           {formatDuration(freeMinutes)}

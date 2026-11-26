@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Form } from "antd";
 
@@ -30,6 +30,7 @@ function minutesToHHMM(minutes: number | null): string {
 export function FreeTimeForm({ dayKey, freeMinutes, suggestedMinutes }: FreeTimeFormProps) {
   const [form] = Form.useForm();
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
   const { state, submit, pending } = useFormAction(setFreeTimeAction);
   const formError = useServerFormErrors(state, form);
   const initialValues = { freeTime: minutesToHHMM(freeMinutes) };
@@ -37,6 +38,7 @@ export function FreeTimeForm({ dayKey, freeMinutes, suggestedMinutes }: FreeTime
   useEffect(() => {
     if (!state?.ok) return;
     router.refresh();
+    setIsOpen(false);
   }, [state, router]);
 
   const onFinish = (values: FormValues) => {
@@ -46,8 +48,10 @@ export function FreeTimeForm({ dayKey, freeMinutes, suggestedMinutes }: FreeTime
 
   return (
     <FreeTimeFormView
+      open={isOpen}
+      onOpen={() => setIsOpen(true)}
+      onClose={() => setIsOpen(false)}
       form={form}
-      state={state}
       submit={onFinish}
       pending={pending}
       formError={formError}

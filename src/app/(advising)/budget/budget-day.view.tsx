@@ -16,6 +16,16 @@ interface BudgetDayViewProps {
 export function BudgetDayView(props: BudgetDayViewProps): ReactNode {
   const { day, datePicker, freeTimeForm, planForm, planList } = props;
   const capacity = day.freeMinutes ?? 0;
+  // Fixed timeZone keeps server/client render identical; calendar matches
+  // formatDeadline and the DatePicker (gregory).
+  const dayTitle = new Intl.DateTimeFormat("fa-IR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    calendar: "gregory",
+    timeZone: "Asia/Tehran",
+  }).format(new Date(`${day.dayKey}T00:00:00`));
 
   return (
     <div className="flex flex-col gap-6">
@@ -23,7 +33,7 @@ export function BudgetDayView(props: BudgetDayViewProps): ReactNode {
         <h1 className="text-2xl font-bold">وقت آزاد</h1>
         <div className="flex items-center gap-2">
           {datePicker}
-          <span className="text-sm text-slate-600">{day.dayKey}</span>
+          <span className="text-sm text-slate-600">{dayTitle}</span>
         </div>
       </div>
 

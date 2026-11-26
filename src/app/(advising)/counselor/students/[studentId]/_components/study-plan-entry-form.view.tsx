@@ -7,7 +7,9 @@ import {
   Select,
   type FormInstance,
 } from "antd";
+import { IconPlus } from "@tabler/icons-react";
 
+import { FormSheet } from "@/app/_components/form-sheet";
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
 import type { Chapter } from "@/modules/advising/domain/models";
 import type { SubjectOption } from "@/modules/advising/domain/catalog";
@@ -17,11 +19,13 @@ import type { FormValues } from "@/utils/use-form-action";
 const persianDigits = new Intl.NumberFormat("fa-IR", { useGrouping: false });
 
 interface StudyPlanEntryFormViewProps {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   form: FormInstance;
   submit: (values: FormValues) => void;
   pending: boolean;
   formError: string | null;
-  saved: boolean;
   availableChapters: Chapter[];
   subjectOptions: SubjectOption[];
 }
@@ -30,24 +34,36 @@ export function StudyPlanEntryFormView(
   props: StudyPlanEntryFormViewProps,
 ): ReactNode {
   const {
+    open,
+    onOpen,
+    onClose,
     form,
     submit,
     pending,
     formError,
-    saved,
     availableChapters,
     subjectOptions,
   } = props;
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      requiredMark={false}
-      onFinish={submit}
-      data-testid={TEST_IDS.COUNSELOR_PLAN.ENTRY_FORM}
-    >
-      <div className="grid gap-3 sm:grid-cols-4">
+    <>
+      <Button
+        icon={<IconPlus size={16} stroke={2} aria-hidden="true" />}
+        onClick={onOpen}
+        data-testid={TEST_IDS.COUNSELOR_PLAN.OPEN_ENTRY_FORM}
+      >
+        افزودن ردیف
+      </Button>
+
+      <FormSheet open={open} onClose={onClose} title="افزودن ردیف برنامه">
+        <Form
+          form={form}
+          layout="vertical"
+          requiredMark={false}
+          onFinish={submit}
+          data-testid={TEST_IDS.COUNSELOR_PLAN.ENTRY_FORM}
+        >
+      <div className="grid gap-3">
         <Form.Item
           name="dayOfWeek"
           label="روز"
@@ -120,12 +136,6 @@ export function StudyPlanEntryFormView(
         />
       </Form.Item>
 
-      {saved ? (
-        <p className="mb-2 text-sm text-teal-700" role="status">
-          ردیف افزوده شد.
-        </p>
-      ) : null}
-
       {formError ? (
         <p className="mb-2 text-sm text-red-600" role="alert">
           {formError}
@@ -136,10 +146,13 @@ export function StudyPlanEntryFormView(
         type="primary"
         htmlType="submit"
         loading={pending}
+        block
         data-testid={TEST_IDS.FORM.SUBMIT("study-plan-entry")}
       >
         افزودن ردیف
       </Button>
     </Form>
+      </FormSheet>
+    </>
   );
 }

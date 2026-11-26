@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-import type { HomeworkItem } from "@/modules/advising/domain/models";
+import type { HomeworkItem, Page } from "@/modules/advising/domain/models";
 import type { SubjectOption } from "@/modules/advising/domain/catalog";
 
 import { HomeworkBoardView } from "./homework-board.view";
 
 interface HomeworkBoardVMProps {
-  items: HomeworkItem[];
+  pageData: Page<HomeworkItem>;
   canWrite: boolean;
   todayKey: string;
   labels: Record<string, string>;
@@ -16,17 +17,21 @@ interface HomeworkBoardVMProps {
 }
 
 export function HomeworkBoardWrapper({
-  items,
+  pageData,
   canWrite,
   todayKey,
   labels,
   subjectOptions,
 }: HomeworkBoardVMProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <HomeworkBoardView
-      items={items}
+      items={pageData.items}
+      onPageChange={(next) => router.push(`/homework?page=${next}`)}
+      currentPage={pageData.page}
+      total={pageData.total}
       canWrite={canWrite}
       todayKey={todayKey}
       labels={labels}

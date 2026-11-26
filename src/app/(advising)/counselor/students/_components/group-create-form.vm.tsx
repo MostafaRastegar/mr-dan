@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Form } from "antd";
 
@@ -18,6 +18,7 @@ export function GroupCreateFormWrapper({
 }) {
   const router = useRouter();
   const [form] = Form.useForm();
+  const [isOpen, setIsOpen] = useState(false);
   const { state, submit, pending } = useFormAction(createGroupAction);
   const formError = useServerFormErrors(state, form);
 
@@ -25,10 +26,14 @@ export function GroupCreateFormWrapper({
     if (!state?.ok) return;
     form.resetFields();
     router.refresh();
+    setIsOpen(false);
   }, [state, form, router]);
 
   return (
     <GroupCreateFormView
+      open={isOpen}
+      onOpen={() => setIsOpen(true)}
+      onClose={() => setIsOpen(false)}
       form={form}
       submit={submit}
       pending={pending}

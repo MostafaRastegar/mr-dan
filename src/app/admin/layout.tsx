@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { IconArrowRight } from "@tabler/icons-react";
 
 import { TEST_IDS } from "@/constants/test-ids";
 import { hasCapability, type Capability } from "@/modules/advising/domain/capabilities";
 import { requireSessionUser } from "@/server/advising-guards";
+import { AdvisingBottomBar } from "@/app/(advising)/advising-bottom-bar.view";
+import { AdminNavLinks } from "./admin-nav";
 
 type AdminLink = {
   href: string;
@@ -78,33 +81,49 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-dvh bg-slate-50 text-slate-900">
-      <header className="border-b border-slate-200 bg-white">
-        <nav className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 md:px-6">
+      <a
+        href="#admin-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-2 focus:rounded-lg focus:bg-teal-700 focus:px-4 focus:py-2 focus:text-white"
+      >
+        رفتن به محتوای اصلی
+      </a>
+
+      <header
+        className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/95 px-4 py-2 backdrop-blur md:px-6"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <nav className="mx-auto flex max-w-6xl flex-col gap-2 py-1">
           <div className="flex items-center justify-between gap-3">
             <h1 className="text-lg font-bold">پنل مدیریت</h1>
             <Link
               href="/dashboard"
-              className="flex min-h-[44px] items-center rounded px-3 py-2 text-slate-700 hover:bg-slate-100 focus-visible:outline-2"
+              className="flex min-h-[44px] items-center gap-1 rounded-xl px-3 text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
               data-testid={TEST_IDS.ADMIN.BACK}
             >
-              بازگشت به داشبورد
+              <IconArrowRight size={18} stroke={1.8} aria-hidden="true" />
+              <span className="hidden sm:inline">داشبورد</span>
             </Link>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {links.map((link) => (
-              <Link
-                key={link.testId}
-                href={link.href}
-                className="flex min-h-[44px] items-center rounded px-3 py-2 text-slate-700 hover:bg-slate-100 focus-visible:outline-2"
-                data-testid={link.testId}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
+          <AdminNavLinks
+            links={links.map(({ href, label, testId }) => ({
+              href,
+              label,
+              testId,
+            }))}
+          />
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">{children}</main>
+
+      <AdvisingBottomBar
+        links={links.map(({ href, label, testId }) => ({ href, label, testId }))}
+      />
+
+      <main
+        id="admin-content"
+        className="mx-auto max-w-6xl px-4 pb-24 pt-5 md:px-6 md:pb-8 md:pt-8"
+      >
+        {children}
+      </main>
     </div>
   );
 }

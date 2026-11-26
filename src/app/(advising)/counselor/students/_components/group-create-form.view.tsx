@@ -2,9 +2,13 @@ import type { ReactNode } from "react";
 import { Button, Form, Input, Select, type FormInstance } from "antd";
 import { IconPlus } from "@tabler/icons-react";
 
+import { FormSheet } from "@/app/_components/form-sheet";
 import { TEST_IDS } from "@/constants/test-ids";
 
 interface GroupCreateFormViewProps {
+  open: boolean;
+  onOpen: () => void;
+  onClose: () => void;
   form: FormInstance;
   submit: (values: Record<string, unknown>) => void;
   pending: boolean;
@@ -14,11 +18,34 @@ interface GroupCreateFormViewProps {
 }
 
 export function GroupCreateFormView(props: GroupCreateFormViewProps): ReactNode {
-  const { form, submit, pending, formError, fieldOptions, gradeOptions } =
-    props;
+  const {
+    open,
+    onOpen,
+    onClose,
+    form,
+    submit,
+    pending,
+    formError,
+    fieldOptions,
+    gradeOptions,
+  } = props;
 
   return (
-    <Form
+    <>
+      <Button
+        icon={<IconPlus size={16} stroke={2} aria-hidden="true" />}
+        onClick={onOpen}
+        data-testid={TEST_IDS.ROSTER.OPEN_CREATE_FORM}
+      >
+        گروه جدید
+      </Button>
+
+      <FormSheet
+        open={open}
+        onClose={onClose}
+        title="ساخت گروه"
+      >
+        <Form
       form={form}
       layout="vertical"
       requiredMark={false}
@@ -68,12 +95,14 @@ export function GroupCreateFormView(props: GroupCreateFormViewProps): ReactNode 
           type="primary"
           htmlType="submit"
           loading={pending}
-          icon={<IconPlus size={16} />}
+          block
           data-testid={TEST_IDS.FORM.SUBMIT("create-group")}
         >
           ساخت گروه
         </Button>
       </Form.Item>
     </Form>
+      </FormSheet>
+    </>
   );
 }
