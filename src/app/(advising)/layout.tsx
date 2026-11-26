@@ -69,6 +69,12 @@ export default async function AdvisingLayout({
           capability: "profile:read",
           roles: ["student", "counselor", "admin", "operator"],
         },
+        {
+          href: "/chat",
+          label: "مشاور هوشمند",
+          testId: TEST_IDS.NAV.CHAT,
+          roles: ["student", "counselor", "admin", "operator"],
+        },
       ],
     },
     {

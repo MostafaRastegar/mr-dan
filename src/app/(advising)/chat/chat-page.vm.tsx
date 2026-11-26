@@ -31,9 +31,7 @@ export function ChatPageWrapper(): React.ReactNode {
   const currentInputRef = useRef(input);
   currentInputRef.current = input;
 
-  const sendMessage = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    const text = currentInputRef.current.trim();
+  const submit = useCallback(async (text: string) => {
     if (!text || streaming) return;
 
     const userMsg: ChatMessage = {
@@ -119,6 +117,14 @@ export function ChatPageWrapper(): React.ReactNode {
     }
   }, [streaming]);
 
+  const sendMessage = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      void submit(currentInputRef.current.trim());
+    },
+    [submit],
+  );
+
   const stopStream = () => {
     abortRef.current?.abort();
     setStreaming(false);
@@ -127,18 +133,15 @@ export function ChatPageWrapper(): React.ReactNode {
     );
   };
 
-  const regenerate = () => {
+  const regenerate = useCallback(() => {
     const lastUser = messages.findLast((m) => m.role === "user");
     if (!lastUser) return;
-    setInput(lastUser.content);
-    currentInputRef.current = lastUser.content;
     setMessages((prev) => {
       const idx = prev.findLastIndex((m) => m.role === "assistant");
-      if (idx === -1) return prev;
-      return prev.filter((_, i) => i !== idx);
+      return idx === -1 ? prev : prev.filter((_, i) => i !== idx);
     });
-    void sendMessage as unknown as () => Promise<void>;
-  };
+    void submit(lastUser.content);
+  }, [messages, submit]);
 
   return (
     <ChatPageView

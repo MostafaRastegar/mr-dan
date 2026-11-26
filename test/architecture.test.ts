@@ -287,7 +287,7 @@ describe("architecture", () => {
       "app/page.tsx": "public",
       "app/(auth)/login/page.tsx": "auth-redirect",
       "app/(auth)/register/page.tsx": "auth-redirect",
-      "app/chat/page.tsx": "session",
+      "app/(advising)/chat/page.tsx": "session",
       "app/(advising)/dashboard/page.tsx": "session",
       "app/(advising)/profile/page.tsx": "session",
       "app/(advising)/schedule/page.tsx": "capability:schedule:read",

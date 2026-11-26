@@ -1,7 +1,6 @@
 import type { RefObject } from "react";
-import { Button, Input, Card, Avatar } from "antd";
-import Link from "next/link";
-import { IconArrowRight } from "@tabler/icons-react";
+import { Button, Input } from "antd";
+import { IconMessage } from "@tabler/icons-react";
 import type { ChatMessage } from "./chat-page.vm";
 import type { SearchResult } from "@/modules/rag/domain/models";
 
@@ -29,60 +28,49 @@ export function ChatPageView(props: ChatPageViewProps): React.ReactNode {
   } = props;
 
   return (
-    <div className="flex flex-col h-dvh max-w-4xl mx-auto p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:p-4">
-      <Link
-        href="/dashboard"
-        className="mb-1 inline-flex min-h-[44px] items-center gap-1 self-start rounded-xl px-3 text-sm text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
-      >
-        <IconArrowRight size={18} stroke={1.8} aria-hidden="true" />
-        داشبورد
-      </Link>
-      <Card
-        className="flex-1 flex flex-col border-slate-200 shadow-sm"
-        title={
-          <div className="flex items-center gap-4 p-4 border-b border-slate-200">
-            <span className="text-xl" aria-hidden="true">📎</span>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-bold text-slate-800">mr-dan مشاور</h1>
-              <p className="text-xs text-slate-500">
-                پاسخ بر اساس اسناد آپلود شده
-              </p>
-            </div>
-          </div>
-        }
-      >
+    <div className="flex flex-col gap-4">
+      <header>
+        <h1 className="flex items-center gap-2 text-2xl font-bold">
+          <IconMessage size={22} stroke={1.8} aria-hidden="true" />
+          مشاور هوشمند
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          پاسخ بر اساس اسناد آپلودشده
+        </p>
+      </header>
+
+      <section className="flex h-[62dvh] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
         <div
-          className="flex-1 overflow-y-auto p-4 space-y-4"
+          className="flex-1 overflow-y-auto p-4"
           role="log"
           aria-live="polite"
         >
           {messages.length === 0 && (
-            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+            <div className="flex h-full items-center justify-center text-sm text-slate-400">
               پیام خود را بنویسید تا مشاوره شروع شود.
             </div>
           )}
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} gap-3`}
+              className={`mb-3 flex ${
+                m.role === "user" ? "justify-start" : "justify-end"
+              }`}
             >
-              <Avatar size="small" shape="square" className="mt-1">
-                {m.role === "user" ? "U" : "A"}
-              </Avatar>
-              <Card
-                className={`max-w-[85%] p-3 rounded-lg ${
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-6 ${
                   m.role === "user"
-                    ? "bg-teal-50 border-teal-200 text-slate-800 ml-4"
-                    : "bg-white border-slate-200 text-slate-900 mr-4"
+                    ? "bg-teal-600 text-white"
+                    : "border border-slate-200 bg-slate-50 text-slate-900"
                 }`}
               >
                 <div className="whitespace-pre-wrap">{m.content}</div>
                 {m.sources && m.sources.length > 0 && (
-                  <div className="mt-3 pt-2 border-t border-slate-200/50">
-                    <div className="text-xs font-semibold text-teal-700 mb-1">
+                  <div className="mt-3 border-t border-slate-200 pt-2">
+                    <div className="mb-1 text-xs font-semibold text-teal-700">
                       منابع:
                     </div>
-                    <ul className="text-xs text-slate-600 space-y-1 list-disc pl-4">
+                    <ul className="list-disc space-y-1 pl-4 text-xs text-slate-600">
                       {m.sources.slice(0, 3).map((s: SearchResult, i: number) => (
                         <li key={i}>
                           {String(
@@ -94,23 +82,21 @@ export function ChatPageView(props: ChatPageViewProps): React.ReactNode {
                     </ul>
                   </div>
                 )}
-              </Card>
+              </div>
             </div>
           ))}
           {streaming && (
-            <div className="flex justify-start gap-3">
-              <Avatar size="small" shape="square" className="mt-1">A</Avatar>
-              <div className="flex items-center gap-2 animate-pulse motion-reduce:animate-none">
-                <span className="w-3 h-3 rounded-full bg-teal-500"></span>
-                <span className="text-sm text-slate-500">
-                  پاسخ در حال دریافت…
-                </span>
-              </div>
+            <div className="flex items-center gap-2 motion-reduce:animate-none">
+              <span className="size-2.5 animate-pulse rounded-full bg-teal-500" />
+              <span className="text-sm text-slate-500">
+                پاسخ در حال دریافت…
+              </span>
             </div>
           )}
           <div ref={msgEndRef} />
         </div>
-        <form onSubmit={sendMessage} className="p-4 border-t border-slate-200 bg-white">
+
+        <form onSubmit={sendMessage} className="border-t border-slate-200/70 p-3">
           <div className="flex gap-2">
             <Input
               value={input}
@@ -120,6 +106,7 @@ export function ChatPageView(props: ChatPageViewProps): React.ReactNode {
               disabled={streaming}
             />
             <Button
+              type="primary"
               htmlType="submit"
               disabled={streaming || !input.trim()}
               className="px-4"
@@ -137,7 +124,7 @@ export function ChatPageView(props: ChatPageViewProps): React.ReactNode {
             ) : null}
           </div>
         </form>
-      </Card>
+      </section>
     </div>
   );
 }

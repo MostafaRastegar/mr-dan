@@ -25,6 +25,7 @@ export const TEST_IDS = {
     HOMEWORK: "nav-homework",
     BUDGET: "nav-budget",
     LOGOUT: "nav-logout",
+    CHAT: "nav-chat",
     NUTRITION: "nav-nutrition",
     LEISURE: "nav-leisure",
     DASHBOARD: "nav-dashboard",
