@@ -1,10 +1,11 @@
 /**
  * Session guards for the advising route group.
  *
- * Next 16 renames `middleware.ts` to `proxy.ts` and the guide forbids DB access
- * in it, so the authoritative guard is a real session lookup in the
- * `(advising)` layout. Pages call these helpers too: the layout guard is UX,
- * every mutation re-checks the session server-side.
+ * `src/proxy.ts` (Next 16 renamed middleware to proxy) may only check cookie
+ * presence — DB access is forbidden there — so the authoritative guard is a
+ * real session lookup in the `(advising)` layout. Pages call these helpers
+ * too: the layout guard is UX, every mutation re-checks the session
+ * server-side.
  */
 
 import { redirect } from "next/navigation";
