@@ -1,5 +1,95 @@
 # Changelog
 
+## 2026-11-26 — admin-panel-catalog
+
+### Added
+- Database-backed catalogs: Prisma models `Field`, `Grade`, `Subject` (now with `gradeLabels`), `Book`; migration `20261126075452_add_catalog_tables`; idempotent seed in `scripts/seed-advising.ts` (4 fields / 4 grades / 28 subjects / 8 books).
+- Admin panel: `/admin` (redirects to `/admin/users`), a paginated user directory, and seven `/admin/catalog/<entity>` pages (`fields`, `grades`, `subjects`, `books`, `needs`, `exams`, `chapters`) with create/edit/retire (retire = `active=false`, no hard delete) behind `catalog:manage`.
+- User directory support surface: contact/profile edits and one-time password reset for `user:support`; role changes for `user:manage` with self-change and last-admin rails.
+- Quick filter bar on `/admin/users`: role (server-whitelisted), counselor, and a `q` search over username/full name, driven by URL params and composable with pagination; the counselor column links to the same filter; a failed counselor read shows a Persian notice instead of a misleadingly empty dropdown.
+- `scripts/create-user.ts` (from `scripts/create-admin.ts`, `git mv`) with `--role student|counselor|admin|operator`.
+
+### Changed
+- Catalog literals moved from static code to the DB with zero drift; the deleted `domain/subjects.ts` / `domain/books.ts` constants are seeded, and the DB is the source of truth for student/counselor option lists.
+- Every admin action now passes through a server-side guard before parsing (`runCatalogAction`); pagination is uniform (`Page<T>`, `skip/take`, 1-based page, pageSize 20 default / 100 max) and applied to both `count` and the slice.
+- `test/architecture.test.ts`: page-triad detection resolves `@/app/…` and same-directory relative imports (21 pages, was 13), plus a rule requiring `await params` / `await searchParams` in every `src/app/**` page and route.
+
+### Fixed
+- Pre-existing crash: `counselor/students/[studentId]` read Next 16 async `params` without awaiting, so `findById(undefined)` reached Prisma. Params are awaited, a blank id calls `notFound()`, and `findById("")` / `findProfileById("")` return `null` without touching Prisma.
+
+### Docs
+- README admin/roles/catalog sections and `docs/behaviors/admin-panel-catalog.md`; removed `/study` rows that pointed at a non-existent route.
+
+### Known limitations
+- Deferred LOW from review: the `/admin/users` filter Select/Input controls sit outside a `Form.Item` (explicit props, no submit path, no form-state risk).
+
+### Evidence
+- `prisma migrate status` 0 · `pnpm typecheck` 0 · `pnpm lint` 0 · `pnpm test` 0 (65 files / 449 tests) · `pnpm build` 0 · e2e `tests/e2e/access-control.spec.ts` 0.
+- Review `.opencode/reviews/admin-panel-catalog.md`: round 1 → round 2 PASS, 0 code CRITICAL/HIGH; two MEDIUMs fixed (silent counselor-read `.catch`, stale static-catalog README paragraph).
+- Human smoke approved: a subject created in the panel appears on `/schedule`; retiring it removes it from the select while old rows keep their label; grade↔subject assignment persists across reload; counselor column and `?counselor=` filter verified on real data.
+- Paths: plan `.opencode/plans/admin-panel-catalog.md` (17 ACs), review `.opencode/reviews/admin-panel-catalog.md`, behavior doc `docs/behaviors/admin-panel-catalog.md`. One migration; no new dependency.
+
+## 2026-11-26 — counselor-roster-separation
+
+### Added
+- Two separate roster sections on `/counselor/students`: «بدون گروه» (assignable, `counselorId === null`) and «دانش‌آموزان من» — never one mixed table; `StudentSummary` gains `counselorId`.
+
+### Changed
+- `CounselorRosterUseCase` returns `{ groups, myStudents, unassigned }` from one pass over a single `listAssignableStudents` call, disjoint by construction.
+- Assignment exclusivity stays enforced by the repository query (`counselorId = me OR null`) and is now covered by a regression test rather than new code: assigning a student owned by another counselor still fails with `forbidden`, and no ownership transfer exists.
+- `test/architecture.test.ts` adds a rule requiring awaited `params` in `src/app/**` pages.
+
+### Fixed
+- Defensive blank-id hardening: `findById` / `findProfileById` return `null` without calling Prisma, and the student page calls `notFound()` for a blank id.
+
+### Docs
+- README roster sentences; new `docs/behaviors/counselor-roster-separation.md` (`last_verified: 2026-11-26`).
+
+### Known limitations
+- Deferred LOW from review: a cosmetic guard-comment clause.
+
+### Evidence
+- `pnpm typecheck` 0 · `pnpm lint` 0 · `pnpm test` 0 · `pnpm build` 0.
+- Review `.opencode/reviews/counselor-roster-separation.md`: round 1 → round 2 PASS, 0 CRITICAL / 0 HIGH / 0 MEDIUM / 1 LOW (deferred).
+- Human confirmed both roster sections render separately.
+- Paths: plan `.opencode/plans/counselor-roster-separation.md` (5 ACs), review `.opencode/reviews/counselor-roster-separation.md`, behavior doc `docs/behaviors/counselor-roster-separation.md`. No migration, no new dependency.
+
+## 2026-11-26 — roles-and-access
+
+### Added
+- Fourth role `operator`: an independent login for limited support. It holds `profile:read`, `profile:write`, `user:read` and `user:support`; it never holds `user:manage` or `rag:manage`, and registration cannot mint it.
+- Capabilities `user:read` (list/view the user directory) and `user:support` (edit profile/contact fields, reset credentials) in `src/modules/advising/domain/capabilities.ts`, with explicit rows: operator gets the two support capabilities, admin gets them plus `user:manage` and the full counselor set.
+- `test/architecture.test.ts`: an exact page-gate matrix covering every `src/app/**/page.tsx` (public / auth-redirect / session / capability:<x>), a bidirectional check so a new page or a stale entry fails CI, and a ban on `getSessionContext` in every `*.actions.ts`.
+- `docs/behaviors/roles-and-access.md`: the published contract (four roles, capability table, canonical rule, page-gate matrix, denial style, operator semantics).
+
+### Changed
+- `Role` and `toRole` in `src/modules/advising/domain/models.ts` gain `"operator"`; unknown role strings still degrade to `"student"`.
+- `Actor = { id, role }` now has a single source in `application/planning-access.ts`; `groups.ts` imports it instead of redeclaring it.
+- The redundant `actor.role !== "counselor" && !== "admin"` check in `planning-access.ts` is deleted; the `plan:write` capability is the only role gate and ownership still gates the row.
+- All 10 `src/app/(advising)/**/*.actions.ts` files now resolve the session with `requireSessionUser()` instead of `getSessionContext()` plus an inline redirect; semantics are unchanged (`NEXT_REDIRECT` still fires before `runAction`).
+- Capability checks for `operator` are deny-by-default: the operator sees only `/profile` in the `(advising)` nav, and the future operator-support pages are classified under `capability:user:read` for the admin panel to implement.
+- `README.md`: four roles with one line each, the canonical rule ("capabilities gate the verb; ownership gates the row"), an operator column in the access matrix, and a link to the new behavior doc.
+- `prisma/schema.prisma`: the `role` column comment lists `"operator"`; the column stays `String`, no migration and no type change.
+
+### Fixed
+- `docs/behaviors/access-control-baseline.md`: stale `/study` page rows and the retired `study:write` capability reference removed from the matrix, `source_files` and the planning paragraph; the doc points to `roles-and-access.md` for the four-role model.
+
+### Docs
+- New `docs/behaviors/roles-and-access.md` (`last_verified: 2026-11-26`), README sections above, and the pruned baseline doc. No `docs/contracts/` file: `review_level` stayed `reviewed`.
+
+### Known limitations
+- No operator provisioning script: `scripts/create-admin.ts` hard-codes `admin`, and generalizing it to `--role` (or adding a dedicated script) is deferred to the admin-panel feature. Creating an operator today needs a direct DB edit in dev.
+- No user-management UI: `user:read`, `user:support` and `user:manage` are declared and deny-tested only; the admin panel consumes them.
+- Admin can pass every counselor capability but is still not a counselor-of-record, so opening a foreign student's plan redirects to `/profile`; an admin oversight read is an open question, default no.
+- RAG data routes stay session-gated (200 for any logged-in role, including operator) by pre-existing design.
+- Deferred LOW from review: the behavior doc's "Files touched" list omits `prisma/schema.prisma` (comment-only change).
+
+### Evidence
+- `pnpm typecheck` 0 · `pnpm lint` 0 (pre-existing warnings only) · `pnpm test` 0 (61 files / 400 tests) · `pnpm build` 0 · `pnpm vitest run test/architecture.test.ts` 0 (12 tests) · `pnpm vitest run src/modules/advising/application/planning-access.test.ts` 0 (11 tests) · `pnpm vitest run src/modules/advising/domain/{capabilities,models}.test.ts` 0 · `pnpm vitest run src/modules/advising/presentation/schemas.test.ts` 0 · `E2E_ENABLED=true pnpm exec playwright test tests/e2e/access-control.spec.ts -g "student counselor pages"` 0 (1 passed) · AC-2/6/8/9 grep checks 0 · `secret-audit` no findings.
+- Human manual smoke approved: an admin opening a foreign student's plan lands on `/profile`; that student's own counselor sees the plan.
+- Review: `.opencode/reviews/roles-and-access.md` round 1 → round 2 PASS; 0 code CRITICAL/HIGH, MEDIUM findings fixed.
+- Paths: plan `.opencode/plans/roles-and-access.md`, review `.opencode/reviews/roles-and-access.md`, behavior doc `docs/behaviors/roles-and-access.md`. No dependency added, no migration.
+
 ## 2026-11-26 — rag-module-consolidation
 
 ### Changed

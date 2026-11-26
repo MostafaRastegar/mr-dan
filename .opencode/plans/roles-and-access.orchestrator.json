@@ -1,20 +1,39 @@
 {
   "feature": "roles-and-access",
-  "phase": "verify",
+  "phase": "done",
   "plan": ".opencode/plans/roles-and-access.md",
   "plan_sha256": "54bee740bc118d10ec64aed713bc4b58ffbd8f96",
   "review": ".opencode/reviews/roles-and-access.md",
   "test_log": ".opencode/reviews/roles-and-access.tests.log",
-  "readme": { "path": "README.md", "state": "updated" },
-  "changelog": { "path": "CHANGELOG.md", "state": "pending" },
-  "skills": ["mr-dan-architecture", "mr-dan-api", "mr-dan-persistence", "mr-dan-feature-workflow", "mro-project-stack", "mro-data-model", "mro-behavior-docs"],
+  "readme": {
+    "path": "README.md",
+    "state": "updated"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "written"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-api",
+    "mr-dan-persistence",
+    "mr-dan-feature-workflow",
+    "mro-project-stack",
+    "mro-data-model",
+    "mro-behavior-docs"
+  ],
   "sessions": {
     "architect": "ses_de9a1e4c3ffeh7OrlqbSKSt2oT",
     "implementer": "ses_de9808953ffeo4dwVA7NJMSnHy",
     "reviewer": "ses_de97560e1ffeJmYCigHLImZm9m",
     "test": null
   },
-  "acceptance": { "total": 14, "confirmed": 13, "pending": 1, "deferred": 0 },
+  "acceptance": {
+    "total": 14,
+    "confirmed": 14,
+    "pending": 0,
+    "deferred": 0
+  },
   "changed_files": [
     "src/modules/advising/domain/models.ts",
     "src/modules/advising/domain/capabilities.ts",
@@ -33,24 +52,61 @@
     "README.md"
   ],
   "test_exit_codes": [
-    { "command": "pnpm typecheck", "exit": 0 },
-    { "command": "pnpm lint", "exit": 0 },
-    { "command": "pnpm test", "exit": 0 },
-    { "command": "pnpm build", "exit": 0 }
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0
+    }
   ],
   "review_level": "reviewed",
   "review_round": 2,
   "severity_history": [
-    { "round": 1, "critical": 1, "high": 1, "medium": 2, "low": 5 },
-    { "round": 2, "critical": 1, "high": 0, "medium": 0, "low": 1, "note": "CRITICAL-1 is the human manual_smoke gate only; code verdict PASS" }
+    {
+      "round": 1,
+      "critical": 1,
+      "high": 1,
+      "medium": 2,
+      "low": 5
+    },
+    {
+      "round": 2,
+      "critical": 1,
+      "high": 0,
+      "medium": 0,
+      "low": 1,
+      "note": "CRITICAL-1 is the human manual_smoke gate only; code verdict PASS"
+    }
   ],
-  "approvals": { "plan": "2026-11-26T06:15:51Z", "ui": null, "manual_smoke": null, "final": null },
+  "approvals": {
+    "plan": "2026-11-26T06:15:51Z",
+    "ui": null,
+    "manual_smoke": "2026-11-26T09:50:06Z",
+    "final": "2026-11-26T10:03:09Z"
+  },
   "roadmap": {
-    "order": ["rag-module-consolidation", "roles-and-access", "admin-panel-catalog"],
+    "order": [
+      "rag-module-consolidation",
+      "roles-and-access",
+      "admin-panel-catalog"
+    ],
     "parallel": true,
     "note": "planning in parallel with admin-panel-catalog; implementation serialized on shared seams. Must publish the guard/capability contract admin will consume."
   },
-  "budget": { "turns_per_phase": 20, "review_rounds": 2 },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 2
+  },
   "log": ".opencode/plans/roles-and-access.log.jsonl",
-  "blockers": "only the human gate remains: AC-7 manual smoke (admin → foreign student's plan → /profile) + approvals.manual_smoke + approvals.final; LOW-1 deferred (behavior doc Files-touched list omits prisma comment change)",
+  "blockers": "none"
 }

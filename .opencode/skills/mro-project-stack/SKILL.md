@@ -16,7 +16,7 @@ description: "Project tech stack and conventions. Load before designing or imple
 - Auth: custom session cookies. scrypt password hashes
   (`scrypt$N$r$p$salt$hash`, N=16384), sha256 token hash in `Session`, httpOnly
   cookie; guards in `src/server/advising-guards.ts`; roles `student` |
-  `counselor` | `admin`
+  `counselor` | `admin` | `operator`
 - Package manager: pnpm (`pnpm-lock.yaml`)
 
 ## Conventions

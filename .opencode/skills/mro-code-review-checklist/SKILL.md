@@ -19,7 +19,7 @@ stack needs.
 
 ## Type & API Safety
 
-- [ ] The project's typecheck command passes (`<TYPECHECK_CMD>` in AGENTS.md).
+- [ ] The project's typecheck command passes (`pnpm typecheck` in AGENTS.md).
 - [ ] No diagnostic is suppressed with a cast, ignore comment, or disabled rule
       without an adjacent explanation.
 - [ ] Public functions and modules expose explicit types.

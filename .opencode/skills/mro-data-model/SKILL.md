@@ -19,8 +19,8 @@ metadata), relational data in PostgreSQL.
 - `Message` — belongs to `Conversation` (cascade); `role` user | assistant |
   system; `sources` JSON.
 - `CacheEntry` — semantic/LLM cache keyed by `key`; TTL via `expiresAt`.
-- `User` — advising account, self-owned; `role` student | counselor | admin
-  (zod-validated string, not a PG enum); no soft delete.
+- `User` — advising account, self-owned; `role` student | counselor | admin |
+  operator (zod-validated string, not a PG enum); no soft delete.
 - `Session` — login session; `tokenHash` unique (sha256); expires via
   `expiresAt`; cascades on user delete.
 - `Group` — counselor-owned (`counselorId` cascade); students join via
@@ -42,6 +42,17 @@ metadata), relational data in PostgreSQL.
 - `Need`, `Exam`, `Chapter` — reference catalogs, seeded; `active` flag = soft
   retirement (filter `active` in listing queries).
 - `Chapter` — unique (subject, field, grade, number).
+- `Field` — catalog, admin-owned (`/admin` panel); `label` unique, `active`,
+  `sortOrder`.
+- `Grade` — catalog, admin-owned; `label` unique, `active`, `sortOrder`.
+- `Subject` — catalog, admin-owned; `slug` unique, `label`, `fieldLabels` and
+  `gradeLabels` (`String[]`), `active`, `sortOrder`.
+- `Book` — catalog, admin-owned; `slug` unique, `title`, `author`, optional
+  `fieldLabel`, `codes` (`String[]`), `active`, `sortOrder`.
+- Catalog literals are seeded by `scripts/seed-advising.ts`; the DB is the
+  source of truth (no static `FIELDS`/`GRADES`/`SUBJECTS`/`BOOKS` constants).
+  No catalog FK exists to business tables: `subject`, `fieldLabel` and
+  `gradeLabel`-style columns are slug/label strings validated at the boundary.
 
 ## Rules
 

@@ -90,6 +90,9 @@ under `src/app/**`:
   `.vm.tsx`/`.view.tsx` pair.
 - `<area>.actions.ts` — `'use server'` mutations for the area.
 
+`params` and `searchParams` are Promises: `await` them in every page and route;
+`test/architecture.test.ts` fails the build on an unawaited read.
+
 The page body markup lives in the view; `page.tsx` stays guard + data + one wrapper. Success is
 driven by `state?.ok`; never `router.push` inside a submit handler.
 
