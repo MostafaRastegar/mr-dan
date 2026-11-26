@@ -6,9 +6,20 @@ import { CounselorRosterView } from "./counselor-roster.view";
 export function CounselorRosterWrapper({
   groups,
   students,
+  fieldOptions,
+  gradeOptions,
 }: {
   groups: GroupSummary[];
   students: StudentSummary[];
+  fieldOptions: string[];
+  gradeOptions: string[];
 }) {
-  return <CounselorRosterView groups={groups} students={students} />;
+  return (
+    <CounselorRosterView
+      groups={groups}
+      students={students}
+      fieldOptions={fieldOptions}
+      gradeOptions={gradeOptions}
+    />
+  );
 }

@@ -1,6 +1,5 @@
 import { CounselorStudentWrapper } from "./counselor-student.vm";
 import { redirect, notFound } from "next/navigation";
-
 import { requireCapability } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
 import { ForbiddenError, NotFoundError } from "@/modules/advising/domain/errors";
@@ -10,10 +9,10 @@ export default async function CounselorStudentPage({
   params,
 }: Readonly<{ params: { studentId: string } }>) {
   const session = await requireCapability("group:manage");
-
+  const container = getContainer();
   let view: StudentStudyPlanView;
   try {
-    view = await getContainer().advising.getStudentStudyPlan.execute({
+    view = await container.advising.getStudentStudyPlan.execute({
       actor: { id: session.user.id, role: session.user.role },
       studentId: params.studentId,
     });
@@ -23,7 +22,18 @@ export default async function CounselorStudentPage({
     throw err;
   }
 
-  const chapters = await getContainer().advising.listChapters();
+  const [chapters, catalog] = await Promise.all([
+    container.advising.listChapters(),
+    container.advising.catalogOptions.execute(),
+  ]);
 
-  return <CounselorStudentWrapper studentId={params.studentId} view={view} chapters={chapters} />;
+  return (
+    <CounselorStudentWrapper
+      studentId={params.studentId}
+      view={view}
+      chapters={chapters}
+      subjects={catalog.subjects}
+      labels={catalog.subjectLabels}
+    />
+  );
 }

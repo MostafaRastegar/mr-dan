@@ -7,8 +7,6 @@
 
 import { z } from "zod";
 
-import { SUBJECT_SLUGS } from "../domain/subjects";
-
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 function timeToMinutes(value: string): number {
@@ -27,41 +25,50 @@ function optionalText(max: number, message: string) {
     .refine((value) => value === undefined || value.length <= max, message);
 }
 
-export const scheduleEntrySchema = z
-  .object({
-    dayOfWeek: z
-      .coerce.number()
-      .int()
-      .min(0, "روز هفته باید بین ۰ و ۶ باشد")
-      .max(6, "روز هفته باید بین ۰ و ۶ باشد"),
-    startTime: z
-      .string()
-      .regex(TIME_RE, "فرمت زمان معتبر نیست (مثلاً ۰۸:۳۰)"),
-    endTime: z
-      .string()
-      .regex(TIME_RE, "فرمت زمان معتبر نیست (مثلاً ۰۸:۳۰)"),
-    subject: z.enum(SUBJECT_SLUGS, {
-      message: "درس انتخاب‌شده معتبر نیست",
-    }),
-    teacher: optionalText(60, "استاد نباید بیشتر از ۶۰ نویسه باشد"),
-    room: optionalText(30, "اتاق نباید بیشتر از ۳۰ نویسه باشد"),
-  })
-  .transform((data) => ({
-    dayOfWeek: data.dayOfWeek,
-    startMinute: timeToMinutes(data.startTime),
-    endMinute: timeToMinutes(data.endTime),
-    subject: data.subject,
-    teacher: data.teacher,
-    room: data.room,
-  }))
-  .refine(
-    (data) => data.endMinute > data.startMinute,
-    { path: ["endTime"], message: "پایان باید بعد از شروع باشد" },
-  );
+/** Built per request from the active subject slugs. */
+export function makeScheduleSchemas(subjects: readonly string[]) {
+  const scheduleEntrySchema = z
+    .object({
+      dayOfWeek: z
+        .coerce.number()
+        .int()
+        .min(0, "روز هفته باید بین ۰ و ۶ باشد")
+        .max(6, "روز هفته باید بین ۰ و ۶ باشد"),
+      startTime: z
+        .string()
+        .regex(TIME_RE, "فرمت زمان معتبر نیست (مثلاً ۰۸:۳۰)"),
+      endTime: z
+        .string()
+        .regex(TIME_RE, "فرمت زمان معتبر نیست (مثلاً ۰۸:۳۰)"),
+      subject: z
+        .string()
+        .refine((value) => subjects.includes(value), "درس انتخاب‌شده معتبر نیست"),
+      teacher: optionalText(60, "استاد نباید بیشتر از ۶۰ نویسه باشد"),
+      room: optionalText(30, "اتاق نباید بیشتر از ۳۰ نویسه باشد"),
+    })
+    .transform((data) => ({
+      dayOfWeek: data.dayOfWeek,
+      startMinute: timeToMinutes(data.startTime),
+      endMinute: timeToMinutes(data.endTime),
+      subject: data.subject,
+      teacher: data.teacher,
+      room: data.room,
+    }))
+    .refine(
+      (data) => data.endMinute > data.startMinute,
+      { path: ["endTime"], message: "پایان باید بعد از شروع باشد" },
+    );
+
+  return { scheduleEntrySchema };
+}
+
+export type ScheduleSchemas = ReturnType<typeof makeScheduleSchemas>;
 
 export const deleteByIdSchema = z.object({
   id: z.string().min(1, "شناسه الزامی است"),
 });
 
-export type ScheduleEntryInput = z.infer<typeof scheduleEntrySchema>;
+export type ScheduleEntryInput = z.infer<
+  ScheduleSchemas["scheduleEntrySchema"]
+>;
 export type DeleteByIdInput = z.infer<typeof deleteByIdSchema>;

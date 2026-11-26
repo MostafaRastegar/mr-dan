@@ -7,8 +7,11 @@
 
 import { ConflictError } from "@/modules/advising/domain/errors";
 import type {
+  BookRow,
   Chapter,
   Exam,
+  FieldRow,
+  GradeRow,
   Need,
   NewSchoolProgramEntry,
   NewStudyPlanEntry,
@@ -17,6 +20,7 @@ import type {
   StudentExamResult,
   StudyPlan,
   StudyPlanEntry,
+  SubjectRow,
   SupplementaryCourse,
 } from "@/modules/advising/domain/models";
 import type {
@@ -34,10 +38,27 @@ const now = () => new Date(Date.now() + nowSeq++);
 export class FakeCatalogRepository implements CatalogRepositoryPort {
   private readonly needs = new Map<string, Need>();
   private readonly exams = new Map<string, Exam>();
+  private readonly fields = new Map<string, FieldRow>();
+  private readonly grades = new Map<string, GradeRow>();
+  private readonly subjects = new Map<string, SubjectRow>();
+  private readonly books = new Map<string, BookRow>();
 
-  seed(needs: readonly Need[], exams: readonly Exam[]): void {
+  seed(
+    needs: readonly Need[],
+    exams: readonly Exam[],
+    catalogs?: {
+      fields?: readonly FieldRow[];
+      grades?: readonly GradeRow[];
+      subjects?: readonly SubjectRow[];
+      books?: readonly BookRow[];
+    },
+  ): void {
     for (const need of needs) this.needs.set(need.id, need);
     for (const exam of exams) this.exams.set(exam.id, exam);
+    for (const row of catalogs?.fields ?? []) this.fields.set(row.id, row);
+    for (const row of catalogs?.grades ?? []) this.grades.set(row.id, row);
+    for (const row of catalogs?.subjects ?? []) this.subjects.set(row.id, row);
+    for (const row of catalogs?.books ?? []) this.books.set(row.id, row);
   }
 
   async listNeeds(): Promise<Need[]> {
@@ -46,6 +67,36 @@ export class FakeCatalogRepository implements CatalogRepositoryPort {
 
   async listExams(): Promise<Exam[]> {
     return [...this.exams.values()].filter((e) => e.active);
+  }
+
+  async listFields(): Promise<FieldRow[]> {
+    return [...this.fields.values()]
+      .filter((row) => row.active)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  async listGrades(): Promise<GradeRow[]> {
+    return [...this.grades.values()]
+      .filter((row) => row.active)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  async listSubjects(): Promise<SubjectRow[]> {
+    return [...this.subjects.values()]
+      .filter((row) => row.active)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  async listSubjectLabels(): Promise<SubjectRow[]> {
+    return [...this.subjects.values()].sort(
+      (a, b) => a.sortOrder - b.sortOrder,
+    );
+  }
+
+  async listBooks(): Promise<BookRow[]> {
+    return [...this.books.values()]
+      .filter((row) => row.active)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
   }
 
   async findNeed(id: string): Promise<Need | null> {

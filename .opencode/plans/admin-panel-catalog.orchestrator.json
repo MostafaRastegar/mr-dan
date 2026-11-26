@@ -1,0 +1,60 @@
+{
+  "feature": "admin-panel-catalog",
+  "phase": "verify",
+  "plan": ".opencode/plans/admin-panel-catalog.md",
+  "plan_sha256": "b5f8436093e12d194149ffcc6e3e760e8618de26",
+  "review": ".opencode/reviews/admin-panel-catalog.md",
+  "test_log": ".opencode/reviews/admin-panel-catalog.tests.log",
+  "readme": { "path": "README.md", "state": "updated" },
+  "changelog": { "path": "CHANGELOG.md", "state": "pending" },
+  "skills": ["mr-dan-architecture", "mr-dan-feature-workflow", "mr-dan-persistence", "mr-dan-frontend", "mr-dan-form-design", "mr-dan-api", "mr-dan-testing-parity", "mro-project-stack", "mro-data-model", "mro-behavior-docs"],
+  "sessions": {
+    "architect": "ses_de9a1e4c9ffe7o5oQroWpwTIyz",
+    "implementer": "ses_de9616d29ffewpW570ZOTY49cx",
+    "reviewer": "ses_de8e0bc2fffekVmxgMTdsMzm9k",
+    "test": null
+  },
+  "acceptance": { "total": 15, "confirmed": 13, "pending": 2, "deferred": 0 },
+  "pending_acceptance": ["AC-12 (manual smoke: new subject selectable, retired omitted, old rows keep label)", "AC-14 (manual: Grade↔Subject assignment persists across reload)"],
+  "changed_files": [
+    "prisma/schema.prisma",
+    "prisma/migrations/20261126075452_add_catalog_tables/migration.sql",
+    "scripts/seed-advising.ts",
+    "scripts/create-user.ts (renamed from create-admin.ts)",
+    "src/modules/advising/domain/{models,catalog,ports,errors,capabilities}.ts",
+    "src/modules/advising/domain/{subjects,books}.ts (deleted)",
+    "src/modules/advising/application/{admin-users,catalog-admin,catalog-options,pagination,leisure,dashboard,school-program,study-plan,planning-access}.ts",
+    "src/modules/advising/infrastructure/prisma-{catalog,catalog-admin,admin-users}-repository.ts",
+    "src/modules/advising/presentation/{schemas,advisor-schemas,homework-schemas,schedule-schemas,admin-schemas,messages}.ts",
+    "src/app/admin/** (layout, page, users, 7 catalog pages, actions, _components)",
+    "src/app/(advising)/** (actions, pages, views rewired to DB-fed options)",
+    "src/server/container.ts",
+    "src/constants/test-ids.ts",
+    "test/** + tests/e2e/access-control.spec.ts",
+    "README.md",
+    "docs/behaviors/admin-panel-catalog.md (new)",
+    "docs/behaviors/{access-control-baseline,roles-and-access,phase-5-2,phase-5-3}.md",
+    "docs/contracts/access-control-baseline.md",
+    "docs/plan/architecture.md"
+  ],
+  "test_exit_codes": [
+    { "command": "pnpm exec prisma migrate status", "exit": 0 },
+    { "command": "pnpm typecheck", "exit": 0 },
+    { "command": "pnpm lint", "exit": 0 },
+    { "command": "pnpm test", "exit": 0 },
+    { "command": "pnpm build", "exit": 0 },
+    { "command": "E2E_ENABLED=true pnpm exec playwright test tests/e2e/access-control.spec.ts", "exit": 0 }
+  ],
+  "review_level": "full",
+  "review_round": 1,
+  "severity_history": [],
+  "approvals": { "plan": "2026-11-26T06:15:51Z", "ui": "2026-11-26T07:48:18Z", "manual_smoke": null, "final": null },
+  "roadmap": {
+    "order": ["rag-module-consolidation", "roles-and-access", "admin-panel-catalog"],
+    "parallel": true,
+    "note": "planning in parallel; implementation serialized on shared seams. UI gate closed 2026-11-26T07:48:18Z; backend implemented after it."
+  },
+  "budget": { "turns_per_phase": 20, "review_rounds": 2 },
+  "log": ".opencode/plans/admin-panel-catalog.log.jsonl",
+  "blockers": "AC-12 and AC-14 need the human manual smoke; review round 1 running"
+}

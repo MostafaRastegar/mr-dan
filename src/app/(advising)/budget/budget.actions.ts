@@ -1,7 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
-
 import {
   freeTimeSchema,
   hhmmToMinutes,
@@ -10,22 +8,21 @@ import {
 import { runAction } from "@/utils/server-action";
 import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
-import { getSessionContext } from "@/server/advising-guards";
+import { requireSessionUser } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
 
 export async function setFreeTimeAction(
   _previous: ActionState<{ dayKey: string; freeMinutes: number }> | null,
   formData: FormData,
 ): Promise<ActionState<{ dayKey: string; freeMinutes: number }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const input = freeTimeSchema.parse(formValues(formData));
     const advising = getContainer().advising;
     // Only the actor's own row: the use case accepts `studentId` for tests, the
     // action never reads one from the client.
-    const actor = { id: session.user.id, role: session.user.role };
+    const actor = { id: user.id, role: user.role };
     const freeMinutes =
       input.freeTime === null
         ? (await advising.getDayBudget.execute({ actor, dayKey: input.date }))
@@ -49,13 +46,12 @@ export async function planHomeworkAction(
 ): Promise<
   ActionState<{ homeworkId: string; dayKey: string; plannedMinutes: number }>
 > {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const input = planTimeSchema.parse(formValues(formData));
     return getContainer().advising.planHomeworkTime.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       homeworkId: input.homeworkId,
       dayKey: input.date,
       plannedMinutes: hhmmToMinutes(input.plannedTime),
@@ -67,12 +63,11 @@ export async function deletePlanAction(
   _previous: ActionState<{ deleted: true }> | null,
   formData: FormData,
 ): Promise<ActionState<{ deleted: true }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction<{ deleted: true }>(async () => {
     await getContainer().advising.deleteHomeworkPlan.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       id: String(formData.get("id") ?? ""),
     });
     return { deleted: true };

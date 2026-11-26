@@ -19,9 +19,13 @@ import { DashboardView } from "./dashboard.view";
 
 interface DashboardWrapperProps {
   overview: DashboardReadModel;
+  labels: Record<string, string>;
 }
 
-export function DashboardWrapper({ overview }: DashboardWrapperProps) {
+export function DashboardWrapper({
+  overview,
+  labels,
+}: DashboardWrapperProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [homeworkMinutes, setHomeworkMinutesState] = useState<
@@ -112,6 +116,7 @@ export function DashboardWrapper({ overview }: DashboardWrapperProps) {
       onToggleMeal={onToggleMeal}
       onAddTests={onAddTests}
       error={error}
+      labels={labels}
     />
   );
 }

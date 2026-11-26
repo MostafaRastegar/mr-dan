@@ -6,9 +6,13 @@
  */
 
 import type {
+  AdminUserRow,
+  BookRow,
   Chapter,
   Exam,
+  FieldRow,
   FreeTimeBudget,
+  GradeRow,
   GroupSummary,
   HomeworkFilter,
   HomeworkItem,
@@ -23,6 +27,7 @@ import type {
   NewUser,
   NewHomework,
   NewScheduleEntry,
+  Page,
   PhysicalProfile,
   PhysicalProfilePatch,
   ProfilePatch,
@@ -34,6 +39,7 @@ import type {
   StudentSummary,
   StudyPlan,
   StudyPlanEntry,
+  SubjectRow,
   SupplementaryCourse,
   UserAccount,
   WeeklyGoal,
@@ -182,11 +188,125 @@ export interface WeeklyGoalRepositoryPort {
   }): Promise<{ subject: string; count: number }[]>;
 }
 
+/** 1-based page query. Use cases clamp page/pageSize before calling a port. */
+export interface PageQuery {
+  page: number;
+  pageSize: number;
+}
+
 export interface CatalogRepositoryPort {
   listNeeds(): Promise<Need[]>;
   listExams(): Promise<Exam[]>;
   findNeed(id: string): Promise<Need | null>;
   findExam(id: string): Promise<Exam | null>;
+  listFields(): Promise<FieldRow[]>;
+  listGrades(): Promise<GradeRow[]>;
+  /** Active rows only; option lists. */
+  listSubjects(): Promise<SubjectRow[]>;
+  /** Every subject, retired included; stored slugs keep rendering their label. */
+  listSubjectLabels(): Promise<SubjectRow[]>;
+  listBooks(): Promise<BookRow[]>;
+}
+
+/** Admin read/write surface for the catalog entities, including retired rows. */
+export interface CatalogAdminRepositoryPort {
+  listFields(query: PageQuery): Promise<Page<FieldRow>>;
+  listGrades(query: PageQuery): Promise<Page<GradeRow>>;
+  listSubjects(query: PageQuery): Promise<Page<SubjectRow>>;
+  listBooks(query: PageQuery): Promise<Page<BookRow>>;
+  listNeeds(query: PageQuery): Promise<Page<Need>>;
+  listExams(query: PageQuery): Promise<Page<Exam>>;
+  listChapters(query: PageQuery): Promise<Page<Chapter>>;
+
+  findFieldByLabel(label: string): Promise<FieldRow | null>;
+  findGradeByLabel(label: string): Promise<GradeRow | null>;
+  findSubjectBySlug(slug: string): Promise<SubjectRow | null>;
+  findBookBySlug(slug: string): Promise<BookRow | null>;
+  findNeedByCode(code: string): Promise<Need | null>;
+  findExamByCode(code: string): Promise<Exam | null>;
+  findChapterByKey(input: {
+    subject: string;
+    field: string;
+    grade: string;
+    number: number;
+  }): Promise<Chapter | null>;
+
+  upsertField(input: {
+    id?: string;
+    label: string;
+    sortOrder?: number;
+  }): Promise<FieldRow>;
+  upsertGrade(input: {
+    id?: string;
+    label: string;
+    sortOrder?: number;
+  }): Promise<GradeRow>;
+  upsertSubject(input: {
+    id?: string;
+    slug: string;
+    label: string;
+    fieldLabels: string[];
+    gradeLabels: string[];
+    sortOrder?: number;
+  }): Promise<SubjectRow>;
+  upsertBook(input: {
+    id?: string;
+    slug: string;
+    title: string;
+    author: string;
+    fieldLabel: string | null;
+    codes: string[];
+    sortOrder?: number;
+  }): Promise<BookRow>;
+  /** `code` is required on create; omit it on update to keep the stored code. */
+  upsertNeed(input: {
+    id?: string;
+    code?: string;
+    label: string;
+  }): Promise<Need>;
+  upsertExam(input: {
+    id?: string;
+    code?: string;
+    label: string;
+  }): Promise<Exam>;
+  upsertChapter(input: {
+    id?: string;
+    subject: string;
+    field: string;
+    grade: string;
+    number: number;
+    title: string;
+  }): Promise<Chapter>;
+
+  retireField(id: string): Promise<void>;
+  reactivateField(id: string): Promise<void>;
+  retireGrade(id: string): Promise<void>;
+  reactivateGrade(id: string): Promise<void>;
+  retireSubject(id: string): Promise<void>;
+  reactivateSubject(id: string): Promise<void>;
+  retireBook(id: string): Promise<void>;
+  reactivateBook(id: string): Promise<void>;
+  retireNeed(id: string): Promise<void>;
+  reactivateNeed(id: string): Promise<void>;
+  retireExam(id: string): Promise<void>;
+  reactivateExam(id: string): Promise<void>;
+  retireChapter(id: string): Promise<void>;
+  reactivateChapter(id: string): Promise<void>;
+}
+
+/** Admin user directory: paginated, role mutation only. */
+export interface AdminUsersRepositoryPort {
+  listUsers(query: PageQuery): Promise<Page<AdminUserRow>>;
+  findById(id: string): Promise<AdminUserRow | null>;
+  countAdmins(): Promise<number>;
+  updateRole(userId: string, role: AdminUserRow["role"]): Promise<void>;
+  /** Support edit: display name + contact email only, never the role. */
+  updateProfile(
+    userId: string,
+    input: { fullName: string; email: string | null },
+  ): Promise<void>;
+  /** Stores only the hash; the plaintext temp password never touches the DB. */
+  resetPasswordHash(userId: string, passwordHash: string): Promise<void>;
 }
 
 export interface ChapterRepositoryPort {

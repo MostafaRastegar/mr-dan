@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Form } from "antd";
 import { useRouter } from "next/navigation";
 
+import type { SubjectRow } from "@/modules/advising/domain/models";
 import {
   useActionMutation,
   useFormAction,
@@ -21,11 +22,15 @@ import type { SchoolProgramEntry } from "./school-program-form.view";
 interface SchoolProgramFormVMProps {
   initialEntries: SchoolProgramEntry[];
   fieldOfStudy: string | null;
+  subjects: SubjectRow[];
+  labels: Record<string, string>;
 }
 
 export function SchoolProgramForm({
   initialEntries,
   fieldOfStudy,
+  subjects,
+  labels,
 }: SchoolProgramFormVMProps) {
   const [form] = Form.useForm();
   const router = useRouter();
@@ -63,6 +68,8 @@ export function SchoolProgramForm({
       form={form}
       entries={initialEntries}
       fieldOfStudy={fieldOfStudy}
+      subjects={subjects}
+      labels={labels}
       saved={Boolean(addState?.ok || deleteState?.ok)}
       formError={formError}
       pending={addPending || deletePending}

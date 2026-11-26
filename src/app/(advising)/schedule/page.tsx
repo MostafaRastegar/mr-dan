@@ -7,13 +7,15 @@ export const metadata = { title: "برنامه هفتگی — mr-dan" };
 
 export default async function SchedulePage() {
   const { user } = await requireCapability("schedule:read");
-  const [weeklyEntries, schoolProgram] = await Promise.all([
-    getContainer().advising.listWeeklySchedule.execute({
+  const container = getContainer();
+  const [weeklyEntries, schoolProgram, catalog] = await Promise.all([
+    container.advising.listWeeklySchedule.execute({
       actor: { id: user.id, role: user.role },
     }),
-    getContainer().advising.listSchoolProgram.execute({
+    container.advising.listSchoolProgram.execute({
       actor: { id: user.id, role: user.role },
     }),
+    container.advising.catalogOptions.execute(),
   ]);
   const schoolProgramEntries = schoolProgram.map((e) => ({
     id: e.id,
@@ -27,6 +29,8 @@ export default async function SchedulePage() {
       schoolProgramEntries={schoolProgramEntries}
       canWrite={hasCapability(user.role, "schedule:write")}
       fieldOfStudy={user.fieldOfStudy}
+      subjects={catalog.subjects}
+      labels={catalog.subjectLabels}
     />
   );
 }

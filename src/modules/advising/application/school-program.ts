@@ -8,7 +8,6 @@ import {
   assertPlanWrite,
   type Actor,
 } from "@/modules/advising/application/planning-access";
-import { isSubjectSlug } from "@/modules/advising/domain/subjects";
 import type { SchoolProgramEntry } from "@/modules/advising/domain/models";
 import type {
   SchoolProgramRepositoryPort,
@@ -48,9 +47,6 @@ export class AddSchoolProgramEntryUseCase {
     const ownerId = input.actor.id;
     await assertPlanWrite(input.actor, "schedule:write", ownerId);
 
-    if (!isSubjectSlug(input.subject)) {
-      throw new ValidationError("درس نامعتبر است");
-    }
     const minutes = Math.round(input.hours * 60);
     if (minutes < ENTRY_MINUTES_MIN || minutes > ENTRY_MINUTES_MAX) {
       throw new ValidationError("ساعت‌ها باید بین ۰٫۲۵ تا ۱۲ باشد");

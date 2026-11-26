@@ -2,11 +2,9 @@
 
 import { z } from "zod";
 
-import { redirect } from "next/navigation";
-
 import { runAction } from "@/utils/server-action";
 import type { ActionState } from "@/utils/app-error";
-import { getSessionContext } from "@/server/advising-guards";
+import { requireSessionUser } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
 import type { MealSlot } from "@/modules/advising/domain/energy";
 
@@ -14,8 +12,7 @@ export async function setHomeworkDoneAction(input: {
   homeworkId: string;
   minutes: number;
 }): Promise<ActionState<{ id: string }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const parsed = z
@@ -25,7 +22,7 @@ export async function setHomeworkDoneAction(input: {
       })
       .parse(input);
     await getContainer().advising.setHomeworkCompletion.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       homeworkId: parsed.homeworkId,
       completed: true,
       spentMinutes: parsed.minutes,
@@ -41,8 +38,7 @@ export async function toggleStudyBlockAction(input: {
   subject: string | null;
   completed: boolean;
 }): Promise<ActionState<{ completedBlocks: string[] }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const parsed = z
@@ -55,7 +51,7 @@ export async function toggleStudyBlockAction(input: {
       })
       .parse(input);
     const goal = await getContainer().advising.toggleStudyBlock.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       dayKey: parsed.dayKey,
       startMinute: parsed.startMinute,
       minutes: parsed.minutes,
@@ -68,8 +64,7 @@ export async function toggleStudyBlockAction(input: {
 export async function addTestsAction(input: {
   delta: number;
 }): Promise<ActionState<{ testsDone: number }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const parsed = z
@@ -78,7 +73,7 @@ export async function addTestsAction(input: {
       })
       .parse(input);
     const goal = await getContainer().advising.addTestsDone.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       delta: parsed.delta,
     });
     return { testsDone: goal.testsDone };
@@ -89,8 +84,7 @@ export async function toggleMealSlotAction(input: {
   slot: MealSlot;
   eaten: boolean;
 }): Promise<ActionState<{ eatenSlots: string[] }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const parsed = z
@@ -100,7 +94,7 @@ export async function toggleMealSlotAction(input: {
       })
       .parse(input);
     const plan = await getContainer().advising.toggleMealSlot.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       slot: parsed.slot as MealSlot,
       eaten: parsed.eaten,
     });

@@ -8,11 +8,10 @@
 import { z } from "zod";
 
 import { HOMEWORK_PRIORITIES } from "../domain/models";
-import { isSubjectSlug } from "../domain/subjects";
 
 const DEADLINE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-function optionalSubject(message: string) {
+function optionalSubject(subjects: readonly string[], message: string) {
   return z
     .string()
     .optional()
@@ -21,18 +20,21 @@ function optionalSubject(message: string) {
       return trimmed.length > 0 ? trimmed : undefined;
     })
     .refine(
-      (value) => value === undefined || isSubjectSlug(value),
+      (value) => value === undefined || subjects.includes(value),
       message,
     );
 }
 
-export const homeworkSchema = z.object({
+/** Built per request from the active subject slugs. */
+export function makeHomeworkSchemas(subjects: readonly string[]) {
+  return {
+    homeworkSchema: z.object({
   title: z
     .string()
     .trim()
     .min(1, "عنوان الزامی است")
     .max(120, "عنوان نباید بیشتر از ۱۲۰ نویسه باشد"),
-  subject: optionalSubject("درس انتخاب‌شده معتبر نیست"),
+  subject: optionalSubject(subjects, "درس انتخاب‌شده معتبر نیست"),
   priority: z
     .enum(["low", "medium", "high"])
     .transform((value) => HOMEWORK_PRIORITIES[value]),
@@ -52,7 +54,9 @@ export const homeworkSchema = z.object({
       "تاریخ معتبر نیست",
     )
     .transform((value) => new Date(`${value}T00:00:00+03:30`)),
-});
+    }),
+  };
+}
 
 export const homeworkToggleSchema = z.object({
   id: z.string().min(1, "شناسه الزامی است"),
@@ -61,5 +65,6 @@ export const homeworkToggleSchema = z.object({
     .transform((value) => value === "true"),
 });
 
-export type HomeworkInput = z.infer<typeof homeworkSchema>;
+export type HomeworkSchemas = ReturnType<typeof makeHomeworkSchemas>;
+export type HomeworkInput = z.infer<HomeworkSchemas["homeworkSchema"]>;
 export type HomeworkToggleInput = z.infer<typeof homeworkToggleSchema>;

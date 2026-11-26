@@ -23,6 +23,7 @@ import type {
   WeeklyScheduleEntry,
 } from "@/modules/advising/domain/models";
 import { HOMEWORK_PRIORITY_LABEL, HOMEWORK_PRIORITY_RANK } from "@/modules/advising/domain/models";
+import { FakeCatalogRepository } from "./advisor-program";
 import type {
   FreeTimeBudgetRepositoryPort,
   HomeworkPlanRepositoryPort,
@@ -404,14 +405,37 @@ export interface PlanningFakes {
   homework: FakeHomeworkRepository;
   budget: FakeFreeTimeBudgetRepository;
   plans: FakeHomeworkPlanRepository;
+  catalogs: FakeCatalogRepository;
 }
 
 export function createPlanningFakes(): PlanningFakes {
   const store = createPlanningStore();
+  const catalogs = new FakeCatalogRepository();
+  catalogs.seed([], [], {
+    books: [
+      {
+        id: "book-1",
+        slug: "how-to-solve-it",
+        title: "چگونه مسئله حل کنیم",
+        author: "جورج پولیا",
+        fieldLabel: null,
+        codes: [
+          "critical_fatigue",
+          "heavy_workload",
+          "overloaded_week",
+          "balanced",
+          "low_activity",
+        ],
+        active: true,
+        sortOrder: 1,
+      },
+    ],
+  });
   return {
     schedule: new FakeScheduleRepository(),
     homework: new FakeHomeworkRepository(),
     budget: new FakeFreeTimeBudgetRepository(store),
     plans: new FakeHomeworkPlanRepository(store),
+    catalogs,
   };
 }

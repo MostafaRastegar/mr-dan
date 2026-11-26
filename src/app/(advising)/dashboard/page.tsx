@@ -9,9 +9,15 @@ export default async function DashboardPage() {
   const { user } = await requireSessionUser();
   if (user.role === "counselor") redirect("/counselor/students");
 
-  const overview = await getContainer().advising.dashboardOverview.execute({
-    actor: { id: user.id, role: user.role },
-  });
+  const container = getContainer();
+  const [overview, catalog] = await Promise.all([
+    container.advising.dashboardOverview.execute({
+      actor: { id: user.id, role: user.role },
+    }),
+    container.advising.catalogOptions.execute(),
+  ]);
 
-  return <DashboardWrapper overview={overview} />;
+  return (
+    <DashboardWrapper overview={overview} labels={catalog.subjectLabels} />
+  );
 }

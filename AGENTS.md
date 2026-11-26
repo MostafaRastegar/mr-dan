@@ -19,6 +19,8 @@ langchain 1.6.7 · @langchain/core 1.5.0
 chromadb 3.5.0 · unpdf 2.2.1 · zod 4 · pino
 ```
 
+- کتابخانه‌های `langchain`، `@langchain/classic`، `@langchain/textsplitters` و `chromadb` هنوز در `package.json` نصب نیستند: ابزار رزرو‌شدهٔ فاز RAG/ingestion بعدی‌اند، نه بخشی از build فعلی؛ نبودنشان خطای build نیست و `chromadb` لازم هم نیست چون adapter از REST خام استفاده می‌کند.
+- `@langchain/core`، `@langchain/community` و `unpdf` نصب‌اند و فقط داخل ماژول `src/modules/rag` مصرف می‌شوند.
 - package manager: **pnpm**.
 - `npm install prisma@latest` ممنوع.
 

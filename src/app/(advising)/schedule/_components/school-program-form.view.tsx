@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Button, Form, InputNumber, Select, type FormInstance } from "antd";
 
-import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
-import { subjectsForField, subjectLabel } from "@/modules/advising/domain/subjects";
+import { DAYS_OF_WEEK, type SubjectRow } from "@/modules/advising/domain/models";
+import { labelOf, subjectOptions } from "@/modules/advising/domain/catalog";
 import { formatDuration } from "@/modules/advising/presentation/planning-format";
 
 import { TEST_IDS } from "@/constants/test-ids";
@@ -19,6 +19,8 @@ interface SchoolProgramFormViewProps {
   form: FormInstance;
   entries: SchoolProgramEntry[];
   fieldOfStudy: string | null;
+  subjects: SubjectRow[];
+  labels: Record<string, string>;
   saved: boolean;
   formError: string | null;
   pending: boolean;
@@ -36,6 +38,8 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
     form,
     entries,
     fieldOfStudy,
+    subjects,
+    labels,
     saved,
     formError,
     pending,
@@ -88,7 +92,10 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
               placeholder="انتخاب درس"
               data-testid={TEST_IDS.SCHOOL_PROGRAM.SUBJECT_SELECT}
             >
-              {subjectsForField(fieldOfStudy).map((s) => (
+              {subjectOptions(subjects, {
+                field: fieldOfStudy,
+                grade: null,
+              }).map((s) => (
                 <Select.Option key={s.slug} value={s.slug}>
                   {s.label}
                 </Select.Option>
@@ -148,7 +155,7 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
         onDelete={handleDelete}
         formatDuration={formatDuration}
         dayLabel={dayLabel}
-        subjectLabel={subjectLabel}
+        subjectLabel={(slug) => labelOf(labels, slug)}
       />
     </section>
   );

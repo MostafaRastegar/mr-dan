@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { Button, Form, Input, Select, type FormInstance } from "antd";
 import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
-import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
-import { subjectsForField } from "@/modules/advising/domain/subjects";
+import { DAYS_OF_WEEK, type SubjectRow } from "@/modules/advising/domain/models";
+import { subjectOptions } from "@/modules/advising/domain/catalog";
 
 import { TEST_IDS } from "@/constants/test-ids";
 
@@ -15,6 +15,7 @@ interface ScheduleEntryFormViewProps {
   formError: string | null;
   onClose: () => void;
   fieldOfStudy: string | null;
+  subjects: SubjectRow[];
   initialValues: Record<string, unknown>;
 }
 
@@ -27,6 +28,7 @@ export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactN
     formError,
     onClose,
     fieldOfStudy,
+    subjects,
     initialValues,
   } = props;
 
@@ -97,7 +99,10 @@ export function ScheduleEntryFormView(props: ScheduleEntryFormViewProps): ReactN
             placeholder="انتخاب درس"
             data-testid={TEST_IDS.FORM.SELECT("subject")}
           >
-            {subjectsForField(fieldOfStudy).map((s) => (
+            {subjectOptions(subjects, {
+              field: fieldOfStudy,
+              grade: null,
+            }).map((s) => (
               <Select.Option key={s.slug} value={s.slug}>
                 {s.label}
               </Select.Option>

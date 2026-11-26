@@ -3,7 +3,7 @@ import { Button } from "antd";
 
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
 import type { Chapter, StudyPlanEntry } from "@/modules/advising/domain/models";
-import { subjectLabel } from "@/modules/advising/domain/subjects";
+import { labelOf } from "@/modules/advising/domain/catalog";
 import { formatDuration } from "@/modules/advising/presentation/planning-format";
 import { TEST_IDS } from "@/constants/test-ids";
 
@@ -27,13 +27,14 @@ function chapterList(chapterIds: string[], chapters: Chapter[]): string {
 interface StudyPlanTableViewProps {
   entries: StudyPlanEntry[];
   chapters: Chapter[];
+  labels: Record<string, string>;
   pending: boolean;
   formError: string | null;
   onDelete: (entryId: string) => void;
 }
 
 export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
-  const { entries, chapters, pending, formError, onDelete } = props;
+  const { entries, chapters, labels, pending, formError, onDelete } = props;
 
   const weeklyTotal = entries.reduce((sum, entry) => sum + entry.minutes, 0);
   const subjectTotals: Record<string, number> = {};
@@ -93,7 +94,7 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
             {entries.map((entry) => (
               <tr key={entry.id} className="border-b border-slate-100">
                 <td className="p-2">{dayLabel(entry.dayOfWeek)}</td>
-                <td className="p-2">{subjectLabel(entry.subject)}</td>
+                <td className="p-2">{labelOf(labels, entry.subject)}</td>
                 <td className="p-2 dir-ltr">{formatDuration(entry.minutes)}</td>
                 <td className="p-2 text-sm">
                   {chapterList(entry.chapterIds, chapters)}
@@ -129,7 +130,7 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
       <div className="grid gap-2 sm:grid-cols-3">
         {Object.entries(subjectTotals).map(([subject, totalMinutes]) => (
           <div key={subject} className="border border-slate-100 rounded p-2 text-sm">
-            <span className="text-slate-500">{subjectLabel(subject)}</span>
+            <span className="text-slate-500">{labelOf(labels, subject)}</span>
             <span className="text-slate-900 dir-ltr float-left">
               {formatDuration(totalMinutes)}
             </span>

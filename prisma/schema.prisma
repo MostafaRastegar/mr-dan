@@ -71,7 +71,7 @@ model User {
   username     String  @unique
   email        String? @unique
   passwordHash String
-  role         String // "student" | "counselor" | "admin" — validated by zod, not a PG enum
+  role         String // "student" | "counselor" | "admin" | "operator" — validated by zod, not a PG enum
   fullName     String
   grade        String? // دهم | یازدهم | دوازدهم | فارغ‌التحصیل
   fieldOfStudy String? // ریاضی فیزیک | علوم تجربی | علوم انسانی | فنی حرفه‌ای
@@ -236,6 +236,49 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model Field {
+  id        String   @id @default(cuid())
+  label     String   @unique
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Grade {
+  id        String   @id @default(cuid())
+  label     String   @unique
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  label       String
+  fieldLabels String[] @default([])
+  gradeLabels String[] @default([])
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Book {
+  id         String   @id @default(cuid())
+  slug       String   @unique
+  title      String
+  author     String
+  fieldLabel String?
+  codes      String[] @default([])
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Need {

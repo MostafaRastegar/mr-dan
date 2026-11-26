@@ -24,10 +24,15 @@ export type Capability =
   | "leisure:read"
   | "plan:write"
   | "rag:manage"
-  | "user:manage";
+  | "user:read"
+  | "user:support"
+  | "user:manage"
+  | "catalog:manage";
 
-// Admin deliberately contains the full counselor set plus the two admin-only
+// Admin deliberately contains the full counselor set plus the admin-only
 // capabilities — no inheritance mechanism; the plain table is the point.
+// `operator` is a limited support login: user directory + support edits, never
+// `rag:manage` or `user:manage` (role changes stay admin-only).
 export const CAPABILITIES: Record<Role, readonly Capability[]> = {
   student: [
     "profile:read",
@@ -74,7 +79,16 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "leisure:read",
     "plan:write",
     "rag:manage",
+    "user:read",
+    "user:support",
     "user:manage",
+    "catalog:manage",
+  ],
+  operator: [
+    "profile:read",
+    "profile:write",
+    "user:read",
+    "user:support",
   ],
 };
 

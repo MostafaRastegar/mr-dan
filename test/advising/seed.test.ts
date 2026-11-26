@@ -5,7 +5,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { prisma } from "@/shared/prisma";
-import { seedAdvising } from "../../scripts/seed-advising";
+import { seedAdvising, seedCatalogs } from "../../scripts/seed-advising";
 
 let live = false;
 
@@ -63,6 +63,40 @@ describe("advising demo seed", () => {
     expect(repaired?.groupId).toBe(first.groupId);
     expect(repaired?.counselorId).toBe(first.counselorId);
     expect(repaired?.passwordHash).toBe(before?.passwordHash);
+  });
+
+  it("catalog seed is idempotent", async () => {
+    if (!live) return;
+
+    const first = await seedCatalogs();
+    const second = await seedCatalogs();
+
+    // Idempotent by natural key: same returned counts, no duplicate rows.
+    expect(second).toEqual(first);
+    expect(first.fields).toBeGreaterThan(0);
+    expect(first.grades).toBeGreaterThan(0);
+    expect(first.subjects).toBeGreaterThan(0);
+    expect(first.books).toBeGreaterThan(0);
+
+    // The seed source lives in scripts/, so assert against the seeded DB rows.
+    expect(await prisma.field.findUnique({ where: { label: "علوم تجربی" } })).not.toBeNull();
+    expect(await prisma.grade.findUnique({ where: { label: "دوازدهم" } })).not.toBeNull();
+
+    const subject = await prisma.subject.findUnique({ where: { slug: "riazi" } });
+    expect(subject?.label).toBe("ریاضی");
+    expect(subject?.fieldLabels).toEqual([]);
+    expect(subject?.gradeLabels).toEqual([]);
+
+    const fieldSpecific = await prisma.subject.findUnique({ where: { slug: "zist" } });
+    expect(fieldSpecific?.fieldLabels).toEqual(["علوم تجربی"]);
+
+    const book = await prisma.book.findUnique({ where: { slug: "how-to-solve-it" } });
+    expect(book?.fieldLabel).toBe("ریاضی فیزیک");
+
+    expect(await prisma.field.count({ where: { label: "علوم تجربی" } })).toBe(1);
+    expect(await prisma.grade.count({ where: { label: "دوازدهم" } })).toBe(1);
+    expect(await prisma.subject.count({ where: { slug: "riazi" } })).toBe(1);
+    expect(await prisma.book.count({ where: { slug: "how-to-solve-it" } })).toBe(1);
   });
 
   it("seed refuses production", async () => {

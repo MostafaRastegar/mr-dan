@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { deleteByIdSchema, scheduleEntrySchema } from "./schedule-schemas";
+import { deleteByIdSchema, makeScheduleSchemas } from "./schedule-schemas";
+
+const SUBJECTS = ["riazi", "zist"] as const;
+const { scheduleEntrySchema } = makeScheduleSchemas(SUBJECTS);
 
 describe("schedule entry schema", () => {
   const base = {
@@ -38,7 +41,7 @@ describe("schedule entry schema", () => {
     ).toBe(true);
   });
 
-  it("subject catalog", () => {
+  it("accepts only subjects from the runtime list", () => {
     expect(
       scheduleEntrySchema.safeParse({ ...base, subject: "math" }).success,
     ).toBe(false);
@@ -48,6 +51,10 @@ describe("schedule entry schema", () => {
     expect(
       scheduleEntrySchema.safeParse({ ...base, subject: "zist" }).success,
     ).toBe(true);
+    // Known domain slug, but not in the list this schema was built from.
+    expect(
+      scheduleEntrySchema.safeParse({ ...base, subject: "fizik" }).success,
+    ).toBe(false);
   });
 });
 

@@ -1,26 +1,26 @@
 "use server";
 
-import { redirect } from "next/navigation";
-
-import { studyPlanHeaderSchema, studyPlanEntrySchema } from "@/modules/advising/presentation/advisor-schemas";
+import {
+  makeAdvisorSchemas,
+  studyPlanHeaderSchema,
+} from "@/modules/advising/presentation/advisor-schemas";
 import { runAction } from "@/utils/server-action";
 import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
-import { getSessionContext } from "@/server/advising-guards";
+import { requireSessionUser } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
 
 export async function saveStudyPlanHeaderAction(
   _previous: ActionState<{ studentId: string; testsTarget: number }> | null,
   formData: FormData,
 ): Promise<ActionState<{ studentId: string; testsTarget: number }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const input = studyPlanHeaderSchema.parse(formValues(formData));
     const studentId = String(formData.get("studentId") ?? "");
     const plan = await getContainer().advising.saveStudyPlanHeader.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       studentId,
       testsTarget: input.testsTarget,
     });
@@ -32,14 +32,18 @@ export async function addStudyPlanEntryAction(
   _previous: ActionState<{ id: string; weeklyMinutes: number }> | null,
   formData: FormData,
 ): Promise<ActionState<{ id: string; weeklyMinutes: number }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
+    const { subjects } =
+      await getContainer().advising.catalogOptions.execute();
+    const { studyPlanEntrySchema } = makeAdvisorSchemas(
+      subjects.map((row) => row.slug),
+    );
     const input = studyPlanEntrySchema.parse(formValues(formData));
     const studentId = String(formData.get("studentId") ?? "");
     const entry = await getContainer().advising.addStudyPlanEntry.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       studentId,
       dayOfWeek: input.dayOfWeek,
       subject: input.subject,
@@ -48,7 +52,7 @@ export async function addStudyPlanEntryAction(
       note: input.note,
     });
     const plan = await getContainer().advising.getStudentStudyPlan.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       studentId,
     });
     const weeklyMinutes = (plan.plan?.entries ?? []).reduce(
@@ -63,19 +67,18 @@ export async function deleteStudyPlanEntryAction(
   _previous: ActionState<{ weeklyMinutes: number }> | null,
   formData: FormData,
 ): Promise<ActionState<{ weeklyMinutes: number }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const studentId = String(formData.get("studentId") ?? "");
     const entryId = String(formData.get("entryId") ?? "");
     await getContainer().advising.deleteStudyPlanEntry.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       studentId,
       entryId,
     });
     const plan = await getContainer().advising.getStudentStudyPlan.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       studentId,
     });
     const weeklyMinutes = (plan.plan?.entries ?? []).reduce(

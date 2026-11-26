@@ -20,6 +20,7 @@ interface DashboardViewProps {
   onToggleMeal: (slot: string) => void;
   onAddTests: (delta: number) => void;
   error: string | null;
+  labels: Record<string, string>;
 }
 
 export function DashboardView(props: DashboardViewProps): ReactNode {
@@ -34,6 +35,7 @@ export function DashboardView(props: DashboardViewProps): ReactNode {
     onToggleMeal,
     onAddTests,
     error,
+    labels,
   } = props;
 
   if (error) {
@@ -63,6 +65,7 @@ export function DashboardView(props: DashboardViewProps): ReactNode {
 
       {/* Card 1 — homework */}
       <HomeworkTodayView
+        labels={labels}
         items={[...overview.homework.today, ...overview.homework.tomorrow]}
         homeworkMinutes={homeworkMinutes}
         onSetHomeworkMinutes={onSetHomeworkMinutes}
@@ -72,6 +75,7 @@ export function DashboardView(props: DashboardViewProps): ReactNode {
       {/* Card 2 — study plan + free time + book */}
       <div className="grid gap-4 md:grid-cols-2">
         <StudyPlanView
+          labels={labels}
           blocks={overview.blocks}
           ticked={new Set(overview.goal?.completedBlocks ?? [])}
           onToggle={onToggleBlock}

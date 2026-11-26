@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { FormValues } from "@/utils/use-form-action";
 
 import { TEST_IDS } from "@/constants/test-ids";
-import { FIELDS, GRADES } from "@/modules/advising/domain/models";
 
 const ROLE_OPTIONS = [
   { value: "student", label: "دانش‌آموز" },
@@ -18,10 +17,21 @@ interface RegisterFormViewProps {
   formError: string | null;
   isStudent: boolean;
   initialValues: { role: string };
+  fieldOptions: string[];
+  gradeOptions: string[];
 }
 
 export function RegisterFormView(props: RegisterFormViewProps): ReactNode {
-  const { form, submit, pending, formError, isStudent, initialValues } = props;
+  const {
+    form,
+    submit,
+    pending,
+    formError,
+    isStudent,
+    initialValues,
+    fieldOptions,
+    gradeOptions,
+  } = props;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-6 py-10">
@@ -97,7 +107,7 @@ export function RegisterFormView(props: RegisterFormViewProps): ReactNode {
               <Select
                 allowClear
                 placeholder="انتخاب نشده"
-                options={GRADES.map((grade) => ({ value: grade, label: grade }))}
+                options={gradeOptions.map((grade) => ({ value: grade, label: grade }))}
                 data-testid={TEST_IDS.FORM.SELECT("grade")}
               />
             </Form.Item>
@@ -106,7 +116,7 @@ export function RegisterFormView(props: RegisterFormViewProps): ReactNode {
               <Select
                 allowClear
                 placeholder="انتخاب نشده"
-                options={FIELDS.map((field) => ({ value: field, label: field }))}
+                options={fieldOptions.map((field) => ({ value: field, label: field }))}
                 data-testid={TEST_IDS.FORM.SELECT("fieldOfStudy")}
               />
             </Form.Item>

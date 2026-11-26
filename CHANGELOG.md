@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-11-26 — rag-module-consolidation
+
+### Changed
+- `persian-tokenizer` (`persianPreprocess`) moved from `src/modules/rag/application/` to `src/modules/rag/domain/`, test included, via `git mv`. It is pure, dependency-free and parity-critical (oracle-matched letter mappings), so `domain` is its home and `infrastructure` may import it without a reverse layer edge. `hybrid-retriever.ts` now imports `@/modules/rag/domain/persian-tokenizer`.
+- `test/architecture.test.ts`: `FORBIDDEN.infrastructure` gains `"application"`, so any infrastructure→application import fails `pnpm test` in every module (today the repo has zero such edges).
+- `test/architecture.test.ts`: `resolveInternal(specifier, fromPath)` resolves relative specifiers to project-relative paths (a same-directory relative import still returns `null`), closing a test-tooling gap that let the layer rules be evaded by `../application/x`. One in-test block asserts the cross-layer, same-directory and `@/` branches.
+- `.opencode/skills/mr-dan-ingestion/SKILL.md`: loader-home line corrected from `infrastructure/document-loaders/` to the actual `application/document-loaders.ts`.
+
+### Docs
+- `README.md`: no change — its structure section already describes `modules/<domain>/{domain,application,infrastructure,presentation}` (target == current).
+- No behavior doc: structural refactor, no user-facing behavior change.
+- No behavior, threshold, dependency or schema change; `src/shared/env.ts` and `src/server/container.ts` are byte-identical to HEAD.
+
+### Known limitations
+- The architecture scanner resolves paths textually: it does not follow re-exports, and only `@/` and `./`/`../` specifiers are checked.
+- `document-loaders.ts`, `text-splitter.ts` and `text-normalizer.ts` deliberately stay in `application/` (stdlib-pure, consumed by the use case); moving them to `infrastructure/` would force `application → infrastructure` imports.
+
+### Evidence
+- `pnpm typecheck` 0 · `pnpm lint` 0 (5 pre-existing warnings, 0 new) · `pnpm test` 0 (60 files / 382 tests) · `pnpm build` 0 · `pnpm test --run test/architecture.test.ts -t "external"` 0 · `-t "layer direction"` 0 · `-t "relative"` 0 · `git diff --exit-code -- src/shared/env.ts src/server/container.ts` 0 · AC-3 file/grep check 0 · `secret-audit` no findings.
+- Paths: plan `.opencode/plans/rag-module-consolidation.md`, review `.opencode/reviews/rag-module-consolidation.md`, test log `.opencode/reviews/rag-module-consolidation.tests.log`. No behavior doc (structural refactor).
+
 ## 2026-11-23 — phase-5-3-nutrition-leisure
 
 ### Added

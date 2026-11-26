@@ -8,7 +8,6 @@
 
 import { type Actor } from "@/modules/advising/application/planning-access";
 import { NotFoundError } from "@/modules/advising/domain/errors";
-import { FIELDS } from "@/modules/advising/domain/models";
 import {
   buildStudyBlocks,
   type StudyBlock,
@@ -30,17 +29,17 @@ import {
   shiftDayKey,
   weekStartKey,
 } from "@/modules/advising/domain/day-key";
-import { pickBook } from "@/modules/advising/domain/books";
+import { pickBookFrom } from "@/modules/advising/domain/catalog";
 import { suggestLeisure, type LeisureInputs } from "@/modules/advising/domain/leisure";
 import { planMinutesTotal } from "@/modules/advising/domain/study-plan";
 import type {
-  FieldOfStudy,
   HomeworkItem,
   MealPlanRecord,
   Role,
   WeeklyScheduleEntry,
 } from "@/modules/advising/domain/models";
 import type {
+  CatalogRepositoryPort,
   FreeTimeBudgetRepositoryPort,
   HomeworkPlanRepositoryPort,
   HomeworkRepositoryPort,
@@ -94,10 +93,6 @@ function homeworkDayKey(item: HomeworkItem): string {
   return iranDayKey(item.deadline);
 }
 
-function isKnownField(value: string | null | undefined): value is FieldOfStudy {
-  return FIELDS.some((field) => field === value);
-}
-
 function needLabelOf(
   hasPlan: boolean,
   progress: ReturnType<typeof goalProgress>,
@@ -120,6 +115,7 @@ export class GetDashboardOverviewUseCase {
     private readonly budgets: FreeTimeBudgetRepositoryPort,
     private readonly homeworkPlans: HomeworkPlanRepositoryPort,
     private readonly mealPlans: MealPlanRepositoryPort,
+    private readonly catalogs: CatalogRepositoryPort,
   ) {}
 
   async execute(input: {
@@ -206,8 +202,8 @@ export class GetDashboardOverviewUseCase {
       overdueHomework,
     };
     const suggestion = suggestLeisure(leisureInputs);
-    const book = pickBook({
-      field: isKnownField(user.fieldOfStudy) ? user.fieldOfStudy : null,
+    const book = pickBookFrom(await this.catalogs.listBooks(), {
+      field: user.fieldOfStudy,
       code: suggestion.code,
     });
 
@@ -235,7 +231,7 @@ export class GetDashboardOverviewUseCase {
         otherOccupiedMinutes: otherOccupied,
         homeworkAverageMinutes: homeworkAverage,
       },
-      book: book.title,
+      book: book?.title ?? null,
       needLabel: needLabelOf(!!plan, progress),
       goal,
       meal,

@@ -87,3 +87,43 @@ describe("CAPABILITIES nutrition and leisure", () => {
     }
   });
 });
+
+describe("plan:write", () => {
+  it("is held only by counselor and admin", () => {
+    const roles = ["student", "counselor", "admin", "operator"] as const;
+    expect(roles.filter((role) => hasCapability(role, "plan:write"))).toEqual([
+      "counselor",
+      "admin",
+    ]);
+  });
+});
+
+describe("catalog:manage", () => {
+  it("is held only by admin", () => {
+    const roles = ["student", "counselor", "admin", "operator"] as const;
+    expect(roles.filter((role) => hasCapability(role, "catalog:manage"))).toEqual([
+      "admin",
+    ]);
+  });
+});
+
+describe("CAPABILITIES operator", () => {
+  it("holds user:read and user:support but never user:manage or rag:manage", () => {
+    expect(hasCapability("operator", "user:read")).toBe(true);
+    expect(hasCapability("operator", "user:support")).toBe(true);
+    expect(hasCapability("operator", "user:manage")).toBe(false);
+    expect(hasCapability("operator", "rag:manage")).toBe(false);
+  });
+
+  it("is a subset of admin", () => {
+    for (const cap of CAPABILITIES.operator) {
+      expect(CAPABILITIES.admin).toContain(cap);
+    }
+  });
+
+  it("cannot write planning rows", () => {
+    for (const cap of ["group:manage", "plan:write", "schedule:write"] as const) {
+      expect(hasCapability("operator", cap)).toBe(false);
+    }
+  });
+});

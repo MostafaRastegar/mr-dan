@@ -86,7 +86,19 @@ import {
 } from "@/modules/advising/application/study-plan";
 import { GetLeisureSuggestionUseCase } from "@/modules/advising/application/leisure";
 import { GetDashboardOverviewUseCase } from "@/modules/advising/application/dashboard";
+import { GetCatalogOptionsUseCase } from "@/modules/advising/application/catalog-options";
 import { ToggleMealSlotUseCase } from "@/modules/advising/application/nutrition";
+import {
+  ChangeUserRoleUseCase,
+  ListUsersUseCase,
+  SupportUserUseCase,
+} from "@/modules/advising/application/admin-users";
+import {
+  ManageBooksUseCase,
+  ManageChaptersUseCase,
+  ManageLabelCatalogUseCase,
+  ManageSubjectsUseCase,
+} from "@/modules/advising/application/catalog-admin";
 import {
   GetDayBudgetUseCase,
   SetFreeTimeBudgetUseCase,
@@ -113,6 +125,8 @@ import { PrismaSchoolProgramRepository } from "@/modules/advising/infrastructure
 import { PrismaStudyPlanRepository } from "@/modules/advising/infrastructure/prisma-study-plan-repository";
 import { PrismaStudentExamResultRepository } from "@/modules/advising/infrastructure/prisma-student-exam-result-repository";
 import { PrismaSupplementaryCourseRepository } from "@/modules/advising/infrastructure/prisma-supplementary-course-repository";
+import { PrismaCatalogAdminRepository } from "@/modules/advising/infrastructure/prisma-catalog-admin-repository";
+import { PrismaAdminUsersRepository } from "@/modules/advising/infrastructure/prisma-admin-users-repository";
 import { ScryptAuthCrypto } from "@/modules/advising/infrastructure/auth-crypto";
 
 type Container = {
@@ -155,6 +169,7 @@ type Container = {
     saveMealPlan: SaveMealPlanUseCase;
     getLeisureSuggestion: GetLeisureSuggestionUseCase;
     dashboardOverview: GetDashboardOverviewUseCase;
+    catalogOptions: GetCatalogOptionsUseCase;
     toggleMealSlot: ToggleMealSlotUseCase;
     getWeeklyGoal: GetWeeklyGoalUseCase;
     toggleStudyBlock: ToggleStudyBlockUseCase;
@@ -172,6 +187,18 @@ type Container = {
     addStudyPlanEntry: AddStudyPlanEntryUseCase;
     deleteStudyPlanEntry: DeleteStudyPlanEntryUseCase;
     listChapters: () => Promise<Chapter[]>;
+    admin: {
+      listUsers: ListUsersUseCase;
+      changeUserRole: ChangeUserRoleUseCase;
+      support: SupportUserUseCase;
+      fields: ManageLabelCatalogUseCase;
+      grades: ManageLabelCatalogUseCase;
+      needs: ManageLabelCatalogUseCase;
+      exams: ManageLabelCatalogUseCase;
+      subjects: ManageSubjectsUseCase;
+      books: ManageBooksUseCase;
+      chapters: ManageChaptersUseCase;
+    };
   };
 };
 
@@ -184,7 +211,7 @@ const globalForContainer = globalThis as unknown as {
  * Bump when the container's shape changes: the cache lives on `globalThis`
  * across HMR, so adding keys stays invisible to an already-running dev server.
  */
-const CONTAINER_VERSION = 6;
+const CONTAINER_VERSION = 9;
 
 function build(): Container {
   const documentRepository = new PrismaDocumentRepository();
@@ -280,6 +307,8 @@ function buildAdvising(): Container["advising"] {
   const studyPlans = new PrismaStudyPlanRepository();
   const studentExamResults = new PrismaStudentExamResultRepository();
   const supplementaryCourses = new PrismaSupplementaryCourseRepository();
+  const catalogAdmin = new PrismaCatalogAdminRepository();
+  const adminUsers = new PrismaAdminUsersRepository();
   const crypto = new ScryptAuthCrypto();
   const saveMealPlan = new SaveMealPlanUseCase(users, mealPlans);
 
@@ -309,7 +338,13 @@ function buildAdvising(): Container["advising"] {
     updatePhysicalProfile: new UpdatePhysicalProfileUseCase(users),
     saveMealPlan,
     toggleMealSlot: new ToggleMealSlotUseCase(saveMealPlan, mealPlans),
-    getLeisureSuggestion: new GetLeisureSuggestionUseCase(budget, plans, homework),
+    catalogOptions: new GetCatalogOptionsUseCase(catalogs),
+    getLeisureSuggestion: new GetLeisureSuggestionUseCase(
+      budget,
+      plans,
+      homework,
+      catalogs,
+    ),
     dashboardOverview: new GetDashboardOverviewUseCase(
       users,
       homework,
@@ -319,6 +354,7 @@ function buildAdvising(): Container["advising"] {
       budget,
       plans,
       mealPlans,
+      catalogs,
     ),
     getWeeklyGoal: new GetWeeklyGoalUseCase(goals),
     toggleStudyBlock: new ToggleStudyBlockUseCase(goals),
@@ -336,6 +372,18 @@ function buildAdvising(): Container["advising"] {
     addStudyPlanEntry: new AddStudyPlanEntryUseCase(users, studyPlans, chapters),
     deleteStudyPlanEntry: new DeleteStudyPlanEntryUseCase(users, studyPlans),
     listChapters: () => chapters.listAll(),
+    admin: {
+      listUsers: new ListUsersUseCase(adminUsers),
+      changeUserRole: new ChangeUserRoleUseCase(adminUsers),
+      support: new SupportUserUseCase(adminUsers, crypto),
+      fields: new ManageLabelCatalogUseCase(catalogAdmin, "fields"),
+      grades: new ManageLabelCatalogUseCase(catalogAdmin, "grades"),
+      needs: new ManageLabelCatalogUseCase(catalogAdmin, "needs"),
+      exams: new ManageLabelCatalogUseCase(catalogAdmin, "exams"),
+      subjects: new ManageSubjectsUseCase(catalogAdmin),
+      books: new ManageBooksUseCase(catalogAdmin),
+      chapters: new ManageChaptersUseCase(catalogAdmin),
+    },
   };
 }
 

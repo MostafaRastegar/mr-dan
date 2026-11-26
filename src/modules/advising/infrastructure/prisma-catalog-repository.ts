@@ -7,7 +7,14 @@
 
 import type { PrismaClient } from "@/generated/prisma/client";
 import { prisma } from "@/shared/prisma";
-import type { Exam, Need } from "@/modules/advising/domain/models";
+import type {
+  BookRow,
+  Exam,
+  FieldRow,
+  GradeRow,
+  Need,
+  SubjectRow,
+} from "@/modules/advising/domain/models";
 import type { CatalogRepositoryPort } from "@/modules/advising/domain/ports";
 
 const NEED_SELECT = {
@@ -75,6 +82,63 @@ export class PrismaCatalogRepository implements CatalogRepositoryPort {
       orderBy: { label: "asc" },
     });
     return rows.map(mapExam);
+  }
+
+  async listFields(): Promise<FieldRow[]> {
+    return this.client.field.findMany({
+      where: { active: true },
+      select: { id: true, label: true, active: true, sortOrder: true },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    });
+  }
+
+  async listGrades(): Promise<GradeRow[]> {
+    return this.client.grade.findMany({
+      where: { active: true },
+      select: { id: true, label: true, active: true, sortOrder: true },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    });
+  }
+
+  private subjects(where: { active?: boolean }): Promise<SubjectRow[]> {
+    return this.client.subject.findMany({
+      where,
+      select: {
+        id: true,
+        slug: true,
+        label: true,
+        fieldLabels: true,
+        gradeLabels: true,
+        active: true,
+        sortOrder: true,
+      },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    });
+  }
+
+  async listSubjects(): Promise<SubjectRow[]> {
+    return this.subjects({ active: true });
+  }
+
+  async listSubjectLabels(): Promise<SubjectRow[]> {
+    return this.subjects({});
+  }
+
+  async listBooks(): Promise<BookRow[]> {
+    return this.client.book.findMany({
+      where: { active: true },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        author: true,
+        fieldLabel: true,
+        codes: true,
+        active: true,
+        sortOrder: true,
+      },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    });
   }
 
   async findNeed(id: string): Promise<Need | null> {

@@ -24,6 +24,7 @@ describe("leisure use case", () => {
       fakes.budget,
       fakes.plans,
       fakes.homework,
+      fakes.catalogs,
     ).execute({ actor: student, today: TODAY });
 
     expect(result.inputs.freeMinutes7d).toBe(420);
@@ -42,6 +43,7 @@ describe("leisure use case", () => {
       fakes.budget,
       fakes.plans,
       fakes.homework,
+      fakes.catalogs,
     ).execute({ actor: student, today: TODAY });
 
     // Two seeded days only; the five absent days contribute 0, never an assumed 840.
@@ -75,6 +77,7 @@ describe("leisure use case", () => {
       fakes.budget,
       fakes.plans,
       fakes.homework,
+      fakes.catalogs,
     ).execute({ actor: student, today: TODAY });
 
     expect(result.inputs.pendingHomework).toBe(2);

@@ -43,6 +43,7 @@ export type StudentStudyPlanView = {
   goalProgress: ReturnType<typeof goalProgress>;
   rows: StudyPlanSubjectRow[];
   totals: StudyPlanTotals;
+  student: { grade: string | null; fieldOfStudy: string | null };
 };
 
 export type StudyPlanSubjectRow = {
@@ -75,7 +76,11 @@ export class GetStudentStudyPlanUseCase {
     studentId: string;
     weekKey?: string;
   }): Promise<StudentStudyPlanView> {
-    await assertCounselorOfStudent(this.users, input.actor, input.studentId);
+    const owner = await assertCounselorOfStudent(
+      this.users,
+      input.actor,
+      input.studentId,
+    );
 
     const weekKey = input.weekKey ?? currentWeekKey();
     const [plan, school, schedule, goal, subjectTests] = await Promise.all([
@@ -128,6 +133,7 @@ export class GetStudentStudyPlanUseCase {
       goalProgress: progress,
       rows,
       totals,
+      student: { grade: owner.grade, fieldOfStudy: owner.fieldOfStudy },
     };
   }
 }

@@ -33,7 +33,75 @@ export interface SeedCatalogsResult {
   needs: number;
   exams: number;
   chapters: number;
+  fields: number;
+  grades: number;
+  subjects: number;
+  books: number;
 }
+
+// Seed source of truth for the catalog tables (was domain/subjects.ts, domain/books.ts
+// and FIELDS/GRADES in domain/models.ts before the admin panel took ownership).
+const FIELDS_SEED = [
+  "ریاضی فیزیک",
+  "علوم تجربی",
+  "علوم انسانی",
+  "فنی حرفه‌ای",
+] as const;
+
+const GRADES_SEED = ["دهم", "یازدهم", "دوازدهم", "فارغ‌التحصیل"] as const;
+
+// fields: [] = every field (عمومی); gradeLabels always seed [] (= all grades).
+const SUBJECTS_SEED: readonly {
+  slug: string;
+  label: string;
+  fields: readonly string[];
+}[] = [
+  { slug: "quran", label: "قرآن", fields: [] },
+  { slug: "dini", label: "دین و زندگی", fields: [] },
+  { slug: "farsi", label: "فارسی", fields: [] },
+  { slug: "arabic", label: "عربی", fields: [] },
+  { slug: "english", label: "زبان انگلیسی", fields: [] },
+  { slug: "riazi", label: "ریاضی", fields: [] },
+  { slug: "olum", label: "علوم تجربی", fields: [] },
+  { slug: "ejtemaei", label: "مطالعات اجتماعی", fields: [] },
+  { slug: "farhang-honar", label: "فرهنگ و هنر", fields: [] },
+  { slug: "hesaban", label: "حسابان", fields: ["ریاضی فیزیک"] },
+  { slug: "hindese", label: "هندسه", fields: ["ریاضی فیزیک"] },
+  { slug: "gosaste", label: "ریاضی گسسته", fields: ["ریاضی فیزیک"] },
+  { slug: "amar", label: "آمار و احتمال", fields: ["ریاضی فیزیک"] },
+  { slug: "fizik", label: "فیزیک", fields: ["ریاضی فیزیک", "علوم تجربی"] },
+  { slug: "shimi", label: "شیمی", fields: ["ریاضی فیزیک", "علوم تجربی"] },
+  { slug: "zist", label: "زیست‌شناسی", fields: ["علوم تجربی"] },
+  { slug: "adabiat", label: "ادبیات اختصاصی", fields: ["علوم انسانی"] },
+  { slug: "tarikh", label: "تاریخ", fields: ["علوم انسانی"] },
+  { slug: "joghrafia", label: "جغرافیا", fields: ["علوم انسانی"] },
+  { slug: "eghtesad", label: "اقتصاد", fields: ["علوم انسانی"] },
+  { slug: "falsafe", label: "فلسفه و منطق", fields: ["علوم انسانی"] },
+  { slug: "ravanshenasi", label: "روان‌شناسی", fields: ["علوم انسانی"] },
+  { slug: "ejtemaei-ensani", label: "جامعه‌شناسی", fields: ["علوم انسانی"] },
+  { slug: "riazi-ensani", label: "ریاضی و آمار", fields: ["علوم انسانی"] },
+  { slug: "hesabdari", label: "حسابداری", fields: ["فنی حرفه‌ای"] },
+  { slug: "bargh", label: "برق", fields: ["فنی حرفه‌ای"] },
+  { slug: "mekanik", label: "مکانیک", fields: ["فنی حرفه‌ای"] },
+  { slug: "rayane", label: "شبکه و نرم‌افزار رایانه", fields: ["فنی حرفه‌ای"] },
+];
+
+const BOOKS_SEED: readonly {
+  slug: string;
+  title: string;
+  author: string;
+  fieldLabel: string | null;
+  codes: readonly string[];
+}[] = [
+  { slug: "how-to-solve-it", title: "چگونه مسئله را حل کنیم", author: "جرج پولیا", fieldLabel: "ریاضی فیزیک", codes: ["heavy_workload", "balanced"] },
+  { slug: "the-gene", title: "ژن: یک تاریخ خصوصی", author: "سیدهارتا موکرجی", fieldLabel: "علوم تجربی", codes: ["balanced", "low_activity"] },
+  { slug: "the-story-of-civilization", title: "تاریخ تمدن", author: "ویل دورانت", fieldLabel: "علوم انسانی", codes: ["overloaded_week", "critical_fatigue"] },
+  { slug: "thinking-in-systems", title: "تفکر سیستمی", author: "دانلا مدوز", fieldLabel: "فنی حرفه‌ای", codes: ["heavy_workload", "low_activity"] },
+  { slug: "atomic-habits", title: "عادت‌های اتمی", author: "جیمز کلیر", fieldLabel: null, codes: ["low_activity", "balanced"] },
+  { slug: "deep-work", title: "کار عمیق", author: "کال نیوپورت", fieldLabel: null, codes: ["heavy_workload", "overloaded_week"] },
+  { slug: "why-we-sleep", title: "چرا می‌خوابیم", author: "متیو واکر", fieldLabel: null, codes: ["critical_fatigue"] },
+  { slug: "mindset", title: "طرز فکر", author: "کارول دوک", fieldLabel: null, codes: ["low_activity", "balanced"] },
+];
 
 const NEEDS = [
   { code: "konkur", label: "کنکور" },
@@ -89,7 +157,60 @@ export async function seedCatalogs(): Promise<SeedCatalogsResult> {
     chapters += 1;
   }
 
-  return { needs, exams, chapters };
+  let fields = 0;
+  for (const [index, label] of FIELDS_SEED.entries()) {
+    await prisma.field.upsert({
+      where: { label },
+      update: {},
+      create: { label, sortOrder: index },
+    });
+    fields += 1;
+  }
+
+  let grades = 0;
+  for (const [index, label] of GRADES_SEED.entries()) {
+    await prisma.grade.upsert({
+      where: { label },
+      update: {},
+      create: { label, sortOrder: index },
+    });
+    grades += 1;
+  }
+
+  let subjects = 0;
+  for (const [index, row] of SUBJECTS_SEED.entries()) {
+    await prisma.subject.upsert({
+      where: { slug: row.slug },
+      update: {},
+      create: {
+        slug: row.slug,
+        label: row.label,
+        fieldLabels: [...row.fields],
+        gradeLabels: [],
+        sortOrder: index,
+      },
+    });
+    subjects += 1;
+  }
+
+  let books = 0;
+  for (const [index, book] of BOOKS_SEED.entries()) {
+    await prisma.book.upsert({
+      where: { slug: book.slug },
+      update: {},
+      create: {
+        slug: book.slug,
+        title: book.title,
+        author: book.author,
+        fieldLabel: book.fieldLabel,
+        codes: [...book.codes],
+        sortOrder: index,
+      },
+    });
+    books += 1;
+  }
+
+  return { needs, exams, chapters, fields, grades, subjects, books };
 }
 
 export async function seedAdvising(options: SeedOptions = {}): Promise<SeedResult> {

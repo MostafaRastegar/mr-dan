@@ -8,7 +8,6 @@
 
 import { z } from "zod";
 
-import { isSubjectSlug } from "../domain/subjects";
 import { dedupeChapterIds } from "../domain/chapters";
 import {
   CHAPTERS_MAX_PER_ENTRY,
@@ -141,11 +140,27 @@ export const courseSchema = z.object({
     ),
 });
 
-export const schoolProgramSchema = z.object({
-  dayOfWeek: z.coerce.number().int().min(0).max(6, "روز هفته نامعتبر است"),
-  subject: z.string().refine(isSubjectSlug, "درس نامعتبر است"),
-  hours: hoursField(),
-});
+const subjectField = (subjects: readonly string[]) =>
+  z.string().refine((value) => subjects.includes(value), "درس نامعتبر است");
+
+/** Built per request from the active subject slugs. */
+export function makeAdvisorSchemas(subjects: readonly string[]) {
+  const schoolProgramSchema = z.object({
+    dayOfWeek: z.coerce.number().int().min(0).max(6, "روز هفته نامعتبر است"),
+    subject: subjectField(subjects),
+    hours: hoursField(),
+  });
+
+  const studyPlanEntrySchema = z.object({
+    dayOfWeek: z.coerce.number().int().min(0).max(6, "روز هفته نامعتبر است"),
+    subject: subjectField(subjects),
+    hours: hoursField(),
+    chapterIds: chapterIdsField(),
+    note: noteField(),
+  });
+
+  return { schoolProgramSchema, studyPlanEntrySchema };
+}
 
 export const studyPlanHeaderSchema = z.object({
   testsTarget: z
@@ -155,19 +170,16 @@ export const studyPlanHeaderSchema = z.object({
     .max(2000, "تعداد تست باید بین ۰ تا ۲۰۰۰ باشد"),
 });
 
-export const studyPlanEntrySchema = z.object({
-  dayOfWeek: z.coerce.number().int().min(0).max(6, "روز هفته نامعتبر است"),
-  subject: z.string().refine(isSubjectSlug, "درس نامعتبر است"),
-  hours: hoursField(),
-  chapterIds: chapterIdsField(),
-  note: noteField(),
-});
-
+export type AdvisorSchemas = ReturnType<typeof makeAdvisorSchemas>;
 export type StudyProfileSchemaInput = z.infer<typeof studyProfileSchema>;
 export type ExamResultSchemaInput = z.infer<typeof examResultSchema>;
 export type CourseSchemaInput = z.infer<typeof courseSchema>;
-export type SchoolProgramSchemaInput = z.infer<typeof schoolProgramSchema>;
+export type SchoolProgramSchemaInput = z.infer<
+  AdvisorSchemas["schoolProgramSchema"]
+>;
 export type StudyPlanHeaderSchemaInput = z.infer<
   typeof studyPlanHeaderSchema
 >;
-export type StudyPlanEntrySchemaInput = z.infer<typeof studyPlanEntrySchema>;
+export type StudyPlanEntrySchemaInput = z.infer<
+  AdvisorSchemas["studyPlanEntrySchema"]
+>;

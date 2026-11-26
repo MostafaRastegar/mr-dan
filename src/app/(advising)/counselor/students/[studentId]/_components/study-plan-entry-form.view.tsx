@@ -10,17 +10,9 @@ import {
 
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
 import type { Chapter } from "@/modules/advising/domain/models";
+import type { SubjectOption } from "@/modules/advising/domain/catalog";
 import { TEST_IDS } from "@/constants/test-ids";
 import type { FormValues } from "@/utils/use-form-action";
-
-const SUBJECT_OPTIONS = [
-  { value: "riazi", label: "ریاضی" },
-  { value: "fizik", label: "فیزیک" },
-  { value: "adabiat", label: "ادبیات" },
-  { value: "zist", label: "زیست‌شناسی" },
-  { value: "shimi", label: "شیمی" },
-  { value: "english", label: "زبان انگلیسی" },
-];
 
 const persianDigits = new Intl.NumberFormat("fa-IR", { useGrouping: false });
 
@@ -31,12 +23,21 @@ interface StudyPlanEntryFormViewProps {
   formError: string | null;
   saved: boolean;
   availableChapters: Chapter[];
+  subjectOptions: SubjectOption[];
 }
 
 export function StudyPlanEntryFormView(
   props: StudyPlanEntryFormViewProps,
 ): ReactNode {
-  const { form, submit, pending, formError, saved, availableChapters } = props;
+  const {
+    form,
+    submit,
+    pending,
+    formError,
+    saved,
+    availableChapters,
+    subjectOptions,
+  } = props;
 
   return (
     <Form
@@ -70,7 +71,10 @@ export function StudyPlanEntryFormView(
           <Select
             allowClear
             placeholder="انتخاب درس"
-            options={SUBJECT_OPTIONS}
+            options={subjectOptions.map((option) => ({
+              value: option.slug,
+              label: option.label,
+            }))}
             data-testid={TEST_IDS.FORM.SELECT("planSubject")}
           />
         </Form.Item>

@@ -38,7 +38,7 @@ them through `toHttpError`; no stack trace reaches the client.
 `registerSchema.roleField` refines to `student | counselor` and pipes
 `z.enum(["student","counselor"])`; `ROLES = ["student","counselor"]`. The form
 options are hardcoded the same. No route/action assigns the `admin` role; the
-only admin path is `scripts/create-admin.ts`.
+only admin path is `scripts/create-user.ts --role admin`.
 
 ## Route coverage
 

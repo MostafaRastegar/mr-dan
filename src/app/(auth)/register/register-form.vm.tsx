@@ -9,7 +9,13 @@ import { RegisterFormView } from "./register-form.view";
 
 const REGISTER_INITIAL_VALUES = { role: "student" };
 
-export function RegisterFormWrapper() {
+export function RegisterFormWrapper({
+  fieldOptions,
+  gradeOptions,
+}: {
+  fieldOptions: string[];
+  gradeOptions: string[];
+}) {
   const [form] = Form.useForm();
   const { state, submit, pending } = useFormAction(registerAction);
   const formError = useServerFormErrors(state, form);
@@ -24,6 +30,8 @@ export function RegisterFormWrapper() {
       formError={formError}
       isStudent={isStudent}
       initialValues={REGISTER_INITIAL_VALUES}
+      fieldOptions={fieldOptions}
+      gradeOptions={gradeOptions}
     />
   );
 }

@@ -11,17 +11,12 @@ import {
   ValidationError,
 } from "../domain/errors";
 import { hasCapability, type Capability } from "../domain/capabilities";
-import type {
-  GroupSummary,
-  Role,
-  StudentSummary,
-} from "../domain/models";
+import type { GroupSummary, StudentSummary } from "../domain/models";
 import type {
   GroupRepositoryPort,
   UserRepositoryPort,
 } from "../domain/ports";
-
-type Actor = { id: string; role: Role };
+import type { Actor } from "./planning-access";
 
 function assertCapability(actor: Actor, capability: Capability): void {
   if (!hasCapability(actor.role, capability)) throw new ForbiddenError();

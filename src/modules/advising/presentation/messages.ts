@@ -15,6 +15,9 @@ const MESSAGES: Record<string, string> = {
   not_found: "موردی یافت نشد",
   username_taken: "این نام کاربری قبلاً ثبت شده است",
   email_taken: "این ایمیل قبلاً ثبت شده است",
+  slug_conflict: "این شناسه یا برچسب قبلاً ثبت شده است",
+  role_change_forbidden: "نقش خود را نمی‌توانید تغییر دهید",
+  last_admin: "آخرین مدیر را نمی‌توان تنزل داد",
   schedule_conflict: "این بازه با یک درس دیگر همان روز تداخل دارد",
   profile_incomplete: "برای محاسبهٔ کالری، ابتدا اطلاعات فیزیکی خود را کامل کنید",
   plan_concurrent_write: "برنامه هم‌زمان تغییر کرد؛ دوباره تلاش کنید",
@@ -31,6 +34,7 @@ const PASSTHROUGH_CODES = new Set(["plan_over_capacity", "free_time_below_planne
 const FIELD_FOR_CODE: Record<string, string> = {
   username_taken: "username",
   email_taken: "email",
+  slug_conflict: "slug",
   schedule_conflict: "startTime",
   profile_incomplete: "age",
   plan_over_capacity: "plannedTime",

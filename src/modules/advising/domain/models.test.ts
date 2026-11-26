@@ -11,6 +11,10 @@ describe("toRole", () => {
     expect(toRole("counselor")).toBe("counselor");
   });
 
+  it('maps "operator" to operator', () => {
+    expect(toRole("operator")).toBe("operator");
+  });
+
   it('maps "student" to student', () => {
     expect(toRole("student")).toBe("student");
   });

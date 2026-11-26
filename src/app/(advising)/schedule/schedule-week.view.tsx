@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Table, Button, Empty } from "antd";
-import type { WeeklyScheduleEntry } from "@/modules/advising/domain/models";
+import type { SubjectRow, WeeklyScheduleEntry } from "@/modules/advising/domain/models";
 import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
-import { subjectLabel } from "@/modules/advising/domain/subjects";
+import { labelOf } from "@/modules/advising/domain/catalog";
 import { formatClock } from "@/modules/advising/presentation/planning-format";
 import { buildStudyBlocks } from "@/modules/advising/domain/study-blocks";
 import { iranDayKey } from "@/modules/advising/domain/day-key";
@@ -18,6 +18,8 @@ interface ScheduleWeekViewProps {
   schoolProgramEntries: SchoolProgramEntry[];
   canWrite: boolean;
   fieldOfStudy: string | null;
+  subjects: SubjectRow[];
+  labels: Record<string, string>;
   isFormOpen: boolean;
   onOpenForm: () => void;
   onCloseForm: () => void;
@@ -29,6 +31,8 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
     schoolProgramEntries,
     canWrite,
     fieldOfStudy,
+    subjects,
+    labels,
     isFormOpen,
     onOpenForm,
     onCloseForm,
@@ -54,7 +58,8 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
     {
       title: "درس",
       key: "subject",
-      render: (record: WeeklyScheduleEntry) => subjectLabel(record.subject),
+      render: (record: WeeklyScheduleEntry) =>
+        labelOf(labels, record.subject),
     },
     {
       title: "معلم",
@@ -137,6 +142,7 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
       {isFormOpen && canWrite && (
         <ScheduleEntryForm
           fieldOfStudy={fieldOfStudy}
+          subjects={subjects}
           onClose={onCloseForm}
         />
       )}
@@ -144,6 +150,8 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
       <SchoolProgramForm
         initialEntries={schoolProgramEntries}
         fieldOfStudy={fieldOfStudy}
+        subjects={subjects}
+        labels={labels}
       />
     </div>
   );

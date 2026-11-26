@@ -34,9 +34,13 @@ const columns: TableProps<StudentSummary>["columns"] = [
 export function CounselorRosterView({
   groups,
   students,
+  fieldOptions,
+  gradeOptions,
 }: {
   groups: GroupSummary[];
   students: StudentSummary[];
+  fieldOptions: string[];
+  gradeOptions: string[];
 }): ReactNode {
   return (
     <div className="flex flex-col gap-8">
@@ -46,7 +50,10 @@ export function CounselorRosterView({
           <IconPlus size={20} stroke={1.8} />
           ساخت گروه
         </h2>
-        <GroupCreateFormWrapper />
+        <GroupCreateFormWrapper
+          fieldOptions={fieldOptions}
+          gradeOptions={gradeOptions}
+        />
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-5">

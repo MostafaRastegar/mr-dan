@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { updateProfileSchema } from "@/modules/advising/presentation/schemas";
+import { makeRegisterSchemas } from "@/modules/advising/presentation/schemas";
 import {
   clearSessionCookie,
   readSessionToken,
@@ -10,7 +10,7 @@ import {
 import { runAction } from "@/utils/server-action";
 import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
-import { getSessionContext } from "@/server/advising-guards";
+import { requireSessionUser } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
 
 export async function logoutAction(_formData: FormData): Promise<void> {
@@ -26,16 +26,21 @@ export async function updateProfileAction(
   _previous: ActionState<{ userId: string }> | null,
   formData: FormData,
 ): Promise<ActionState<{ userId: string }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user, token } = await requireSessionUser();
 
   return runAction(async () => {
+    const { fields, grades } =
+      await getContainer().advising.catalogOptions.execute();
+    const { updateProfileSchema } = makeRegisterSchemas({
+      fields: fields.map((row) => row.label),
+      grades: grades.map((row) => row.label),
+    });
     const input = updateProfileSchema.parse(formValues(formData));
     await getContainer().advising.updateProfile.execute({
-      userId: session.user.id,
-      token: session.token,
+      userId: user.id,
+      token,
       ...input,
     });
-    return { userId: session.user.id };
+    return { userId: user.id };
   });
 }

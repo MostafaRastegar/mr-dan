@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { DAYS_OF_WEEK } from "@/modules/advising/domain/models";
-import { subjectLabel } from "@/modules/advising/domain/subjects";
+import { DAYS_OF_WEEK, type SubjectRow } from "@/modules/advising/domain/models";
+import { labelOf, subjectOptions } from "@/modules/advising/domain/catalog";
 
 import { TEST_IDS } from "@/constants/test-ids";
 import type { Chapter } from "@/modules/advising/domain/models";
@@ -16,6 +16,8 @@ interface CounselorStudentViewProps {
   studentId: string;
   view: StudentStudyPlanView;
   chapters: Chapter[];
+  subjects: SubjectRow[];
+  labels: Record<string, string>;
 }
 
 const persianDigits = new Intl.NumberFormat("fa-IR", { useGrouping: false });
@@ -26,7 +28,11 @@ function dayLabel(dayOfWeek: number): string {
 }
 
 export function CounselorStudentView(props: CounselorStudentViewProps): ReactNode {
-  const { studentId, view, chapters } = props;
+  const { studentId, view, chapters, subjects, labels } = props;
+  const options = subjectOptions(subjects, {
+    field: view.student.fieldOfStudy,
+    grade: view.student.grade,
+  });
 
   return (
     <div className="flex flex-col gap-6" data-testid={TEST_IDS.COUNSELOR_PLAN.PAGE}>
@@ -46,7 +52,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
           entries={view.schoolProgram.map((entry) => ({
             id: entry.id,
             dayOfWeek: entry.dayOfWeek,
-            subjectLabel: entry.subject,
+            subjectLabel: labelOf(labels, entry.subject),
             minutes: entry.minutes,
           }))}
         />
@@ -83,7 +89,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
                       .toString()
                       .padStart(2, "۰")}
                   </span>
-                  <span>{subjectLabel(slot.subject)}</span>
+                  <span>{labelOf(labels, slot.subject)}</span>
                 </span>
               </li>
             ))}
@@ -94,7 +100,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
       <SubjectProgressView
         entries={view.rows.map((row) => ({
           subject: row.subject,
-          subjectLabel: row.subject,
+          subjectLabel: labelOf(labels, row.subject),
           plannedMinutes: row.plannedMinutes,
           studiedMinutes: row.studiedMinutes,
           testsDone: row.testsDone,
@@ -116,13 +122,18 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
         </div>
 
         <div className="mb-6">
-          <StudyPlanEntryForm studentId={studentId} chapters={chapters} />
+          <StudyPlanEntryForm
+            studentId={studentId}
+            chapters={chapters}
+            subjectOptions={options}
+          />
         </div>
 
         <StudyPlanTable
           studentId={studentId}
           entries={view.entries}
           chapters={chapters}
+          labels={labels}
         />
       </section>
     </div>

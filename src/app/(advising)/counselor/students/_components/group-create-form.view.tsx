@@ -3,17 +3,19 @@ import { Button, Form, Input, Select, type FormInstance } from "antd";
 import { IconPlus } from "@tabler/icons-react";
 
 import { TEST_IDS } from "@/constants/test-ids";
-import { FIELDS, GRADES } from "@/modules/advising/domain/models";
 
 interface GroupCreateFormViewProps {
   form: FormInstance;
   submit: (values: Record<string, unknown>) => void;
   pending: boolean;
   formError: string | null;
+  fieldOptions: string[];
+  gradeOptions: string[];
 }
 
 export function GroupCreateFormView(props: GroupCreateFormViewProps): ReactNode {
-  const { form, submit, pending, formError } = props;
+  const { form, submit, pending, formError, fieldOptions, gradeOptions } =
+    props;
 
   return (
     <Form
@@ -40,7 +42,7 @@ export function GroupCreateFormView(props: GroupCreateFormViewProps): ReactNode 
           <Select
             allowClear
             placeholder="انتخاب نشده"
-            options={GRADES.map((grade) => ({ value: grade, label: grade }))}
+            options={gradeOptions.map((grade) => ({ value: grade, label: grade }))}
             data-testid={TEST_IDS.FORM.SELECT("targetGrade")}
           />
         </Form.Item>
@@ -49,7 +51,7 @@ export function GroupCreateFormView(props: GroupCreateFormViewProps): ReactNode 
           <Select
             allowClear
             placeholder="انتخاب نشده"
-            options={FIELDS.map((field) => ({ value: field, label: field }))}
+            options={fieldOptions.map((field) => ({ value: field, label: field }))}
             data-testid={TEST_IDS.FORM.SELECT("targetField")}
           />
         </Form.Item>

@@ -23,6 +23,19 @@ antd 6.7.1 · @ant-design/nextjs-registry 1.3.0 · zod 4
 - **Tailwind**: layout, spacing, typography, breakpoints.
 - Tailwind does not restyle an AntD component; when the look must change, change `theme`/`ConfigProvider` first.
 
+## Spacing & rhythm
+
+One scale everywhere; no arbitrary values (`mt-[13px]` is a bug).
+
+- page shell `px-4 py-6 md:px-6 md:py-8`; section stack `space-y-6`
+- card `rounded-lg border border-slate-200 bg-white p-4 md:p-6`
+- heading → content `mb-4`; heading `text-lg font-semibold`
+- form rows `space-y-4`; label → control `space-y-1.5`; field error `mt-1 text-sm`
+- action row `flex flex-wrap items-center gap-2`
+- table ← toolbar `mb-6`; table cells `px-3 py-2`; numbers/dates `whitespace-nowrap`
+- nav links `gap-2`, `px-3 py-2 min-h-[44px]`
+- mobile: wrap toolbars, never shrink text; no horizontal overflow at 360px
+
 ## RSC / client split
 
 - `app/**/page.tsx` is an async Server Component: guard + data from a use case + serialized props. It never becomes `"use client"` and never imports Prisma or a repository.

@@ -20,7 +20,7 @@ import type {
   RetrieverPort,
   VectorStorePort,
 } from "@/modules/rag/domain/ports";
-import { persianPreprocess } from "@/modules/rag/application/persian-tokenizer";
+import { persianPreprocess } from "@/modules/rag/domain/persian-tokenizer";
 
 const DEFAULT_RRF_K = 60;
 

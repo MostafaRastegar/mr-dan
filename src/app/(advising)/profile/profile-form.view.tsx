@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Button, Form, Input, Select, type FormInstance } from "antd";
 import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
-import { FIELDS, GRADES, type ProfileView } from "@/modules/advising/domain/models";
+import type { ProfileView } from "@/modules/advising/domain/models";
 
 import { TEST_IDS } from "@/constants/test-ids";
 import type { StudyProfileView } from "@/modules/advising/application/study-profile";
@@ -26,6 +26,8 @@ interface ProfileFormViewProps {
   };
   profile: ProfileView;
   studyProfile: StudyProfileView;
+  fieldOptions: string[];
+  gradeOptions: string[];
 }
 
 export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
@@ -39,6 +41,8 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
     initialValues,
     profile,
     studyProfile,
+    fieldOptions,
+    gradeOptions,
   } = props;
 
   return (
@@ -101,7 +105,7 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
                 <Select
                   allowClear
                   placeholder="انتخاب نشده"
-                  options={GRADES.map((grade) => ({ value: grade, label: grade }))}
+                  options={gradeOptions.map((grade) => ({ value: grade, label: grade }))}
                   data-testid={TEST_IDS.FORM.SELECT("grade")}
                 />
               </Form.Item>
@@ -110,7 +114,7 @@ export function ProfileFormView(props: ProfileFormViewProps): ReactNode {
                 <Select
                   allowClear
                   placeholder="انتخاب نشده"
-                  options={FIELDS.map((field) => ({ value: field, label: field }))}
+                  options={fieldOptions.map((field) => ({ value: field, label: field }))}
                   data-testid={TEST_IDS.FORM.SELECT("fieldOfStudy")}
                 />
               </Form.Item>

@@ -6,15 +6,20 @@ import { Form } from "antd";
 
 import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
 import type { ActionState } from "@/utils/app-error";
+import type { SubjectOption } from "@/modules/advising/domain/catalog";
 import { createHomeworkAction } from "../homework.actions";
 
 import { HomeworkFormView } from "./homework-form.view";
 
 interface HomeworkFormVMProps {
   onClose: () => void;
+  subjectOptions: SubjectOption[];
 }
 
-export function HomeworkForm({ onClose }: HomeworkFormVMProps) {
+export function HomeworkForm({
+  onClose,
+  subjectOptions,
+}: HomeworkFormVMProps) {
   const [form] = Form.useForm();
   const router = useRouter();
   const { state, submit, pending } = useFormAction(createHomeworkAction);
@@ -41,6 +46,7 @@ export function HomeworkForm({ onClose }: HomeworkFormVMProps) {
       pending={pending}
       formError={formError}
       onClose={onClose}
+      subjectOptions={subjectOptions}
       initialValues={initialValues as Record<string, unknown>}
     />
   );

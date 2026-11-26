@@ -6,17 +6,20 @@ import { Form } from "antd";
 
 import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
 import type { ActionState } from "@/utils/app-error";
+import type { SubjectRow } from "@/modules/advising/domain/models";
 import { createScheduleEntryAction } from "../schedule.actions";
 
 import { ScheduleEntryFormView } from "./schedule-entry-form.view";
 
 interface ScheduleEntryFormVMProps {
   fieldOfStudy: string | null;
+  subjects: SubjectRow[];
   onClose: () => void;
 }
 
 export function ScheduleEntryForm({
   fieldOfStudy,
+  subjects,
   onClose,
 }: ScheduleEntryFormVMProps) {
   const [form] = Form.useForm();
@@ -48,6 +51,7 @@ export function ScheduleEntryForm({
       formError={formError}
       onClose={onClose}
       fieldOfStudy={fieldOfStudy}
+      subjects={subjects}
       initialValues={initialValues as Record<string, unknown>}
     />
   );

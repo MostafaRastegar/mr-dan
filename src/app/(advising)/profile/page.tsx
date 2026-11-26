@@ -8,11 +8,19 @@ export const metadata = { title: "پروفایل — mr-dan" };
 export default async function ProfilePage() {
   const { user } = await requireSessionUser();
   const actor = { id: user.id, role: user.role };
-  const [profile, studyProfile] = await Promise.all([
+  const [profile, studyProfile, catalog] = await Promise.all([
     getContainer().advising.getProfile.execute({ userId: user.id }),
     getContainer().advising.getStudyProfile.execute({ actor }),
+    getContainer().advising.catalogOptions.execute(),
   ]);
   if (!profile) redirect("/login");
 
-  return <ProfileFormWrapper profile={profile} studyProfile={studyProfile} />;
+  return (
+    <ProfileFormWrapper
+      profile={profile}
+      studyProfile={studyProfile}
+      fieldOptions={catalog.fields.map((row) => row.label)}
+      gradeOptions={catalog.grades.map((row) => row.label)}
+    />
+  );
 }

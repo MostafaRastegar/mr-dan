@@ -19,6 +19,9 @@
         },
         "nemo": {
           "name": "nemo"
+        },
+        "glm": {
+          "name": "glm"
         }
       }
     }
@@ -54,7 +57,7 @@
   // example "node_modules/**", ".venv/**", "dist/**", or "target/**".
   // Why: build output churn burns CPU and pollutes file search.
   "watcher": {
-    "ignore": []
+    "ignore": ["node_modules/**", ".next/**", "src/generated/**"]
   },
 
   // How much tool output is kept before truncation. Why: a failing test suite is

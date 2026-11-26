@@ -24,9 +24,13 @@ function minutesToHHMM(minutes: number | null): string {
 export function ProfileFormWrapper({
   profile,
   studyProfile,
+  fieldOptions,
+  gradeOptions,
 }: {
   profile: ProfileView;
   studyProfile: StudyProfileView;
+  fieldOptions: string[];
+  gradeOptions: string[];
 }) {
   const [form] = Form.useForm();
   const router = useRouter();
@@ -61,6 +65,8 @@ export function ProfileFormWrapper({
       initialValues={initialValues}
       profile={profile}
       studyProfile={studyProfile}
+      fieldOptions={fieldOptions}
+      gradeOptions={gradeOptions}
     />
   );
 }

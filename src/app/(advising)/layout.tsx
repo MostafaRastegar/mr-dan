@@ -63,7 +63,7 @@ export default async function AdvisingLayout({
           label: "پروفایل",
           testId: TEST_IDS.NAV.PROFILE,
           capability: "profile:read",
-          roles: ["student", "counselor", "admin"],
+          roles: ["student", "counselor", "admin", "operator"],
         },
       ],
     },
@@ -76,6 +76,18 @@ export default async function AdvisingLayout({
           testId: TEST_IDS.NAV.STUDENTS,
           capability: "group:manage",
           roles: ["counselor", "admin"],
+        },
+      ],
+    },
+    {
+      heading: "مدیریت",
+      links: [
+        {
+          href: "/admin",
+          label: "مدیریت",
+          testId: TEST_IDS.NAV.ADMIN,
+          capability: "user:read",
+          roles: ["admin", "operator"],
         },
       ],
     },

@@ -10,6 +10,7 @@ import {
   type FormValues,
 } from "@/utils/use-form-action";
 import type { Chapter } from "@/modules/advising/domain/models";
+import type { SubjectOption } from "@/modules/advising/domain/catalog";
 
 import { addStudyPlanEntryAction } from "../study-plan.actions";
 import { StudyPlanEntryFormView } from "./study-plan-entry-form.view";
@@ -17,9 +18,11 @@ import { StudyPlanEntryFormView } from "./study-plan-entry-form.view";
 export function StudyPlanEntryForm({
   studentId,
   chapters,
+  subjectOptions,
 }: {
   studentId: string;
   chapters: Chapter[];
+  subjectOptions: SubjectOption[];
 }) {
   const [form] = Form.useForm();
   const router = useRouter();
@@ -55,6 +58,7 @@ export function StudyPlanEntryForm({
       formError={formError}
       saved={Boolean(state?.ok)}
       availableChapters={availableChapters}
+      subjectOptions={subjectOptions}
     />
   );
 }

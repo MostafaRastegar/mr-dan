@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Button, Empty, InputNumber } from "antd";
 import type { HomeworkItem } from "@/modules/advising/domain/models";
-import { subjectLabel } from "@/modules/advising/domain/subjects";
+import { labelOf } from "@/modules/advising/domain/catalog";
 import { formatDeadline } from "@/modules/advising/presentation/planning-format";
 
 import { TEST_IDS } from "@/constants/test-ids";
@@ -11,6 +11,7 @@ interface HomeworkTodayViewProps {
   homeworkMinutes: Map<string, number>;
   onSetHomeworkMinutes: (id: string, minutes: number | null) => void;
   onToggleHomework: (id: string) => void;
+  labels: Record<string, string>;
 }
 
 function isValidMinutes(minutes: number | null | undefined): boolean {
@@ -18,8 +19,13 @@ function isValidMinutes(minutes: number | null | undefined): boolean {
 }
 
 export function HomeworkTodayView(props: HomeworkTodayViewProps): ReactNode {
-  const { items, homeworkMinutes, onSetHomeworkMinutes, onToggleHomework } =
-    props;
+  const {
+    items,
+    homeworkMinutes,
+    onSetHomeworkMinutes,
+    onToggleHomework,
+    labels,
+  } = props;
 
   const pending = items.filter((item) => item.completedAt === null);
   const done = items.filter((item) => item.completedAt !== null);
@@ -51,7 +57,7 @@ export function HomeworkTodayView(props: HomeworkTodayViewProps): ReactNode {
               className="flex items-center justify-between gap-2 rounded border border-slate-200 p-3"
             >
               <span className="text-sm">
-                {item.title} {item.subject ? `— ${subjectLabel(item.subject)}` : ""}
+                {item.title} {item.subject ? `— ${labelOf(labels, item.subject)}` : ""}
               </span>
               <span className="text-xs text-slate-500" dir="ltr">
                 {formatDeadline(item.deadline)}

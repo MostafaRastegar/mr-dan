@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Table, Button, Empty } from "antd";
 import type { HomeworkItem } from "@/modules/advising/domain/models";
-import { subjectLabel } from "@/modules/advising/domain/subjects";
+import type { SubjectOption } from "@/modules/advising/domain/catalog";
+import { labelOf } from "@/modules/advising/domain/catalog";
 import { HOMEWORK_PRIORITY_LABEL } from "@/modules/advising/domain/models";
 import { formatDeadline, homeworkStatus } from "@/modules/advising/presentation/planning-format";
 
@@ -14,6 +15,8 @@ interface HomeworkBoardViewProps {
   items: HomeworkItem[];
   canWrite: boolean;
   todayKey: string;
+  labels: Record<string, string>;
+  subjectOptions: SubjectOption[];
   isFormOpen: boolean;
   onOpenForm: () => void;
   onCloseForm: () => void;
@@ -37,6 +40,8 @@ export function HomeworkBoardView(props: HomeworkBoardViewProps): ReactNode {
     items,
     canWrite,
     todayKey,
+    labels,
+    subjectOptions,
     isFormOpen,
     onOpenForm,
     onCloseForm,
@@ -52,7 +57,7 @@ export function HomeworkBoardView(props: HomeworkBoardViewProps): ReactNode {
       title: "درس",
       key: "subject",
       render: (record: HomeworkItem) =>
-        record.subject ? subjectLabel(record.subject) : "—",
+        record.subject ? labelOf(labels, record.subject) : "—",
     },
     {
       title: "اولویت",
@@ -125,7 +130,7 @@ export function HomeworkBoardView(props: HomeworkBoardViewProps): ReactNode {
       )}
 
       {isFormOpen && canWrite && (
-        <HomeworkForm onClose={onCloseForm} />
+        <HomeworkForm onClose={onCloseForm} subjectOptions={subjectOptions} />
       )}
     </div>
   );

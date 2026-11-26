@@ -9,7 +9,13 @@ import { createGroupAction } from "../students.actions";
 
 import { GroupCreateFormView } from "./group-create-form.view";
 
-export function GroupCreateFormWrapper() {
+export function GroupCreateFormWrapper({
+  fieldOptions,
+  gradeOptions,
+}: {
+  fieldOptions: string[];
+  gradeOptions: string[];
+}) {
   const router = useRouter();
   const [form] = Form.useForm();
   const { state, submit, pending } = useFormAction(createGroupAction);
@@ -27,6 +33,8 @@ export function GroupCreateFormWrapper() {
       submit={submit}
       pending={pending}
       formError={formError}
+      fieldOptions={fieldOptions}
+      gradeOptions={gradeOptions}
     />
   );
 }

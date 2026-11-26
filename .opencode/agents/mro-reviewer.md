@@ -13,6 +13,19 @@ permissions:
   - action: shell
     resource: "*"
     effect: ask
+  # Read-only verification commands are pre-approved; nothing that writes.
+  - action: shell
+    resource: "pnpm typecheck *"
+    effect: allow
+  - action: shell
+    resource: "pnpm lint *"
+    effect: allow
+  - action: shell
+    resource: "pnpm test *"
+    effect: allow
+  - action: shell
+    resource: "node .opencode/scripts/mro-doctor.mjs*"
+    effect: allow
   - action: shell
     resource: "git diff *"
     effect: allow

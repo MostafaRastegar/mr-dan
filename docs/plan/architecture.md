@@ -110,7 +110,7 @@ Server Actionها coliocated با صفحات هستند: `src/app/(auth)/auth.ac
 
 نقش `admin` به جدول نقش‌ها افزوده شده است و شامل کلیه قابلیت‌های مشاور به‌مانند
 `rag:manage` و `user:manage` است (جدول صریح، بدون ارث‌بری). ایجاد ادمین فقط از طریق
-`scripts/create-admin.ts` است (فقط dev، در production اجرا نمی‌شود) و ثبت‌نام هرگز
+`scripts/create-user.ts --role admin` است (فقط dev، در production اجرا نمی‌شود) و ثبت‌نام هرگز
 نقش `admin` نمی‌سازد.
 
 ## ۳. Composition root

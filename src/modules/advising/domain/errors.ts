@@ -80,3 +80,21 @@ export class ProfileIncompleteError extends AppError {
     super("profile_incomplete", 422, "Physical profile is incomplete", cause);
   }
 }
+
+export class SlugConflictError extends AppError {
+  constructor(cause?: unknown) {
+    super("slug_conflict", 409, "این شناسه یا برچسب قبلاً ثبت شده است", cause);
+  }
+}
+
+export class RoleChangeForbiddenError extends AppError {
+  constructor(cause?: unknown) {
+    super("role_change_forbidden", 403, "نقش خود را نمی‌توانید تغییر دهید", cause);
+  }
+}
+
+export class LastAdminError extends AppError {
+  constructor(cause?: unknown) {
+    super("last_admin", 409, "آخرین مدیر را نمی‌توان تنزل داد", cause);
+  }
+}

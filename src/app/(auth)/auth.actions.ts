@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { sessionExpiry } from "@/modules/advising/application/session";
-import { loginSchema, registerSchema } from "@/modules/advising/presentation/schemas";
+import { loginSchema, makeRegisterSchemas } from "@/modules/advising/presentation/schemas";
 import { writeSessionCookie } from "@/modules/advising/presentation/session-cookie";
 import { runAction } from "@/utils/server-action";
 import { formValues } from "@/utils/form-data";
@@ -15,6 +15,12 @@ export async function registerAction(
   formData: FormData,
 ): Promise<ActionState<{ userId: string }>> {
   const result = await runAction(async () => {
+    const { fields, grades } =
+      await getContainer().advising.catalogOptions.execute();
+    const { registerSchema } = makeRegisterSchemas({
+      fields: fields.map((row) => row.label),
+      grades: grades.map((row) => row.label),
+    });
     const input = registerSchema.parse(formValues(formData));
     const { user, token } =
       await getContainer().advising.registerUser.execute(input);

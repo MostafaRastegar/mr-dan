@@ -66,6 +66,18 @@ permissions:
   - action: shell
     resource: "pnpm exec vitest *"
     effect: allow
+  - action: shell
+    resource: "pnpm test:e2e *"
+    effect: allow
+  - action: shell
+    resource: "pnpm dev *"
+    effect: allow
+  - action: shell
+    resource: "docker compose *"
+    effect: allow
+  - action: shell
+    resource: "node .opencode/scripts/mro-doctor.mjs*"
+    effect: allow
   # Repeated on purpose: agent rules are appended last, so this stays the final
   # word for push even if an allow pattern is added above.
   - action: shell

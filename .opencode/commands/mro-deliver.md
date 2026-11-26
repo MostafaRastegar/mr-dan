@@ -19,7 +19,7 @@ Scope is the current working tree. No plan file is required.
 2. Flag any changed file that looks unrelated to the current feature.
 3. Update `README.md` only if behavior, config, env, commands, or dependencies
    changed. Otherwise state why no change is needed.
-4. Run `<TEST_CMD>` once. Fix failures per the Self-Correction Protocol; do not
+4. Run `pnpm test` once. Fix failures per the Self-Correction Protocol; do not
    weaken a test.
 5. Run the `secret-audit` tool. A finding is a hard stop.
 6. Launch `mro-reviewer` with the file list from `git status` (including

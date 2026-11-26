@@ -1,7 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
-
 import {
   studyProfileSchema,
   examResultSchema,
@@ -10,19 +8,18 @@ import {
 import { runAction } from "@/utils/server-action";
 import { formValues } from "@/utils/form-data";
 import type { ActionState } from "@/utils/app-error";
-import { getSessionContext } from "@/server/advising-guards";
+import { requireSessionUser } from "@/server/advising-guards";
 import { getContainer } from "@/server/container";
 
 export async function updateStudyProfileAction(
   _previous: ActionState<{ userId: string }> | null,
   formData: FormData,
 ): Promise<ActionState<{ userId: string }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const values = studyProfileSchema.parse(formValues(formData));
-    const actor = { id: session.user.id, role: session.user.role };
+    const actor = { id: user.id, role: user.role };
     await getContainer().advising.updateStudyProfile.execute({
       actor,
       schoolMode: values.schoolMode ?? undefined,
@@ -53,7 +50,7 @@ export async function updateStudyProfileAction(
       });
     }
 
-    return { userId: session.user.id };
+    return { userId: user.id };
   });
 }
 
@@ -61,13 +58,12 @@ export async function saveExamResultAction(
   _previous: ActionState<{ examId: string; taraz: number }> | null,
   formData: FormData,
 ): Promise<ActionState<{ examId: string; taraz: number }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const input = examResultSchema.parse(formValues(formData));
     const result = await getContainer().advising.saveExamResult.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       ...input,
     });
     return { examId: result.examId, taraz: result.taraz };
@@ -78,14 +74,13 @@ export async function addCourseAction(
   _previous: ActionState<{ id: string }> | null,
   formData: FormData,
 ): Promise<ActionState<{ id: string }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const input = courseSchema.parse(formValues(formData));
     const course = await getContainer().advising.addSupplementaryCourse.execute(
       {
-        actor: { id: session.user.id, role: session.user.role },
+        actor: { id: user.id, role: user.role },
         title: input.title,
         mode: input.mode,
         weeklyHours: input.weeklyHours,
@@ -99,13 +94,12 @@ export async function deleteCourseAction(
   _previous: ActionState<{ id: string }> | null,
   formData: FormData,
 ): Promise<ActionState<{ id: string }>> {
-  const session = await getSessionContext();
-  if (!session) redirect("/login");
+  const { user } = await requireSessionUser();
 
   return runAction(async () => {
     const id = String(formData.get("id") ?? "");
     await getContainer().advising.deleteSupplementaryCourse.execute({
-      actor: { id: session.user.id, role: session.user.role },
+      actor: { id: user.id, role: user.role },
       courseId: id,
     });
     return { id };

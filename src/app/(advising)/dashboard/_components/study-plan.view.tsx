@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Button } from "antd";
 import type { StudyBlock } from "@/modules/advising/domain/study-blocks";
 import { studyBlockKey } from "@/modules/advising/domain/study-blocks";
-import { subjectLabel } from "@/modules/advising/domain/subjects";
+import { labelOf } from "@/modules/advising/domain/catalog";
 import { formatClock } from "@/modules/advising/presentation/planning-format";
 
 import { TEST_IDS } from "@/constants/test-ids";
@@ -12,10 +12,11 @@ interface StudyPlanViewProps {
   ticked: Set<string>;
   onToggle: (block: StudyBlock) => void;
   book: string | null;
+  labels: Record<string, string>;
 }
 
 export function StudyPlanView(props: StudyPlanViewProps): ReactNode {
-  const { blocks, ticked, onToggle, book } = props;
+  const { blocks, ticked, onToggle, book, labels } = props;
 
   return (
     <section
@@ -33,7 +34,7 @@ export function StudyPlanView(props: StudyPlanViewProps): ReactNode {
               className="flex items-center justify-between gap-2 rounded border border-slate-200 p-3"
             >
               <span className="text-sm">
-                {block.subject ? `${subjectLabel(block.subject)} — ` : ""}
+                {block.subject ? `${labelOf(labels, block.subject)} — ` : ""}
                 {formatClock(block.startMinute)} — {formatClock(block.startMinute + block.minutes)}
                 ({block.minutes}د)
               </span>

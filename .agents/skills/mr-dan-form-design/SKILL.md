@@ -42,6 +42,7 @@ import { useFormAction, useServerFormErrors } from "@/utils/use-form-action";
 - `submit(values)` turns the `onFinish` values into `FormData` and dispatches to `useActionState` inside `startTransition`.
 - `useServerFormErrors(state, form)` is called **unconditionally**, next to `Form.useForm`. It pushes `error.fieldErrors` onto fields via `form.setFields` and returns the global message. Never write manual field-error mapping in a component.
 - `toFormData` drops `undefined`/`null` and coerces everything else to `String`. Select `allowClear` yields `undefined` → dropped. That is correct for optional fields.
+- Spacing: label → control `space-y-1.5`, rows `space-y-4`, action row `gap-2`, error `mt-1`.
 
 ### Template (copy exactly)
 

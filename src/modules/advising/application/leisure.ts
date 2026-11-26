@@ -4,13 +4,13 @@
  * Reads only the actor's own aggregates: free-time budget minutes and planned
  * homework minutes over the last seven Iran days, then pending/overdue homework
  * counts. The pure rule set lives in `domain/leisure.ts`; the book pick in
- * `domain/books.ts`.
+ * `domain/catalog.ts`, fed by the catalog repository.
  */
 
 import { hasCapability } from "@/modules/advising/domain/capabilities";
 import { ForbiddenError } from "@/modules/advising/domain/errors";
-import { FIELDS, type FieldOfStudy } from "@/modules/advising/domain/models";
-import { pickBook, type BookOffer } from "@/modules/advising/domain/books";
+import { pickBookFrom } from "@/modules/advising/domain/catalog";
+import type { BookRow } from "@/modules/advising/domain/models";
 import { iranDayKey, shiftDayKey } from "@/modules/advising/domain/day-key";
 import {
   suggestLeisure,
@@ -18,19 +18,16 @@ import {
   type LeisureSuggestion,
 } from "@/modules/advising/domain/leisure";
 import type {
+  CatalogRepositoryPort,
   FreeTimeBudgetRepositoryPort,
   HomeworkPlanRepositoryPort,
   HomeworkRepositoryPort,
 } from "@/modules/advising/domain/ports";
 import type { Actor } from "@/modules/advising/application/planning-access";
 
-function isFieldOfStudy(value: string | null | undefined): value is FieldOfStudy {
-  return FIELDS.some((field) => field === value);
-}
-
 export interface LeisureOverview {
   suggestion: LeisureSuggestion;
-  book: BookOffer;
+  book: BookRow | null;
   inputs: LeisureInputs;
 }
 
@@ -39,6 +36,7 @@ export class GetLeisureSuggestionUseCase {
     private readonly budget: FreeTimeBudgetRepositoryPort,
     private readonly plans: HomeworkPlanRepositoryPort,
     private readonly homework: HomeworkRepositoryPort,
+    private readonly catalogs: CatalogRepositoryPort,
   ) {}
 
   async execute(input: {
@@ -74,8 +72,8 @@ export class GetLeisureSuggestionUseCase {
     };
 
     const suggestion = suggestLeisure(inputs);
-    const book = pickBook({
-      field: isFieldOfStudy(input.fieldOfStudy) ? input.fieldOfStudy : null,
+    const book = pickBookFrom(await this.catalogs.listBooks(), {
+      field: input.fieldOfStudy ?? null,
       code: suggestion.code,
     });
 

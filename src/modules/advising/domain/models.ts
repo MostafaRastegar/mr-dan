@@ -17,23 +17,15 @@ export type {
   PhysicalProfilePatch,
 } from "./energy";
 
-export type Role = "student" | "counselor" | "admin";
+export type Role = "student" | "counselor" | "admin" | "operator";
 
-/** Pure role parsing: `"admin"→admin`, `"counselor"→counselor`, anything else → `"student"` (default deny). */
+/** Pure role parsing: `"admin"→admin`, `"operator"→operator`, `"counselor"→counselor`, anything else → `"student"` (default deny). */
 export function toRole(value: string): Role {
   if (value === "admin") return "admin";
+  if (value === "operator") return "operator";
   if (value === "counselor") return "counselor";
   return "student";
 }
-
-export const GRADES = ["دهم", "یازدهم", "دوازدهم", "فارغ‌التحصیل"] as const;
-
-export const FIELDS = [
-  "ریاضی فیزیک",
-  "علوم تجربی",
-  "علوم انسانی",
-  "فنی حرفه‌ای",
-] as const;
 
 /** Shared numeric limits for advising forms (minutes unless noted otherwise). */
 export const TARAZ_MIN = 0;
@@ -43,9 +35,6 @@ export const HOMEWORK_AVERAGE_MAX = 720;
 export const NOTE_MAX = 200;
 export const CHAPTERS_MAX_PER_ENTRY = 10;
 export const COURSE_WEEKLY_HOURS_MAX = 30;
-
-export type Grade = (typeof GRADES)[number];
-export type FieldOfStudy = (typeof FIELDS)[number];
 
 export interface UserAccount {
   id: string;
@@ -82,6 +71,57 @@ export interface StudentSummary {
   schoolName: string | null;
   groupId: string | null;
   groupName: string | null;
+}
+
+export interface FieldRow {
+  id: string;
+  label: string;
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface GradeRow {
+  id: string;
+  label: string;
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface SubjectRow {
+  id: string;
+  slug: string;
+  label: string;
+  fieldLabels: string[];
+  gradeLabels: string[];
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface BookRow {
+  id: string;
+  slug: string;
+  title: string;
+  author: string;
+  fieldLabel: string | null;
+  codes: string[];
+  active: boolean;
+  sortOrder: number;
+}
+
+export interface AdminUserRow {
+  id: string;
+  username: string;
+  fullName: string;
+  email: string | null;
+  role: Role;
+  createdAt: string;
+}
+
+export interface Page<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
 export interface GroupSummary {

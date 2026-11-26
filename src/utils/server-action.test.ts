@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { registerSchema } from "@/modules/advising/presentation/schemas";
+import { makeRegisterSchemas } from "@/modules/advising/presentation/schemas";
 import { runAction } from "./server-action";
 import { ValidationError } from "@/shared/errors";
 
 const PERSIAN = /[\u0600-\u06FF]/;
+
+const { registerSchema } = makeRegisterSchemas({
+  fields: ["ریاضی فیزیک"],
+  grades: ["دهم"],
+});
 
 describe("runAction action result contract", () => {
   it("returns ok true with data on success", async () => {

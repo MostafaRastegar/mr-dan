@@ -67,7 +67,7 @@ bytes/file
 
 ## Steps — adding a new format
 
-1. Add the loader in `infrastructure/document-loaders/` and register it.
+1. Add the loader in `application/document-loaders.ts` and register it.
 2. Document the metadata contract.
 3. Test: sample file → expected chunk count and metadata.
 4. If the oracle has an equivalent, add a parity test; if not, record the divergence in `parity.md`.

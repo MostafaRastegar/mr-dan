@@ -47,19 +47,6 @@ describe("AddSchoolProgramEntryUseCase", () => {
     expect(rows[0].minutes).toBe(180);
   });
 
-  it("bad slug → ValidationError", async () => {
-    const users = makeUsers();
-    await seedUser(users, actor.id);
-    const program = new FakeSchoolProgramRepository();
-    const add = new AddSchoolProgramEntryUseCase(users, program);
-
-    await expect(
-      add.execute({ actor, dayOfWeek: 1, subject: "not-a-slug", hours: 3 }),
-    ).rejects.toMatchObject({ code: "invalid_input" });
-
-    expect(await program.listByStudent(actor.id)).toEqual([]);
-  });
-
   it("minutes out of bounds → ValidationError", async () => {
     const users = makeUsers();
     await seedUser(users, actor.id);

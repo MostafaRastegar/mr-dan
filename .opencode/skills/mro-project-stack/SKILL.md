@@ -39,7 +39,8 @@ description: "Project tech stack and conventions. Load before designing or imple
 ## Forbidden
 
 - `any`; domain importing anything external; `application` importing
-  `infrastructure`; domain logic inside `route.ts` or React components.
+  `infrastructure`; `infrastructure` importing `application`; domain logic inside
+  `route.ts` or React components.
 - Direct Prisma/Chroma calls from endpoints; DI frameworks; `BaseRepository`;
   speculative abstractions.
 - pgvector, Redis, BullMQ, scheduler, scraper (this phase).

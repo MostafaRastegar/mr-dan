@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { homeworkSchema, homeworkToggleSchema } from "./homework-schemas";
+import {
+  homeworkToggleSchema,
+  makeHomeworkSchemas,
+} from "./homework-schemas";
+
+const SUBJECTS = ["riazi", "fizik"] as const;
+const { homeworkSchema } = makeHomeworkSchemas(SUBJECTS);
 
 describe("homework schema", () => {
   it("rejects an invalid calendar date (2026-02-30)", () => {
@@ -56,7 +62,7 @@ describe("homework schema", () => {
     expect(parsed.subject).toBeUndefined();
   });
 
-  it("rejects invalid subject", () => {
+  it("rejects a subject outside the runtime list", () => {
     expect(
       homeworkSchema.safeParse({
         title: "t",
@@ -65,6 +71,25 @@ describe("homework schema", () => {
         subject: "math",
       }).success,
     ).toBe(false);
+    // Present in the domain historically, absent from this request's list (retired).
+    expect(
+      homeworkSchema.safeParse({
+        title: "t",
+        deadline: "2026-12-01",
+        priority: "low",
+        subject: "zist",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("accepts a subject supplied by the runtime list", () => {
+    const parsed = homeworkSchema.parse({
+      title: "t",
+      deadline: "2026-12-01",
+      priority: "low",
+      subject: "fizik",
+    });
+    expect(parsed.subject).toBe("fizik");
   });
 });
 

@@ -2,11 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import {
   assignStudentSchema,
-  createGroupSchema,
   loginSchema,
-  registerSchema,
-  updateProfileSchema,
+  makeRegisterSchemas,
 } from "./schemas";
+
+const FIELDS = ["ریاضی فیزیک", "علوم تجربی"] as const;
+const GRADES = ["دهم", "یازدهم"] as const;
+
+const { registerSchema, updateProfileSchema, createGroupSchema } =
+  makeRegisterSchemas({ fields: FIELDS, grades: GRADES });
 
 const PASSWORD = "a".repeat(8);
 const NEW_PASSWORD = "b".repeat(9);
@@ -40,18 +44,39 @@ describe("register schema", () => {
   });
 
   it("rejects an invalid role", () => {
-    expect(
-      registerSchema.safeParse({ ...validRegister, role: "admin" }).success,
-    ).toBe(false);
+    for (const role of ["admin", "operator", "owner"]) {
+      expect(
+        registerSchema.safeParse({ ...validRegister, role }).success,
+      ).toBe(false);
+    }
   });
 
-  it("rejects unknown grade and field values", () => {
+  it("rejects grade and field values outside the runtime list", () => {
     expect(
       registerSchema.safeParse({ ...validRegister, grade: "سیزدهم" }).success,
     ).toBe(false);
     expect(
       registerSchema.safeParse({ ...validRegister, fieldOfStudy: "هنر" }).success,
     ).toBe(false);
+    // Not retired by the DB, simply absent from the list this schema was built from.
+    expect(
+      registerSchema.safeParse({ ...validRegister, grade: "دوازدهم" }).success,
+    ).toBe(false);
+    expect(
+      registerSchema.safeParse({ ...validRegister, fieldOfStudy: "علوم انسانی" })
+        .success,
+    ).toBe(false);
+  });
+
+  it("accepts values supplied by the runtime list", () => {
+    const parsed = registerSchema.parse({
+      ...validRegister,
+      grade: "یازدهم",
+      fieldOfStudy: "علوم تجربی",
+    });
+
+    expect(parsed.grade).toBe("یازدهم");
+    expect(parsed.fieldOfStudy).toBe("علوم تجربی");
   });
 
   it("treats an empty email as absent", () => {

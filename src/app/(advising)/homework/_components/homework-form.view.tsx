@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Button, Form, Input, Select, type FormInstance } from "antd";
 import type { ActionState } from "@/utils/app-error";
 import type { FormValues } from "@/utils/use-form-action";
-import { subjectsForField } from "@/modules/advising/domain/subjects";
+import type { SubjectOption } from "@/modules/advising/domain/catalog";
 
 import { TEST_IDS } from "@/constants/test-ids";
 
@@ -19,6 +19,7 @@ interface HomeworkFormViewProps {
   pending: boolean;
   formError: string | null;
   onClose: () => void;
+  subjectOptions: SubjectOption[];
   initialValues: Record<string, unknown>;
 }
 
@@ -30,6 +31,7 @@ export function HomeworkFormView(props: HomeworkFormViewProps): ReactNode {
     pending,
     formError,
     onClose,
+    subjectOptions,
     initialValues,
   } = props;
 
@@ -64,7 +66,7 @@ export function HomeworkFormView(props: HomeworkFormViewProps): ReactNode {
             placeholder="انتخاب درس"
             data-testid={TEST_IDS.FORM.SELECT("subject")}
           >
-            {subjectsForField(null).map((s) => (
+            {subjectOptions.map((s) => (
               <Select.Option key={s.slug} value={s.slug}>
                 {s.label}
               </Select.Option>
