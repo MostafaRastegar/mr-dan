@@ -13,7 +13,12 @@ import {
   RoleChangeForbiddenError,
   ValidationError,
 } from "../domain/errors";
-import type { AdminUserRow, Page, Role } from "../domain/models";
+import type {
+  AdminCounselorOption,
+  AdminUserRow,
+  Page,
+  Role,
+} from "../domain/models";
 import type {
   AdminUsersRepositoryPort,
   AuthCryptoPort,
@@ -21,14 +26,43 @@ import type {
 import { clampPage } from "./pagination";
 import type { Actor } from "./planning-access";
 
+const ROLE_FILTERS: readonly Role[] = [
+  "student",
+  "counselor",
+  "admin",
+  "operator",
+];
+
+function roleFilter(value: string | undefined): Role | undefined {
+  return ROLE_FILTERS.find((role) => role === value);
+}
+
 export class ListUsersUseCase {
   constructor(private readonly users: AdminUsersRepositoryPort) {}
 
   async execute(input?: {
     page?: number;
     pageSize?: number;
+    counselorId?: string;
+    role?: string;
+    q?: string;
   }): Promise<Page<AdminUserRow>> {
-    return this.users.listUsers(clampPage(input));
+    const role = roleFilter(input?.role);
+    const q = input?.q?.trim() || undefined;
+    return this.users.listUsers({
+      ...clampPage(input),
+      ...(input?.counselorId ? { counselorId: input.counselorId } : {}),
+      ...(role ? { role } : {}),
+      ...(q ? { q } : {}),
+    });
+  }
+}
+
+export class ListCounselorsUseCase {
+  constructor(private readonly users: AdminUsersRepositoryPort) {}
+
+  execute(): Promise<AdminCounselorOption[]> {
+    return this.users.listCounselors();
   }
 }
 

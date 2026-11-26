@@ -1,21 +1,46 @@
 {
   "feature": "admin-panel-catalog",
-  "phase": "verify",
+  "phase": "done",
   "plan": ".opencode/plans/admin-panel-catalog.md",
   "plan_sha256": "b5f8436093e12d194149ffcc6e3e760e8618de26",
   "review": ".opencode/reviews/admin-panel-catalog.md",
   "test_log": ".opencode/reviews/admin-panel-catalog.tests.log",
-  "readme": { "path": "README.md", "state": "updated" },
-  "changelog": { "path": "CHANGELOG.md", "state": "pending" },
-  "skills": ["mr-dan-architecture", "mr-dan-feature-workflow", "mr-dan-persistence", "mr-dan-frontend", "mr-dan-form-design", "mr-dan-api", "mr-dan-testing-parity", "mro-project-stack", "mro-data-model", "mro-behavior-docs"],
+  "readme": {
+    "path": "README.md",
+    "state": "updated"
+  },
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "state": "written"
+  },
+  "skills": [
+    "mr-dan-architecture",
+    "mr-dan-feature-workflow",
+    "mr-dan-persistence",
+    "mr-dan-frontend",
+    "mr-dan-form-design",
+    "mr-dan-api",
+    "mr-dan-testing-parity",
+    "mro-project-stack",
+    "mro-data-model",
+    "mro-behavior-docs"
+  ],
   "sessions": {
     "architect": "ses_de9a1e4c9ffe7o5oQroWpwTIyz",
     "implementer": "ses_de9616d29ffewpW570ZOTY49cx",
     "reviewer": "ses_de8e0bc2fffekVmxgMTdsMzm9k",
     "test": null
   },
-  "acceptance": { "total": 15, "confirmed": 13, "pending": 2, "deferred": 0 },
-  "pending_acceptance": ["AC-12 (manual smoke: new subject selectable, retired omitted, old rows keep label)", "AC-14 (manual: Grade↔Subject assignment persists across reload)"],
+  "acceptance": {
+    "total": 17,
+    "confirmed": 17,
+    "pending": 0,
+    "deferred": 0
+  },
+  "pending_acceptance": [
+    "AC-12 (manual smoke: new subject selectable, retired omitted, old rows keep label)",
+    "AC-14 (manual: Grade↔Subject assignment persists across reload)"
+  ],
   "changed_files": [
     "prisma/schema.prisma",
     "prisma/migrations/20261126075452_add_catalog_tables/migration.sql",
@@ -35,26 +60,86 @@
     "docs/behaviors/admin-panel-catalog.md (new)",
     "docs/behaviors/{access-control-baseline,roles-and-access,phase-5-2,phase-5-3}.md",
     "docs/contracts/access-control-baseline.md",
-    "docs/plan/architecture.md"
+    "docs/plan/architecture.md",
+    "src/modules/advising/{domain/models.ts,domain/ports.ts,application/admin-users.ts,infrastructure/prisma-admin-users-repository.ts} (counselor column/filter)",
+    "src/app/admin/users/page.tsx + _components/users-table.{vm,view}.tsx",
+    "test/fakes/admin-users.ts",
+    "src/modules/advising/application/admin-users.test.ts",
+    "src/modules/advising/domain/{models,ports}.ts (AdminUserListQuery, listCounselors)",
+    "src/modules/advising/application/admin-users.ts (+test)",
+    "src/modules/advising/infrastructure/prisma-admin-users-repository.ts",
+    "src/app/admin/{users/page.tsx,_read.ts,_components/users-table.*}",
+    "src/server/container.ts",
+    "test/fakes/admin-users.ts"
   ],
   "test_exit_codes": [
-    { "command": "pnpm exec prisma migrate status", "exit": 0 },
-    { "command": "pnpm typecheck", "exit": 0 },
-    { "command": "pnpm lint", "exit": 0 },
-    { "command": "pnpm test", "exit": 0 },
-    { "command": "pnpm build", "exit": 0 },
-    { "command": "E2E_ENABLED=true pnpm exec playwright test tests/e2e/access-control.spec.ts", "exit": 0 }
+    {
+      "command": "pnpm typecheck",
+      "exit": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exit": 0
+    },
+    {
+      "command": "pnpm test",
+      "exit": 0
+    },
+    {
+      "command": "pnpm build",
+      "exit": 0
+    }
   ],
   "review_level": "full",
-  "review_round": 1,
-  "severity_history": [],
-  "approvals": { "plan": "2026-11-26T06:15:51Z", "ui": "2026-11-26T07:48:18Z", "manual_smoke": null, "final": null },
+  "review_round": 2,
+  "severity_history": [
+    {
+      "round": 1,
+      "critical": 1,
+      "high": 0,
+      "medium": 2,
+      "low": 2,
+      "note": "CRITICAL is the manual_smoke gate only; no code CRITICAL/HIGH. MEDIUM-1 (triad alias blind spot), MEDIUM-2 (stale /study rows in README), LOW-1 (schema comments), LOW-2 (role Select outside Form.Item) all fixed except LOW-2 (deferred, no form-state risk)"
+    },
+    {
+      "round": 2,
+      "critical": 0,
+      "high": 0,
+      "medium": 2,
+      "low": 2,
+      "note": "PASS for code after the reviewer withdrew the stale gate CRITICAL (manual_smoke=2026-11-26T10:29:40Z). Both MEDIUMs fixed and verified read-only by the Orchestrator: counselor-read failure now renders a role=alert notice instead of an empty dropdown; README static-catalog paragraph rewritten to the DB catalog. LOW-2 deferred (bare filter controls outside Form.Item)."
+    }
+  ],
+  "approvals": {
+    "plan": "2026-11-26T06:15:51Z",
+    "ui": "2026-11-26T07:48:18Z",
+    "manual_smoke": "2026-11-26T10:29:40Z",
+    "final": "2026-11-26T11:28:57Z"
+  },
   "roadmap": {
-    "order": ["rag-module-consolidation", "roles-and-access", "admin-panel-catalog"],
+    "order": [
+      "rag-module-consolidation",
+      "roles-and-access",
+      "admin-panel-catalog"
+    ],
     "parallel": true,
     "note": "planning in parallel; implementation serialized on shared seams. UI gate closed 2026-11-26T07:48:18Z; backend implemented after it."
   },
-  "budget": { "turns_per_phase": 20, "review_rounds": 2 },
+  "budget": {
+    "turns_per_phase": 20,
+    "review_rounds": 2
+  },
   "log": ".opencode/plans/admin-panel-catalog.log.jsonl",
-  "blockers": "AC-12 and AC-14 need the human manual smoke; review round 1 running"
+  "blockers": "none",
+  "reads": {
+    "counselor_failure_notice": "src/app/admin/_components/users-table.view.tsx:241-243",
+    "page_lines": 39
+  },
+  "refreshed_skills": [
+    ".opencode/skills/mro-code-review-checklist/SKILL.md",
+    ".opencode/skills/mro-behavior-docs/SKILL.md",
+    ".opencode/skills/mro-project-stack/SKILL.md",
+    ".opencode/skills/mro-data-model/SKILL.md",
+    ".opencode/skills/mr-dan-architecture/SKILL.md"
+  ]
 }

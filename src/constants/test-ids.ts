@@ -33,6 +33,13 @@ export const TEST_IDS = {
   ADMIN: {
     USERS_TABLE: "admin-users-table",
     ROLE_SELECT: "admin-role-select",
+    COUNSELOR_FILTER: (id: string) => `admin-users-counselor-${id}`,
+    FILTER_FORM: "admin-users-filter-form",
+    FILTER_ROLE: "admin-users-filter-role",
+    FILTER_COUNSELOR: "admin-users-filter-counselor",
+    FILTER_QUERY: "admin-users-filter-query",
+    FILTER_APPLY: "admin-users-filter-apply",
+    FILTER_CLEAR: "admin-users-filter-clear",
     SUPPORT_EDIT: (id: string) => `admin-users-support-edit-${id}`,
     RESET: (id: string) => `admin-users-reset-${id}`,
     CATALOG_TABLE: "admin-catalog-table",
@@ -97,6 +104,7 @@ export const TEST_IDS = {
     GROUPS: "roster-groups",
     ASSIGN_FORM: "roster-assign-form",
     ASSIGNED: "roster-assigned",
+    UNASSIGNED_SECTION: "roster-unassigned-section",
     TABLE: "roster-table",
   },
   SCHOOL_PROGRAM: {

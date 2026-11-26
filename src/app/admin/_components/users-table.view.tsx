@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import {
   Button,
   Empty,
@@ -13,7 +14,11 @@ import {
 } from "antd";
 import type { ColumnType } from "antd/es/table";
 
-import type { AdminUserRow, Role } from "@/modules/advising/domain/models";
+import type {
+  AdminCounselorOption,
+  AdminUserRow,
+  Role,
+} from "@/modules/advising/domain/models";
 import { TEST_IDS } from "@/constants/test-ids";
 import type { FormValues } from "@/utils/use-form-action";
 
@@ -29,6 +34,14 @@ const ROLE_OPTIONS = (Object.keys(ROLE_LABELS) as Role[]).map((role) => ({
   label: ROLE_LABELS[role],
 }));
 
+const ROLE_FILTER_OPTIONS = [{ value: "", label: "همه" }, ...ROLE_OPTIONS];
+
+export interface UsersFilterValues {
+  role: string;
+  counselorId: string;
+  q: string;
+}
+
 type RoleTarget = { userId: string; username: string; role: Role };
 
 interface UsersTableViewProps {
@@ -36,6 +49,12 @@ interface UsersTableViewProps {
   total: number;
   currentPage: number;
   pageSize: number;
+  basePath: string;
+  filters: UsersFilterValues;
+  counselorOptions: readonly AdminCounselorOption[];
+  counselorOptionsFailed: boolean;
+  onFilterChange: (patch: Partial<UsersFilterValues>) => void;
+  onApplyFilters: () => void;
   loading: boolean;
   onPageChange: (page: number) => void;
   readFailed: boolean;
@@ -66,6 +85,12 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
     total,
     currentPage,
     pageSize,
+    basePath,
+    filters,
+    counselorOptions,
+    counselorOptionsFailed,
+    onFilterChange,
+    onApplyFilters,
     loading,
     onPageChange,
     readFailed,
@@ -128,6 +153,23 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
         ),
     },
     {
+      key: "counselor",
+      title: "مشاور",
+      render: (_: unknown, row) =>
+        row.counselorId && row.counselorUsername ? (
+          <Link
+            href={`${basePath}?counselor=${row.counselorId}&page=${currentPage}&pageSize=${pageSize}`}
+            dir="ltr"
+            className="whitespace-nowrap text-teal-700 underline"
+            data-testid={TEST_IDS.ADMIN.COUNSELOR_FILTER(row.counselorId)}
+          >
+            {row.counselorUsername}
+          </Link>
+        ) : (
+          "—"
+        ),
+    },
+    {
       key: "createdAt",
       title: "تاریخ ایجاد",
       render: (_: unknown, row) => (
@@ -177,6 +219,88 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
         <h1 className="text-2xl font-bold">کاربران</h1>
       </header>
 
+      <div
+        className="space-y-3 rounded-lg border border-slate-200 bg-white p-4"
+        data-testid={TEST_IDS.ADMIN.FILTER_FORM}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="space-y-1.5">
+            <label htmlFor="admin-filter-role" className="text-sm">
+              نقش
+            </label>
+            <Select<string>
+              id="admin-filter-role"
+              size="large"
+              className="min-h-11 min-w-40"
+              value={filters.role}
+              options={ROLE_FILTER_OPTIONS}
+              onChange={(role) => onFilterChange({ role })}
+              data-testid={TEST_IDS.ADMIN.FILTER_ROLE}
+            />
+          </div>
+          {counselorOptionsFailed ? (
+            <p role="alert" className="self-end pb-2 text-sm text-red-600">
+              فهرست مشاوران بارگذاری نشد.
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              <label htmlFor="admin-filter-counselor" className="text-sm">
+                مشاور
+              </label>
+              <Select<string>
+                id="admin-filter-counselor"
+                size="large"
+                className="min-h-11 min-w-40"
+                value={filters.counselorId}
+                options={[
+                  { value: "", label: "همه" },
+                  ...counselorOptions.map((option) => ({
+                    value: option.id,
+                    label: option.username,
+                  })),
+                ]}
+                onChange={(counselorId) => onFilterChange({ counselorId })}
+                data-testid={TEST_IDS.ADMIN.FILTER_COUNSELOR}
+              />
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <label htmlFor="admin-filter-q" className="text-sm">
+              جستجو
+            </label>
+            <Input
+              id="admin-filter-q"
+              size="large"
+              className="min-h-11 min-w-56"
+              placeholder="نام کاربری یا نام کامل"
+              value={filters.q}
+              onChange={(event) => onFilterChange({ q: event.target.value })}
+              onPressEnter={onApplyFilters}
+              data-testid={TEST_IDS.ADMIN.FILTER_QUERY}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="primary"
+              size="large"
+              className="min-h-11"
+              onClick={onApplyFilters}
+              data-testid={TEST_IDS.ADMIN.FILTER_APPLY}
+            >
+              اعمال
+            </Button>
+            <Button
+              size="large"
+              className="min-h-11"
+              href={basePath}
+              data-testid={TEST_IDS.ADMIN.FILTER_CLEAR}
+            >
+              پاک کردن
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {successMessage ? (
         <p role="status" className="text-sm text-teal-700">
           {successMessage}
@@ -207,7 +331,7 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
             columns={columns}
             dataSource={rows as AdminUserRow[]}
             loading={loading}
-            scroll={{ x: 760 }}
+            scroll={{ x: 880 }}
             pagination={{
               current: currentPage,
               pageSize,

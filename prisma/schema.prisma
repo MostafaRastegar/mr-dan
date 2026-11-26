@@ -128,7 +128,7 @@ model WeeklySchedule {
   dayOfWeek   Int      // 0 = شنبه … 6 = جمعه (Persian week; zod-validated 0..6)
   startMinute Int      // minutes from local midnight, 0..1439
   endMinute   Int      // > startMinute, <= 1439
-  subject     String   // slug from domain/subjects.ts, validated at the boundary
+  subject     String   // slug from the Subject catalog (Subject.slug, seeded by scripts/seed-advising.ts), validated at the boundary
   teacher     String?
   room        String?
   createdAt   DateTime @default(now())
@@ -142,7 +142,7 @@ model Homework {
   studentId   String
   student     User      @relation("StudentHomework", fields: [studentId], references: [id], onDelete: Cascade)
   title       String
-  subject     String?   // slug from domain/subjects.ts; null = «بدون درس»
+  subject     String?   // slug from the Subject catalog (Subject.slug, seeded by scripts/seed-advising.ts); null = «بدون درس»
   priority    Int       // 3 = high, 2 = medium, 1 = low (domain exposes labels)
   deadline    DateTime  // Iran midnight (UTC+03:30) of the due calendar day
   completedAt DateTime? // null = pending

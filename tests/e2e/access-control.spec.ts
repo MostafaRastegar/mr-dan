@@ -63,6 +63,32 @@ test.describe("access control baseline", () => {
   });
 });
 
+test.describe("counselor roster separation", () => {
+  test.skip(!e2eEnabled, "E2E tests disabled. Set E2E_ENABLED=true and start services.");
+
+  test("roster sections render separately for a counselor", async ({ page }) => {
+    const username = `e2e_counselor_${Date.now()}`;
+    const stdout = execFileSync(
+      "pnpm",
+      ["exec", "tsx", "scripts/create-user.ts", username, "--role", "counselor"],
+      { cwd: process.cwd(), encoding: "utf8" },
+    );
+    const password = stdout.trim().split("\n").pop() ?? "";
+    expect(password.length).toBeGreaterThan(0);
+
+    await page.goto("/login");
+    await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
+    await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
+    await page.getByTestId(TEST_IDS.FORM.SUBMIT("login")).click();
+    await expect(page).toHaveURL(/\/profile$/);
+
+    await page.goto("/counselor/students");
+    await expect(page.getByTestId(TEST_IDS.ROSTER.UNASSIGNED_SECTION)).toBeVisible();
+    await expect(page.getByTestId(TEST_IDS.ROSTER.TABLE)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "بدون گروه" })).toBeVisible();
+  });
+});
+
 test.describe("admin panel access control", () => {
   test.skip(!e2eEnabled, "E2E tests disabled. Set E2E_ENABLED=true and start services.");
 

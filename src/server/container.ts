@@ -91,6 +91,7 @@ import { ToggleMealSlotUseCase } from "@/modules/advising/application/nutrition"
 import {
   ChangeUserRoleUseCase,
   ListUsersUseCase,
+  ListCounselorsUseCase,
   SupportUserUseCase,
 } from "@/modules/advising/application/admin-users";
 import {
@@ -189,6 +190,7 @@ type Container = {
     listChapters: () => Promise<Chapter[]>;
     admin: {
       listUsers: ListUsersUseCase;
+      listCounselors: ListCounselorsUseCase;
       changeUserRole: ChangeUserRoleUseCase;
       support: SupportUserUseCase;
       fields: ManageLabelCatalogUseCase;
@@ -374,6 +376,7 @@ function buildAdvising(): Container["advising"] {
     listChapters: () => chapters.listAll(),
     admin: {
       listUsers: new ListUsersUseCase(adminUsers),
+      listCounselors: new ListCounselorsUseCase(adminUsers),
       changeUserRole: new ChangeUserRoleUseCase(adminUsers),
       support: new SupportUserUseCase(adminUsers, crypto),
       fields: new ManageLabelCatalogUseCase(catalogAdmin, "fields"),

@@ -11,13 +11,14 @@ import { prisma } from "@/shared/prisma";
 import { EmailTakenError, NotFoundError } from "@/modules/advising/domain/errors";
 import { toRole } from "@/modules/advising/domain/models";
 import type {
+  AdminCounselorOption,
   AdminUserRow,
   Page,
   Role,
 } from "@/modules/advising/domain/models";
 import type {
+  AdminUserListQuery,
   AdminUsersRepositoryPort,
-  PageQuery,
 } from "@/modules/advising/domain/ports";
 
 const ADMIN_USER_SELECT = {
@@ -26,6 +27,8 @@ const ADMIN_USER_SELECT = {
   fullName: true,
   email: true,
   role: true,
+  counselorId: true,
+  counselor: { select: { username: true } },
   createdAt: true,
 } as const;
 
@@ -35,6 +38,8 @@ type AdminUserDbRow = {
   fullName: string;
   email: string | null;
   role: string;
+  counselorId: string | null;
+  counselor: { username: string } | null;
   createdAt: Date;
 };
 
@@ -45,6 +50,8 @@ function mapUser(row: AdminUserDbRow): AdminUserRow {
     fullName: row.fullName,
     email: row.email,
     role: toRole(row.role),
+    counselorId: row.counselorId,
+    counselorUsername: row.counselor?.username ?? null,
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -68,15 +75,28 @@ function isP2002(error: unknown): error is { code: "P2002" } {
 export class PrismaAdminUsersRepository implements AdminUsersRepositoryPort {
   constructor(private readonly client: PrismaClient = prisma) {}
 
-  async listUsers(query: PageQuery): Promise<Page<AdminUserRow>> {
+  async listUsers(query: AdminUserListQuery): Promise<Page<AdminUserRow>> {
+    const where = {
+      ...(query.counselorId ? { counselorId: query.counselorId } : {}),
+      ...(query.role ? { role: query.role } : {}),
+      ...(query.q
+        ? {
+            OR: [
+              { username: { contains: query.q, mode: "insensitive" as const } },
+              { fullName: { contains: query.q, mode: "insensitive" as const } },
+            ],
+          }
+        : {}),
+    };
     const [rows, total] = await Promise.all([
       this.client.user.findMany({
+        where,
         select: ADMIN_USER_SELECT,
         orderBy: { createdAt: "desc" },
         skip: (query.page - 1) * query.pageSize,
         take: query.pageSize,
       }),
-      this.client.user.count(),
+      this.client.user.count({ where }),
     ]);
     return {
       items: rows.map(mapUser),
@@ -84,6 +104,14 @@ export class PrismaAdminUsersRepository implements AdminUsersRepositoryPort {
       pageSize: query.pageSize,
       total,
     };
+  }
+
+  async listCounselors(): Promise<AdminCounselorOption[]> {
+    return this.client.user.findMany({
+      where: { students: { some: {} } },
+      select: { id: true, username: true },
+      orderBy: { username: "asc" },
+    });
   }
 
   async findById(id: string): Promise<AdminUserRow | null> {

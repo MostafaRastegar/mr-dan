@@ -1,6 +1,6 @@
 ---
 last_verified: 2026-11-26
-source_files: prisma/schema.prisma, scripts/seed-advising.ts, scripts/create-user.ts, src/modules/advising/domain/catalog.ts, src/modules/advising/domain/catalog.test.ts, src/modules/advising/domain/models.ts, src/modules/advising/domain/ports.ts, src/modules/advising/domain/capabilities.ts, src/modules/advising/application/catalog-admin.ts, src/modules/advising/application/catalog-options.ts, src/modules/advising/application/admin-users.ts, src/modules/advising/presentation/schemas.ts, src/modules/advising/presentation/advisor-schemas.ts, src/modules/advising/presentation/homework-schemas.ts, src/modules/advising/presentation/schedule-schemas.ts, src/modules/advising/infrastructure/prisma-catalog-admin-repository.ts, src/modules/advising/infrastructure/prisma-catalog-repository.ts, src/server/container.ts, src/app/admin/page.tsx, src/app/admin/users/page.tsx, src/app/admin/users/users.actions.ts, src/app/admin/_components/users-table.view.tsx, src/app/admin/_components/users-table.vm.tsx, src/app/admin/_components/catalog-configs.ts, src/app/admin/_components/catalog-manager.view.tsx, src/app/admin/_components/catalog-manager.vm.tsx, src/app/admin/catalog/fields/page.tsx, src/app/admin/catalog/grades/page.tsx, src/app/admin/catalog/subjects/page.tsx, src/app/admin/catalog/books/page.tsx, src/app/admin/catalog/needs/page.tsx, src/app/admin/catalog/exams/page.tsx, src/app/admin/catalog/chapters/page.tsx, src/app/(advising)/advising.actions.ts, src/app/(advising)/homework/homework.actions.ts, src/app/(advising)/schedule/schedule.actions.ts, src/app/(advising)/schedule/school-program.actions.ts, src/app/(auth)/auth.actions.ts, test/architecture.test.ts, tests/e2e/access-control.spec.ts
+source_files: prisma/schema.prisma, scripts/seed-advising.ts, scripts/create-user.ts, src/modules/advising/domain/catalog.ts, src/modules/advising/domain/catalog.test.ts, src/modules/advising/domain/models.ts, src/modules/advising/domain/ports.ts, src/modules/advising/domain/capabilities.ts, src/modules/advising/application/catalog-admin.ts, src/modules/advising/application/catalog-options.ts, src/modules/advising/application/admin-users.ts, src/modules/advising/presentation/schemas.ts, src/modules/advising/presentation/advisor-schemas.ts, src/modules/advising/presentation/homework-schemas.ts, src/modules/advising/presentation/schedule-schemas.ts, src/modules/advising/infrastructure/prisma-catalog-admin-repository.ts, src/modules/advising/infrastructure/prisma-admin-users-repository.ts, src/modules/advising/infrastructure/prisma-catalog-repository.ts, src/server/container.ts, src/app/admin/page.tsx, src/app/admin/users/page.tsx, src/app/admin/users/users.actions.ts, src/app/admin/_components/users-table.view.tsx, src/app/admin/_components/users-table.vm.tsx, src/app/admin/_components/catalog-configs.ts, src/app/admin/_components/catalog-manager.view.tsx, src/app/admin/_components/catalog-manager.vm.tsx, src/app/admin/catalog/fields/page.tsx, src/app/admin/catalog/grades/page.tsx, src/app/admin/catalog/subjects/page.tsx, src/app/admin/catalog/books/page.tsx, src/app/admin/catalog/needs/page.tsx, src/app/admin/catalog/exams/page.tsx, src/app/admin/catalog/chapters/page.tsx, src/app/(advising)/advising.actions.ts, src/app/(advising)/homework/homework.actions.ts, src/app/(advising)/schedule/schedule.actions.ts, src/app/(advising)/schedule/school-program.actions.ts, src/app/(auth)/auth.actions.ts, test/architecture.test.ts, tests/e2e/access-control.spec.ts
 ---
 
 # Behavior — admin panel and catalog
@@ -43,6 +43,19 @@ cannot change roles or touch the catalog.
   rendered and `changeUserRoleAction` returns `{ok:false, code:"forbidden"}`.
 - When any list page is requested beyond its last page, the table is empty and
   the pager still shows the accurate total; it is never an error.
+- When an admin opens `/admin/users`, each row shows the student's counselor
+  username in the «مشاور» column; a student with no counselor shows `—`. The
+  counselor name links to `/admin/users?counselor=<id>`, which returns only that
+  counselor's students as a normal `Page<T>` slice (filter applied to the query
+  and the count, so pagination and `total` are correct); the filter bar shows the
+  active values, «پاک کردن» returns to the unfiltered page, and paging keeps the
+  filter.
+- When an admin uses the filter bar above the table, نقش / مشاور / جستجو are
+  sent as `role`, `counselor` and `q` query params and applied server-side to
+  both the count and the `skip/take` slice. `q` matches username OR full name
+  case-insensitively; an unknown `role` is ignored; applying resets `page` to 1
+  and keeps `pageSize`; «پاک کردن» returns to `/admin/users` with no params; the
+  مشاور dropdown lists only users who actually have students.
 - When a new subject is created in `/admin/catalog/subjects`, it becomes
   selectable on `/schedule`; after retiring it, the select omits it while old
   rows keep the label.
@@ -56,6 +69,7 @@ cannot change roles or touch the catalog.
 ### Edge cases
 
 - Empty catalog list: the table renders the empty state; create still works.
+- Counselor filter with no students: empty table with `total: 0`, not an error.
 - Out-of-range page: empty items with correct `total`.
 - Forbidden action: `{ok:false, code:"forbidden"}` with no write.
 - Unknown stored slug: falls back to the raw slug instead of throwing.

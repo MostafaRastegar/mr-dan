@@ -4,7 +4,12 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Form } from "antd";
 
-import type { AdminUserRow, Page, Role } from "@/modules/advising/domain/models";
+import type {
+  AdminCounselorOption,
+  AdminUserRow,
+  Page,
+  Role,
+} from "@/modules/advising/domain/models";
 import type { ActionState } from "@/utils/app-error";
 import {
   useActionMutation,
@@ -18,11 +23,17 @@ import {
   resetUserCredentialsAction,
   updateUserContactAction,
 } from "../users/users.actions";
-import { UsersTableView } from "./users-table.view";
+import {
+  UsersTableView,
+  type UsersFilterValues,
+} from "./users-table.view";
 
 interface UsersTableWrapperProps {
   page: Page<AdminUserRow>;
   basePath: string;
+  filters: UsersFilterValues;
+  counselorOptions: readonly AdminCounselorOption[];
+  counselorOptionsFailed: boolean;
   canManageRole: boolean;
   canSupport: boolean;
   readFailed?: boolean;
@@ -36,12 +47,16 @@ export function UsersTableWrapper(
   const {
     page,
     basePath,
+    filters,
+    counselorOptions,
+    counselorOptionsFailed,
     canManageRole,
     canSupport,
     readFailed = false,
   } = props;
   const router = useRouter();
   const [form] = Form.useForm();
+  const [filterValues, setFilterValues] = useState<UsersFilterValues>(filters);
   const [roleTarget, setRoleTarget] = useState<RoleTarget | null>(null);
   const [editTarget, setEditTarget] = useState<AdminUserRow | null>(null);
   const [navigating, startNavigation] = useTransition();
@@ -50,6 +65,14 @@ export function UsersTableWrapper(
   const support = useFormAction(updateUserContactAction);
   const reset = useActionMutation(resetUserCredentialsAction);
   const supportError = useServerFormErrors(support.state, form);
+
+  useEffect(() => {
+    setFilterValues({
+      role: filters.role,
+      counselorId: filters.counselorId,
+      q: filters.q,
+    });
+  }, [filters.role, filters.counselorId, filters.q]);
 
   useEffect(() => {
     if (!support.state?.ok) return;
@@ -80,6 +103,21 @@ export function UsersTableWrapper(
     form.setFieldsValue({ fullName: row.fullName, email: row.email ?? "" });
   };
 
+  const filterUrl = (nextPage?: number) => {
+    const query = new URLSearchParams();
+    if (filterValues.role) query.set("role", filterValues.role);
+    if (filterValues.counselorId) {
+      query.set("counselor", filterValues.counselorId);
+    }
+    const q = filterValues.q.trim();
+    if (q) query.set("q", q);
+    query.set("pageSize", String(page.pageSize));
+    if (nextPage) query.set("page", String(nextPage));
+    return `${basePath}?${query.toString()}`;
+  };
+
+  const applyFilters = () => startNavigation(() => router.push(filterUrl()));
+
   const submitEdit = (values: FormValues) => {
     if (editTarget) support.submit({ ...values, userId: editTarget.id });
   };
@@ -103,9 +141,17 @@ export function UsersTableWrapper(
       total={page.total}
       currentPage={page.page}
       pageSize={page.pageSize}
+      basePath={basePath}
+      filters={filterValues}
+      counselorOptions={counselorOptions}
+      counselorOptionsFailed={counselorOptionsFailed}
+      onFilterChange={(patch) =>
+        setFilterValues((current) => ({ ...current, ...patch }))
+      }
+      onApplyFilters={applyFilters}
       loading={navigating}
       onPageChange={(next) =>
-        startNavigation(() => router.push(`${basePath}?page=${next}`))
+        startNavigation(() => router.push(filterUrl(next)))
       }
       readFailed={readFailed}
       canManageRole={canManageRole}

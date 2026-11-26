@@ -44,8 +44,7 @@ function resolveInternal(specifier: string, fromPath: string): string | null {
   const target = specifier.startsWith("@/") ? specifier.slice(2) : null;
   if (target) return target;
   if (!specifier.startsWith(".")) return null;
-  const resolved = normalize(join(dirname(fromPath), specifier));
-  return dirname(resolved) === dirname(fromPath) ? null : resolved;
+  return normalize(join(dirname(fromPath), specifier));
 }
 
 const FORBIDDEN: Record<string, string[]> = {
@@ -113,8 +112,8 @@ describe("architecture", () => {
     const cross = resolveInternal("../application/x", "modules/rag/infrastructure/retriever.ts");
     expect(cross).toBe("modules/rag/application/x");
     expect(layerOf(cross as string)).toBe("application");
-    // (b) same-directory relative imports stay allowed
-    expect(resolveInternal("./cache", "modules/rag/infrastructure/cache.test.ts")).toBeNull();
+    // (b) same-directory relative imports resolve to their own file
+    expect(resolveInternal("./cache", "modules/rag/infrastructure/cache.test.ts")).toBe("modules/rag/infrastructure/cache");
     // @/ branch unchanged
     expect(resolveInternal("@/shared/env", "modules/rag/infrastructure/retriever.ts")).toBe("shared/env");
   });
@@ -220,30 +219,54 @@ describe("architecture", () => {
 
   it("keeps the page triad next to every page", () => {
     const pages = files.filter((f) => /^app\/(.+\/)?page\.tsx$/.test(f.path));
+    // A page optionally imports one or more `.vm` modules (sibling or shared
+    // `_components`, relative or `@/` alias); each must pair with a `.view.tsx`.
+    const vmTarget = (specifier: string, fromPath: string): string | null =>
+      specifier.endsWith(".vm") ? resolveInternal(specifier, fromPath) : null;
     const withLocalUi = pages.filter((p) =>
-      p.imports.some((i) => (i.startsWith("./") || i.startsWith("../")) && i.endsWith(".vm")),
+      p.imports.some((i) => vmTarget(i, p.path) !== null),
     );
-    expect(withLocalUi).toHaveLength(13);
+    expect(withLocalUi).toHaveLength(21);
     const violations = withLocalUi.flatMap((page) => {
-      const dir = page.path.slice(0, page.path.lastIndexOf("/"));
-      const siblings = files.filter(
-        (f) =>
-          f.path.startsWith(`${dir}/`) &&
-          f.path.split("/").length === page.path.split("/").length,
-      );
-      const vms = siblings.filter((f) => f.path.endsWith(".vm.tsx"));
+      const targets = page.imports
+        .map((i) => vmTarget(i, page.path))
+        .filter((target): target is string => target !== null);
       const out: string[] = [];
-      if (vms.length === 0) out.push(`${page.path} has no sibling .vm.tsx`);
-      for (const vm of vms) {
-        const base = vm.path.replace(/\.vm\.tsx$/, "");
-        if (!files.some((f) => f.path === `${base}.view.tsx`))
-          out.push(`${vm.path} lacks sibling .view.tsx`);
-        const spec = `./${vm.path.slice(vm.path.lastIndexOf("/") + 1).replace(/\.tsx$/, "")}`;
-        if (!page.imports.includes(spec))
-          out.push(`${page.path} does not import ${spec}`);
+      for (const target of targets) {
+        const vmFile = `${target}.tsx`;
+        if (!files.some((f) => f.path === vmFile)) {
+          out.push(`${page.path} imports missing ${vmFile}`);
+          continue;
+        }
+        const viewFile = `${target.slice(0, -".vm".length)}.view.tsx`;
+        if (!files.some((f) => f.path === viewFile))
+          out.push(`${vmFile} lacks sibling .view.tsx`);
       }
       return out;
     });
+    expect(violations).toEqual([]);
+  });
+
+  it("awaits Next.js params and searchParams", () => {
+    const appFiles = files.filter((f) => f.path.startsWith("app/"));
+    const violations: string[] = [];
+    let paramsSites = 0;
+    let searchParamsSites = 0;
+
+    for (const file of appFiles) {
+      const code = readFileSync(join(SRC, file.path), "utf8");
+      for (const name of ["params", "searchParams"] as const) {
+        if (!new RegExp(`\\b${name}\\b`).test(code)) continue;
+        if (name === "params") paramsSites += 1;
+        else searchParamsSites += 1;
+        if (!new RegExp(`await\\s+(props\\.)?${name}\\b`).test(code)) {
+          violations.push(`${file.path} reads ${name} without awaiting`);
+        }
+      }
+    }
+
+    expect(paramsSites).toBeGreaterThan(0);
+    expect(searchParamsSites).toBeGreaterThan(0);
     expect(violations).toEqual([]);
   });
 

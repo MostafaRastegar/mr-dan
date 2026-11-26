@@ -7,19 +7,20 @@
 
 import { NotFoundError } from "@/modules/advising/domain/errors";
 import type {
+  AdminCounselorOption,
   AdminUserRow,
   Page,
   Role,
 } from "@/modules/advising/domain/models";
 import type {
+  AdminUserListQuery,
   AdminUsersRepositoryPort,
-  PageQuery,
 } from "@/modules/advising/domain/ports";
 
 export class FakeAdminUsersRepository implements AdminUsersRepositoryPort {
   private readonly rows = new Map<string, AdminUserRow>();
   private readonly hashes = new Map<string, string>();
-  lastQuery: PageQuery | null = null;
+  lastQuery: AdminUserListQuery | null = null;
 
   seed(rows: readonly AdminUserRow[]): void {
     for (const row of rows) this.rows.set(row.id, row);
@@ -33,11 +34,19 @@ export class FakeAdminUsersRepository implements AdminUsersRepositoryPort {
     return this.rows.get(id)?.role ?? null;
   }
 
-  async listUsers(query: PageQuery): Promise<Page<AdminUserRow>> {
+  async listUsers(query: AdminUserListQuery): Promise<Page<AdminUserRow>> {
     this.lastQuery = query;
-    const sorted = [...this.rows.values()].sort((a, b) =>
-      b.createdAt.localeCompare(a.createdAt),
-    );
+    const needle = query.q?.toLowerCase();
+    const sorted = [...this.rows.values()]
+      .filter((row) => !query.counselorId || row.counselorId === query.counselorId)
+      .filter((row) => !query.role || row.role === query.role)
+      .filter(
+        (row) =>
+          !needle ||
+          row.username.toLowerCase().includes(needle) ||
+          row.fullName.toLowerCase().includes(needle),
+      )
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     const start = (query.page - 1) * query.pageSize;
     return {
       items: sorted.slice(start, start + query.pageSize),
@@ -45,6 +54,17 @@ export class FakeAdminUsersRepository implements AdminUsersRepositoryPort {
       pageSize: query.pageSize,
       total: sorted.length,
     };
+  }
+
+  async listCounselors(): Promise<AdminCounselorOption[]> {
+    const ids = new Set(
+      [...this.rows.values()]
+        .map((row) => row.counselorId)
+        .filter((id): id is string => id !== null),
+    );
+    return [...ids]
+      .map((id) => ({ id, username: this.rows.get(id)?.username ?? id }))
+      .sort((a, b) => a.username.localeCompare(b.username));
   }
 
   async findById(id: string): Promise<AdminUserRow | null> {

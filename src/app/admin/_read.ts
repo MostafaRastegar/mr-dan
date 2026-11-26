@@ -8,6 +8,9 @@ import type { Page } from "@/modules/advising/domain/models";
 export type AdminSearchParams = Promise<{
   page?: string;
   pageSize?: string;
+  counselor?: string;
+  role?: string;
+  q?: string;
 }>;
 
 export async function readAdminPage<T>(
@@ -20,5 +23,16 @@ export async function readAdminPage<T>(
       data: { items: [], page: 1, pageSize: 20, total: 0 },
       readFailed: true,
     };
+  }
+}
+
+/** Option-list reads: empty list on failure, but the caller can surface `failed`. */
+export async function readAdminOptions<T>(
+  read: () => Promise<T[]>,
+): Promise<{ options: T[]; failed: boolean }> {
+  try {
+    return { options: await read(), failed: false };
+  } catch {
+    return { options: [], failed: true };
   }
 }

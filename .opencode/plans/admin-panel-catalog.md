@@ -189,7 +189,7 @@ Stage Backend:
 - [x] AC-9 [backend]: When register/profile/group/homework/schedule/study-plan validation runs against DB-fed lists, a retired or unknown subject/field is rejected with the existing Persian message. — verify: `pnpm vitest run src/modules/advising/presentation/schemas.test.ts` evidence: `pnpm vitest run src/modules/advising/presentation/schemas.test.ts src/modules/advising/presentation/homework-schemas.test.ts src/modules/advising/presentation/schedule-schemas.test.ts` exit 0 (36 tests) after the factory rewrite; retired/unknown values rejected with the existing Persian messages.
 - [x] AC-10 [backend]: When the backend stage ships, no `SUBJECTS`, `SUBJECT_SLUGS`, `BOOKS`, `FIELDS`, `GRADES` static remains in `src/` outside fixtures/tests, and typecheck/lint/test/build are green. — verify: `! grep -rEn "export const (SUBJECTS|SUBJECT_SLUGS|BOOKS|FIELDS|GRADES)" src && pnpm typecheck && pnpm lint && pnpm test && pnpm build` evidence: grep exit 0 (no match, `AC10-grep-ok`); `pnpm typecheck` 0, `pnpm lint` 0 (5 pre-existing warnings), `pnpm test` 0 (64 files / 433 tests), `pnpm build` 0.
 - [x] AC-11 [backend]: When docs are read, `README.md` has `## پنل مدیریت` and `docs/behaviors/admin-panel-catalog.md` exists with `source_files`. — verify: `grep -q "## پنل مدیریت" README.md && test -f docs/behaviors/admin-panel-catalog.md` evidence: `grep -q "## پنل مدیریت" README.md && test -f docs/behaviors/admin-panel-catalog.md` → exit 0; behavior doc front matter carries `last_verified: 2026-11-26` and a `source_files` list.
-- [ ] AC-12 [backend]: When the admin smoke scenario is executed, a newly created subject is selectable on `/schedule`, and after retiring it the select omits it while old rows keep the label. — verify: manual: see Manual Smoke Test Scenario
+- [x] AC-12 [backend]: When the admin smoke scenario is executed, a newly created subject is selectable on `/schedule`, and after retiring it the select omits it while old rows keep the label. — verify: manual: see Manual Smoke Test Scenario — evidence: `human smoke 2026-11-26: created «هنر» (slug honar) shows in /schedule subject select; after retire it is gone from the select and the old row still shows the label`
 
 ## Open Questions (human)
 
@@ -252,7 +252,7 @@ Append-only delta; earlier sections stand except where superseded here. review_l
 ### New acceptance criteria
 
 - [x] AC-13 [backend]: When an admin table requests page 2 with pageSize 10, the use case returns `{items(10), page:2, pageSize:10, total}` and the repository port received a skip/take slice, never the full table; changing page fetches the next slice. — verify: `pnpm vitest run src/modules/advising/application/admin-users.test.ts src/modules/advising/application/catalog-admin.test.ts -t pagination` evidence: `pnpm vitest run src/modules/advising/application/admin-users.test.ts src/modules/advising/application/catalog-admin.test.ts -t pagination` → 3 passed, 16 skipped (non-matching), exit 0; UI pager wired to `?page=` via router.push + useTransition.
-- [ ] AC-14 [backend]: When an admin assigns grade «دهم» to a subject and reloads `/admin/catalog/subjects`, the assignment persists and renders; removing the assignment keeps the subject row. — verify: `pnpm vitest run src/modules/advising/application/catalog-admin.test.ts -t grade` plus manual: reload the subjects page under `pnpm dev`
+- [x] AC-14 [backend]: When an admin assigns grade «دهم» to a subject and reloads `/admin/catalog/subjects`, the assignment persists and renders; removing the assignment keeps the subject row. — verify: `pnpm vitest run src/modules/advising/application/catalog-admin.test.ts -t grade` plus manual: reload the subjects page under `pnpm dev` — evidence: `human smoke 2026-11-26: assigning grade «دهم» to a subject persisted across reload and removing it kept the subject`
 
 ## Delta: operator support surface + seed resolution (roles contract final, 2026-11-26)
 
@@ -297,3 +297,44 @@ Field/Grade/Subject/Book seed from the current static values; `Subject.gradeLabe
 ### New acceptance criterion
 
 - [x] AC-15 [backend]: When an operator opens `/admin/users`, the table renders (user:read) and support edits/reset work, but the role control is absent and `changeUserRoleAction` returns `{ok:false, code:"forbidden"}`; when a student opens it, the page redirects to `/profile`. — verify: `pnpm vitest run src/modules/advising/application/admin-users.test.ts -t operator && E2E_ENABLED=true pnpm exec playwright test tests/e2e/access-control.spec.ts -g "operator"` evidence: `pnpm exec vitest run src/modules/advising/application/admin-users.test.ts -t operator` → 2 passed | 9 skipped, exit 0; `E2E_ENABLED=true pnpm exec playwright test tests/e2e/access-control.spec.ts` → operator case un-fixme'd and passed (provisioned via `scripts/create-user.ts --role operator`, table visible, role control count 0), 7 passed / 3 skipped, exit 0.
+
+## Delta: counselor↔student visibility (human requirement 2026-11-26)
+
+Append-only; earlier sections stand except where superseded here. Answer: the existing
+`User.counselorId` scalar fully answers "which counselor supports which student" — **no new
+page, no new table, no schema change, no migration**.
+
+- `/admin/users` table gains a `مشاور` column: the counselor's username, `—` when null
+  (relation select `counselor: { select: { username: true } }` on the existing query — one
+  relation select, no N+1). Per-counselor student counts come as one
+  `groupBy: ["counselorId"], _count: {_all}` query over `role="student"` on the same page —
+  include only if it costs that single query (drop if it needs a second port).
+- Filter: the page accepts `?counselor=<userId>`; the users list port (backend stage) gains
+  optional `counselorId?: string` merged into its existing `where` — the `Page<T>` contract
+  (items/page/pageSize/total) is unchanged; the filter composes with pagination server-side
+  (never loads the full table).
+- Read model: `AdminUserRow` gains `counselorUsername: string | null`. Catalog pages untouched.
+- Re-demo note: the admin surface is already UI-approved; this delta adds a column + filter
+  only and must be demoed again on `pnpm dev` before it ships.
+- Docs: `docs/behaviors/admin-panel-catalog.md` gains the counselor-column/filter flow;
+  README `## پنل مدیریت` gains one line (admin sees each student's counselor and filters).
+
+- [x] AC-16 [backend]: When an admin opens `/admin/users`, each student row shows the supporting counselor's username (`—` when none), `?counselor=<userId>` filters the page to that counselor's students, and the response stays a `Page<T>` slice (pagination intact). — verify: `pnpm vitest run src/modules/advising/application/admin-users.test.ts -t counselor` — evidence: `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (65 files / 442 tests), `pnpm build` 0; `pnpm vitest run src/modules/advising/application/admin-users.test.ts -t counselor` 0 (4 passed) covers filter + total + page-2 slice + null counselor; `prisma-admin-users-repository.ts:78-91` applies the filter to both `findMany` (skip/take) and `count`, `counselor.username` from one relation select.
+
+## Delta: quick filter bar (human requirement 2026-11-26)
+
+Additional filters on `/admin/users` only; no new screen, no schema change, no new dependency.
+The bar exposes the columns the table already shows (role, counselor) plus a text search, all
+URL-driven so the state survives reloads and composes with pagination.
+
+- `/admin/users` accepts `?role=<student|counselor|admin|operator>`, `?counselor=<userId>` and
+  `?q=<text>` together with `page`/`pageSize`. `role` is whitelisted server-side (unknown value
+  ignored, never forwarded to Prisma); `q` matches `username` OR `fullName` case-insensitively.
+- All filters are merged into one `where` applied to BOTH `findMany` (skip/take) and `count`;
+  `Page<T>` is unchanged.
+- Counselor dropdown options come from one query over users that actually have students
+  (`students: { some: {} }`), not `role="counselor"`.
+- UI: نقش / مشاور selects and a جستجو input, اعمال and پاک کردن controls; applying resets
+  `page` to 1 and preserves `pageSize`; the counselor cell link sets the same `counselor` param.
+
+- [x] AC-17 [backend]: /admin/users accepts role, counselor and q filters together with pagination; the filter is applied to both the count and the skip/take slice, an unknown role is ignored, and the page returns a Page<T>. — verify: pnpm vitest run src/modules/advising/application/admin-users.test.ts -t filter — evidence: `pnpm typecheck` 0, `pnpm lint` 0, `pnpm test` 0 (65 files / 449 tests), `pnpm build` 0; `pnpm vitest run src/modules/advising/application/admin-users.test.ts -t filter` 0 (9 passed) covers role alone, counselor alone, q on username, q on fullName (case-insensitive), role+counselor combined, filters on the page-2 slice, and unknown role ignored; `prisma-admin-users-repository.ts` merges `counselorId`/`role`/`q` into one `where` passed to both `findMany` (skip/take) and `count`; counselor dropdown options come from `students: { some: {} }`.

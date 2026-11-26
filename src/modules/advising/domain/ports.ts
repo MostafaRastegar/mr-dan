@@ -6,6 +6,7 @@
  */
 
 import type {
+  AdminCounselorOption,
   AdminUserRow,
   BookRow,
   Chapter,
@@ -32,6 +33,7 @@ import type {
   PhysicalProfilePatch,
   ProfilePatch,
   ProfileView,
+  Role,
   SchoolProgramEntry,
   ScheduleEntryPatch,
   SessionRecord,
@@ -194,6 +196,13 @@ export interface PageQuery {
   pageSize: number;
 }
 
+/** Admin user directory filters; every field applies to both the slice and the count. */
+export interface AdminUserListQuery extends PageQuery {
+  counselorId?: string;
+  role?: Role;
+  q?: string;
+}
+
 export interface CatalogRepositoryPort {
   listNeeds(): Promise<Need[]>;
   listExams(): Promise<Exam[]>;
@@ -296,7 +305,9 @@ export interface CatalogAdminRepositoryPort {
 
 /** Admin user directory: paginated, role mutation only. */
 export interface AdminUsersRepositoryPort {
-  listUsers(query: PageQuery): Promise<Page<AdminUserRow>>;
+  listUsers(query: AdminUserListQuery): Promise<Page<AdminUserRow>>;
+  /** Users who actually have students, for the counselor filter dropdown. */
+  listCounselors(): Promise<AdminCounselorOption[]>;
   findById(id: string): Promise<AdminUserRow | null>;
   countAdmins(): Promise<number>;
   updateRole(userId: string, role: AdminUserRow["role"]): Promise<void>;

@@ -15,13 +15,21 @@ beforeEach(() => {
   users = new FakeAdminUsersRepository();
 });
 
-function row(id: string, role: Role, index = 0): AdminUserRow {
+function row(
+  id: string,
+  role: Role,
+  index = 0,
+  counselorId: string | null = null,
+  fullName = id,
+): AdminUserRow {
   return {
     id,
     username: id,
-    fullName: id,
+    fullName,
     email: null,
     role,
+    counselorId,
+    counselorUsername: counselorId,
     createdAt: new Date(Date.UTC(2026, 0, 1 + index)).toISOString(),
   };
 }
@@ -121,6 +129,170 @@ describe("admin users", () => {
     expect(page.page).toBe(1);
     expect(page.pageSize).toBe(100);
     expect(users.lastQuery).toEqual({ page: 1, pageSize: 100 });
+  });
+
+  it("counselor filter returns only that counselor's students and the filtered total", async () => {
+    seed(
+      ...Array.from({ length: 3 }, (_, index) =>
+        row(`a-${index + 1}`, "student", index, "counselor-1"),
+      ),
+      ...Array.from({ length: 2 }, (_, index) =>
+        row(`b-${index + 1}`, "student", index + 3, "counselor-2"),
+      ),
+    );
+
+    const page = await new ListUsersUseCase(users).execute({
+      counselorId: "counselor-1",
+    });
+
+    expect(page.items.map((item) => item.id)).toEqual(["a-3", "a-2", "a-1"]);
+    expect(page.total).toBe(3);
+    expect(page.items.every((item) => item.counselorId === "counselor-1")).toBe(
+      true,
+    );
+  });
+
+  it("counselor filter composes with the page=2 slice", async () => {
+    seed(
+      ...Array.from({ length: 15 }, (_, index) =>
+        row(`a-${index + 1}`, "student", index, "counselor-1"),
+      ),
+      ...Array.from({ length: 5 }, (_, index) =>
+        row(`b-${index + 1}`, "student", index + 15, "counselor-2"),
+      ),
+    );
+
+    const page = await new ListUsersUseCase(users).execute({
+      page: 2,
+      pageSize: 10,
+      counselorId: "counselor-1",
+    });
+
+    expect(page.page).toBe(2);
+    expect(page.total).toBe(15);
+    expect(page.items).toHaveLength(5);
+    expect(page.items.every((item) => item.counselorId === "counselor-1")).toBe(
+      true,
+    );
+  });
+
+  it("a student without a counselor reports a null counselor username", async () => {
+    seed(row("student-1", "student"));
+
+    const page = await new ListUsersUseCase(users).execute({});
+
+    expect(page.items[0]?.counselorId).toBeNull();
+    expect(page.items[0]?.counselorUsername).toBeNull();
+  });
+});
+
+describe("admin user filters", () => {
+  const list = (input: Parameters<ListUsersUseCase["execute"]>[0]) =>
+    new ListUsersUseCase(users).execute(input);
+
+  it("filters by role alone", async () => {
+    seed(
+      row("student-1", "student", 0),
+      row("student-2", "student", 1),
+      row("counselor-1", "counselor", 2),
+    );
+
+    const page = await list({ role: "counselor" });
+
+    expect(page.items.map((item) => item.id)).toEqual(["counselor-1"]);
+    expect(page.total).toBe(1);
+    expect(users.lastQuery).toEqual({ page: 1, pageSize: 20, role: "counselor" });
+  });
+
+  it("filters by counselor alone", async () => {
+    seed(
+      row("a-1", "student", 0, "counselor-1"),
+      row("a-2", "student", 1, "counselor-1"),
+      row("b-1", "student", 2, "counselor-2"),
+    );
+
+    const page = await list({ counselorId: "counselor-1" });
+
+    expect(page.total).toBe(2);
+    expect(page.items.every((item) => item.counselorId === "counselor-1")).toBe(
+      true,
+    );
+  });
+
+  it("q filter matches username", async () => {
+    seed(row("zahra", "student", 0), row("ali", "student", 1));
+
+    const page = await list({ q: "  ZAHRA " });
+
+    expect(page.items.map((item) => item.id)).toEqual(["zahra"]);
+    expect(users.lastQuery).toEqual({ page: 1, pageSize: 20, q: "ZAHRA" });
+  });
+
+  it("q filter matches fullName case-insensitively", async () => {
+    seed(
+      row("user-1", "student", 0, null, "Zahra Ahmadi"),
+      row("user-2", "student", 1, null, "Ali Rezaei"),
+    );
+
+    const page = await list({ q: "ahmadi" });
+
+    expect(page.items.map((item) => item.id)).toEqual(["user-1"]);
+    expect(page.total).toBe(1);
+  });
+
+  it("combines role and counselor filters", async () => {
+    seed(
+      row("s-1", "student", 0, "counselor-1"),
+      row("c-1", "counselor", 1, "counselor-1"),
+      row("s-2", "student", 2, "counselor-2"),
+    );
+
+    const page = await list({ role: "student", counselorId: "counselor-1" });
+
+    expect(page.items.map((item) => item.id)).toEqual(["s-1"]);
+    expect(page.total).toBe(1);
+    expect(users.lastQuery).toEqual({
+      page: 1,
+      pageSize: 20,
+      counselorId: "counselor-1",
+      role: "student",
+    });
+  });
+
+  it("keeps combined filters on the page 2 slice", async () => {
+    seed(
+      ...Array.from({ length: 15 }, (_, index) =>
+        row(`a-${index + 1}`, "student", index, "counselor-1"),
+      ),
+      ...Array.from({ length: 5 }, (_, index) =>
+        row(`b-${index + 1}`, "counselor", index + 15, "counselor-1"),
+      ),
+    );
+
+    const page = await list({
+      page: 2,
+      pageSize: 10,
+      role: "student",
+      counselorId: "counselor-1",
+    });
+
+    expect(page.page).toBe(2);
+    expect(page.total).toBe(15);
+    expect(page.items).toHaveLength(5);
+    expect(
+      page.items.every(
+        (item) => item.role === "student" && item.counselorId === "counselor-1",
+      ),
+    ).toBe(true);
+  });
+
+  it("ignores an unknown role filter", async () => {
+    seed(row("student-1", "student"));
+
+    const page = await list({ role: "hacker" });
+
+    expect(page.total).toBe(1);
+    expect(users.lastQuery).toEqual({ page: 1, pageSize: 20 });
   });
 });
 
