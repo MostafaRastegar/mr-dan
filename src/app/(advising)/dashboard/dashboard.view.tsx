@@ -16,9 +16,9 @@ interface DashboardViewProps {
   testsDone: number;
   onSetHomeworkMinutes: (id: string, minutes: number | null) => void;
   onToggleHomework: (id: string) => void;
-  onToggleBlock: (block: StudyBlock) => void;
+  onSaveBlockMinutes: (block: StudyBlock, minutes: number) => void;
   onToggleMeal: (slot: string) => void;
-  onAddTests: (delta: number) => void;
+  onSaveTests: (subject: string, count: number) => void;
   error: string | null;
   labels: Record<string, string>;
 }
@@ -31,9 +31,9 @@ export function DashboardView(props: DashboardViewProps): ReactNode {
     testsDone,
     onSetHomeworkMinutes,
     onToggleHomework,
-    onToggleBlock,
+    onSaveBlockMinutes,
     onToggleMeal,
-    onAddTests,
+    onSaveTests,
     error,
     labels,
   } = props;
@@ -79,8 +79,7 @@ export function DashboardView(props: DashboardViewProps): ReactNode {
         <StudyPlanView
           labels={labels}
           blocks={overview.blocks}
-          ticked={new Set(overview.goal?.completedBlocks ?? [])}
-          onToggle={onToggleBlock}
+          onSaveMinutes={onSaveBlockMinutes}
           book={overview.book}
         />
         <FreeTimeCardView
@@ -94,8 +93,9 @@ export function DashboardView(props: DashboardViewProps): ReactNode {
         goal={overview.goal}
         testsDone={testsDone}
         studiedMinutes={studiedMinutes}
+        labels={labels}
         needLabel={overview.needLabel}
-        onAddTests={onAddTests}
+        onSaveTests={onSaveTests}
       />
 
       {/* Calorie widget */}

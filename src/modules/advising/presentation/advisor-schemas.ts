@@ -155,6 +155,7 @@ export function makeAdvisorSchemas(subjects: readonly string[]) {
     dayOfWeek: z.coerce.number().int().min(0).max(6, "روز هفته نامعتبر است"),
     subject: subjectField(subjects),
     hours: hoursField(),
+    testsTarget: z.coerce.number().int().min(0).max(2000).default(0),
     chapterIds: chapterIdsField(),
     note: noteField(),
   });

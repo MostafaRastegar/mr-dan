@@ -6,11 +6,11 @@
 import { describe, expect, it } from "vitest";
 
 import { FakeUserRepository } from "../../../../test/fakes/advising";
-import { FakeScheduleRepository } from "../../../../test/fakes/planning";
 import { FakeHomeworkRepository } from "../../../../test/fakes/planning";
 import { FakeWeeklyGoalRepository } from "../../../../test/fakes/weekly-goal";
 import {
   FakeCatalogRepository,
+  FakeSchoolProgramRepository,
   FakeStudyPlanRepository,
 } from "../../../../test/fakes/advisor-program";
 import {
@@ -43,7 +43,7 @@ function fakes() {
   };
   const store = createPlanningStore();
   const users = new FakeUserRepository(state);
-  const schedule = new FakeScheduleRepository();
+  const schoolProgram = new FakeSchoolProgramRepository();
   const homework = new FakeHomeworkRepository();
   const goals = new FakeWeeklyGoalRepository();
   const plans = new FakeStudyPlanRepository();
@@ -73,7 +73,7 @@ function fakes() {
   });
   return {
     users,
-    schedule,
+    schoolProgram,
     homework,
     goals,
     plans,
@@ -88,7 +88,7 @@ async function build(overrides: {
   user?: Partial<NewUser>;
   sleepMinutes?: number;
   wakeMinutes?: number;
-  scheduleToday?: { startMinute: number; endMinute: number; subject: string }[];
+  schoolProgramToday?: { minutes: number; subject: string }[];
   homeworkToday?: number;
   homeworkTomorrow?: number;
   goalTestsDone?: number;
@@ -133,15 +133,12 @@ async function build(overrides: {
     });
   }
 
-  for (const entry of overrides.scheduleToday ?? []) {
-    await s.schedule.create({
+  for (const entry of overrides.schoolProgramToday ?? []) {
+    await s.schoolProgram.create({
       studentId: userId,
       dayOfWeek: DAY_OF_WEEK,
-      startMinute: entry.startMinute,
-      endMinute: entry.endMinute,
       subject: entry.subject,
-      teacher: null,
-      room: null,
+      minutes: entry.minutes,
     });
   }
 
@@ -189,6 +186,7 @@ async function build(overrides: {
           dayOfWeek: DAY_OF_WEEK,
           subject: "riazi",
           minutes: e.minutes,
+          testsTarget: 0,
           chapterIds: [],
           note: null,
           createdAt: NOW,
@@ -218,7 +216,7 @@ async function build(overrides: {
     useCase: new GetDashboardOverviewUseCase(
       s.users,
       s.homework,
-      s.schedule,
+      s.schoolProgram,
       s.goals,
       s.plans,
       s.budgets,
@@ -234,14 +232,14 @@ describe("GetDashboardOverviewUseCase", () => {
     const { userId, useCase } = await build({
       sleepMinutes: 1380,
       wakeMinutes: 390,
-      scheduleToday: [
-        { startMinute: 480, endMinute: 540, subject: "riazi" },
-        { startMinute: 540, endMinute: 620, subject: "fizik" },
+      schoolProgramToday: [
+        { minutes: 60, subject: "riazi" },
+        { minutes: 80, subject: "fizik" },
       ],
       homeworkToday: 1,
       homeworkTomorrow: 1,
       goalTestsDone: 5,
-      goalBlocks: [`${TODAY_KEY}:480:50`],
+      goalBlocks: [`${TODAY_KEY}:e-0`],
       planEntries: [{ minutes: 60 }, { minutes: 90 }],
       planTestsTarget: 40,
       mealPlanCalories: 2200,
@@ -256,8 +254,9 @@ describe("GetDashboardOverviewUseCase", () => {
     expect(overview.homework.today).toHaveLength(1);
     expect(overview.homework.tomorrow).toHaveLength(1);
     expect(overview.homework.today[0].studentId).toBe(userId);
-    // 480–540 (60m) and 540–620 (80m): each yields one 50-minute study block
+    // One tickable block per counselor plan entry for today.
     expect(overview.blocks).toHaveLength(2);
+    expect(overview.blocks.map((b) => b.entryId)).toEqual(["e-0", "e-1"]);
     expect(overview.blocks.every((b) => b.dayKey === TODAY_KEY)).toBe(true);
     expect(overview.freeMinutes).toBe(990 - 140 - 0 - 0);
     expect(overview.freeTimeBreakdown).toEqual({
@@ -267,13 +266,16 @@ describe("GetDashboardOverviewUseCase", () => {
       homeworkAverageMinutes: 0,
     });
     expect(overview.goal).toEqual({
-      studiedMinutes: 50,
+      studiedMinutes: 60,
       studyMinutesTarget: 150,
       testsTarget: 40,
       testsDone: 5,
-      completedBlocks: [`${TODAY_KEY}:480:50`],
+      completedBlocks: [`${TODAY_KEY}:e-0`],
+      testsBySubject: {},
+      subjects: ["riazi"],
+      testsTargetBySubject: { riazi: 0 },
     });
-    expect(overview.needLabel).toBe("نیاز به 100 دقیقه مطالعه بیشتر برای رسیدن به هدف هفته");
+    expect(overview.needLabel).toBe("نیاز به 90 دقیقه مطالعه بیشتر برای رسیدن به هدف هفته");
     expect(overview.meal.plan).not.toBeNull();
     expect(overview.meal.targetCalories).toBe(2705);
     expect(overview.meal.hasPhysicalProfile).toBe(true);
@@ -296,6 +298,9 @@ describe("GetDashboardOverviewUseCase", () => {
       testsTarget: 0,
       testsDone: 0,
       completedBlocks: [],
+      testsBySubject: {},
+      subjects: [],
+      testsTargetBySubject: {},
     });
     expect(overview.needLabel).toBe("برنامهٔ مشاور ثبت نشده است");
     expect(overview.meal.plan).toBeNull();

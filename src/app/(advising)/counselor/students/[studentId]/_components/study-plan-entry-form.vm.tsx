@@ -10,6 +10,7 @@ import {
   type FormValues,
 } from "@/utils/use-form-action";
 import type { Chapter } from "@/modules/advising/domain/models";
+import { chapterAppliesTo } from "@/modules/advising/domain/chapters";
 import type { SubjectOption } from "@/modules/advising/domain/catalog";
 
 import { addStudyPlanEntryAction } from "../study-plan.actions";
@@ -19,10 +20,12 @@ export function StudyPlanEntryForm({
   studentId,
   chapters,
   subjectOptions,
+  fieldOfStudy,
 }: {
   studentId: string;
   chapters: Chapter[];
   subjectOptions: SubjectOption[];
+  fieldOfStudy: string | null;
 }) {
   const [form] = Form.useForm();
   const router = useRouter();
@@ -30,8 +33,15 @@ export function StudyPlanEntryForm({
   const { state, submit, pending } = useFormAction(addStudyPlanEntryAction);
   const formError = useServerFormErrors(state, form);
   const subject = Form.useWatch("subject", form) as string | undefined;
+  // Offer exactly what the server will accept (same domain rule).
   const availableChapters = chapters.filter(
-    (chapter) => chapter.subject === subject && chapter.active,
+    (chapter) =>
+      subject !== undefined &&
+      chapterAppliesTo(chapter, {
+        subject,
+        grade: null,
+        field: fieldOfStudy,
+      }),
   );
 
   useEffect(() => {
@@ -47,6 +57,7 @@ export function StudyPlanEntryForm({
       dayOfWeek: values.dayOfWeek,
       subject: values.subject,
       hours: values.hours,
+      testsTarget: values.testsTarget,
       chapterIds: JSON.stringify(values.chapterIds ?? []),
       note: values.note,
     });

@@ -13,6 +13,7 @@ interface SubjectProgressRow {
   plannedMinutes: number;
   studiedMinutes: number;
   testsDone: number;
+  testsTarget: number;
 }
 
 interface SubjectProgressViewProps {
@@ -49,9 +50,9 @@ export function SubjectProgressView(props: SubjectProgressViewProps): ReactNode 
   if (entries.length === 0) {
     return (
       <section className="rounded-xl border border-slate-200 bg-white p-5" data-testid={TEST_IDS.COUNSELOR_VIEW.SUBJECT_PROGRESS}>
-        <h2 className="mb-3 text-lg font-semibold">پیشرفت هفتگی به تفکیک درس</h2>
+        <h2 className="mb-3 text-lg font-semibold">پیشرفت دانش‌آموز به تفکیک درس</h2>
         <div className="flex flex-col gap-2 text-sm">
-          <p className="text-slate-500">برنامهٔ مشاور ثبت نشده است</p>
+          <p className="text-slate-500">برنامهٔ مطالعه ثبت نشده است</p>
           <div className="flex gap-4">
             <span className="dir-ltr font-mono">۰</span>
             <span className="text-slate-400">دقیقه مطالعه</span>
@@ -67,7 +68,7 @@ export function SubjectProgressView(props: SubjectProgressViewProps): ReactNode 
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5" data-testid={TEST_IDS.COUNSELOR_VIEW.SUBJECT_PROGRESS}>
-      <h2 className="mb-3 text-lg font-semibold">پیشرفت هفتگی به تفکیک درس</h2>
+      <h2 className="mb-3 text-lg font-semibold">پیشرفت دانش‌آموز به تفکیک درس</h2>
       <div className="mb-4 grid gap-2 sm:grid-cols-2 text-sm">
         <div className="border border-slate-100 rounded p-3">
           <span className="text-slate-500 block">دقائق مطالعه شده</span>
@@ -113,6 +114,9 @@ export function SubjectProgressView(props: SubjectProgressViewProps): ReactNode 
                 </span>
                 <span>
                   آزمون: <span className="dir-ltr font-medium">{persianDigits.format(entry.testsDone)}</span>
+                  {entry.testsTarget > 0 ? (
+                    <span className="text-slate-400"> / {persianDigits.format(entry.testsTarget)}</span>
+                  ) : null}
                 </span>
               </div>
             </div>

@@ -50,8 +50,12 @@ export function toActionError(error: unknown): ActionError {
   if (error instanceof AppError) {
     const message = PASSTHROUGH_CODES.has(error.code)
       ? error.message
-      : MESSAGES[error.code] ?? MESSAGES.internal_error;
-    const field = FIELD_FOR_CODE[error.code];
+      : (MESSAGES[error.code] ??
+        (error.code === "invalid_input" ? MESSAGES[error.message] : undefined) ??
+        MESSAGES.internal_error);
+    const field =
+      FIELD_FOR_CODE[error.code] ??
+      (error.code === "invalid_input" ? FIELD_FOR_CODE[error.message] : undefined);
     return field
       ? { code: error.code, message, fieldErrors: { [field]: message } }
       : { code: error.code, message };

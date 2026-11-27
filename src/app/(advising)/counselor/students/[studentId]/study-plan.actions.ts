@@ -48,6 +48,7 @@ export async function addStudyPlanEntryAction(
       dayOfWeek: input.dayOfWeek,
       subject: input.subject,
       minutes: input.hours * 60,
+      testsTarget: input.testsTarget,
       chapterIds: input.chapterIds,
       note: input.note,
     });

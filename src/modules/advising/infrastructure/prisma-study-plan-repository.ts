@@ -25,6 +25,7 @@ const ENTRY_SELECT = {
   dayOfWeek: true,
   subject: true,
   minutes: true,
+  testsTarget: true,
   chapterIds: true,
   note: true,
   createdAt: true,
@@ -37,6 +38,7 @@ type StudyPlanEntryRow = {
   dayOfWeek: number;
   subject: string;
   minutes: number;
+  testsTarget: number;
   chapterIds: string[];
   note: string | null;
   createdAt: Date;
@@ -64,6 +66,7 @@ function mapStudyPlanEntry(row: StudyPlanEntryRow): StudyPlanEntry {
     dayOfWeek: row.dayOfWeek,
     subject: row.subject,
     minutes: row.minutes,
+    testsTarget: row.testsTarget,
     chapterIds: row.chapterIds,
     note: row.note,
     createdAt: row.createdAt,
@@ -111,6 +114,7 @@ export class PrismaStudyPlanRepository implements StudyPlanRepositoryPort {
             dayOfWeek: true,
             subject: true,
             minutes: true,
+            testsTarget: true,
             chapterIds: true,
             note: true,
             createdAt: true,
@@ -152,6 +156,7 @@ export class PrismaStudyPlanRepository implements StudyPlanRepositoryPort {
             dayOfWeek: true,
             subject: true,
             minutes: true,
+            testsTarget: true,
             chapterIds: true,
             note: true,
             createdAt: true,
@@ -178,11 +183,13 @@ export class PrismaStudyPlanRepository implements StudyPlanRepositoryPort {
           dayOfWeek: input.dayOfWeek,
           subject: input.subject,
           minutes: input.minutes,
+          testsTarget: input.testsTarget,
           chapterIds: input.chapterIds,
           note: input.note,
         },
         update: {
           minutes: input.minutes,
+          testsTarget: input.testsTarget,
           chapterIds: input.chapterIds,
           note: input.note,
         },

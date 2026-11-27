@@ -293,6 +293,7 @@ describe("advisor-program integration (real Postgres)", () => {
       dayOfWeek: 1,
       subject: "riazi",
       minutes: 120,
+      testsTarget: 10,
       chapterIds: [chapter!.id],
       note: "یادداشت تست",
     });

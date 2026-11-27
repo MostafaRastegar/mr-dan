@@ -93,38 +93,19 @@ test.describe("advising planning (schedule, budget)", () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test("student creates and deletes a schedule entry", async ({ page }) => {
-    const username = `e2e-sched_${Date.now()}`;
-    const password = `e2e-pass-${Date.now()}`;
-
-    await page.goto("/register");
-    await page.getByTestId(TEST_IDS.FORM.INPUT("fullName")).fill("دانش‌آموز آزمایشی");
-    await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
-    await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
-    await page.getByTestId(TEST_IDS.FORM.SUBMIT("register")).click();
-    await expect(page).toHaveURL(/\/profile/);
+  test("student sees the read-only weekly program with week navigation", async ({ page }) => {
+    await registerStudent(page, "sched");
 
     await page.goto("/schedule");
-    await page.getByTestId(TEST_IDS.SCHEDULE.CREATE_FORM).click();
+    await expect(page.getByTestId(TEST_IDS.SCHEDULE.EMPTY).first()).toBeVisible();
+    await expect(page.getByTestId(TEST_IDS.SCHEDULE.WEEK_PREV)).toBeVisible();
+    await expect(page.getByTestId(TEST_IDS.SCHEDULE.WEEK_NEXT)).toBeDisabled();
 
-    await pickOption(page, TEST_IDS.FORM.SELECT("dayOfWeek"), "دوشنبه");
-
-    await page.getByTestId(TEST_IDS.FORM.INPUT("startTime")).fill("08:00");
-    await page.getByTestId(TEST_IDS.FORM.INPUT("endTime")).fill("09:00");
-    await pickOption(page, TEST_IDS.FORM.SELECT("subject"), "ریاضی");
-
-    await page.getByTestId(TEST_IDS.FORM.SUBMIT("schedule")).click();
-    await expect(page.getByTestId(TEST_IDS.SCHEDULE.SAVED)).toHaveText("برنامه ذخیره شد.");
-
-    await expect(page.getByTestId(TEST_IDS.SCHEDULE.TABLE)).toBeVisible();
-
-    await page.getByTestId(TEST_IDS.SCHEDULE.DELETE_ENTRY).first().click();
-    // The row control now carries aria-label="حذف" too, so scope to the popconfirm.
-    await page
-      .locator(".ant-popconfirm")
-      .getByRole("button", { name: "حذف" })
-      .click();
-    await expect(page.getByTestId(TEST_IDS.SCHEDULE.EMPTY)).toBeVisible();
+    const currentUrl = page.url();
+    await page.getByTestId(TEST_IDS.SCHEDULE.WEEK_PREV).click();
+    await expect(page).not.toHaveURL(currentUrl);
+    await page.getByTestId(TEST_IDS.SCHEDULE.WEEK_CURRENT).click();
+    await expect(page).toHaveURL(currentUrl);
   });
 
   test("student sets free time and plans homework", async ({ page }) => {

@@ -125,6 +125,38 @@ export class FakeWeeklyGoalRepository implements WeeklyGoalRepositoryPort {
     this.testRecords.set(testKey, (this.testRecords.get(testKey) ?? 0) + input.count);
   }
 
+  async setSubjectTests(input: {
+    studentId: string;
+    weekKey: string;
+    subject: string;
+    count: number;
+  }): Promise<void> {
+    const testKey = `${input.studentId}:${input.weekKey}:${input.subject}`;
+    if (input.count === 0) this.testRecords.delete(testKey);
+    else this.testRecords.set(testKey, input.count);
+
+    const goalKey = `${input.studentId}:${input.weekKey}`;
+    const total = [...this.testRecords.entries()]
+      .filter(([key]) => key.startsWith(`${input.studentId}:${input.weekKey}:`))
+      .reduce((sum, [, count]) => sum + count, 0);
+    const existing = this.rows.get(goalKey);
+    const now = new Date();
+    if (!existing) {
+      this.sequence += 1;
+      this.rows.set(goalKey, {
+        id: `weekly-goal-${this.sequence}`,
+        studentId: input.studentId,
+        weekKey: input.weekKey,
+        testsDone: total,
+        completedBlocks: [],
+        createdAt: now,
+        updatedAt: now,
+      });
+      return;
+    }
+    this.rows.set(goalKey, { ...existing, testsDone: total, updatedAt: now });
+  }
+
   async listSubjectTests(input: {
     studentId: string;
     weekKey: string;

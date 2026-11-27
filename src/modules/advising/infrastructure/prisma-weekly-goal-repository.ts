@@ -183,6 +183,64 @@ export class PrismaWeeklyGoalRepository implements WeeklyGoalRepositoryPort {
     });
   }
 
+  async setSubjectTests(input: {
+    studentId: string;
+    weekKey: string;
+    subject: string;
+    count: number;
+  }): Promise<void> {
+    await this.client.$transaction(async (tx) => {
+      if (input.count === 0) {
+        await tx.testRecord.deleteMany({
+          where: {
+            studentId: input.studentId,
+            weekKey: input.weekKey,
+            subject: input.subject,
+          },
+        });
+      } else {
+        await tx.testRecord.upsert({
+          where: {
+            studentId_subject_weekKey: {
+              studentId: input.studentId,
+              subject: input.subject,
+              weekKey: input.weekKey,
+            },
+          },
+          create: {
+            studentId: input.studentId,
+            subject: input.subject,
+            weekKey: input.weekKey,
+            count: input.count,
+          },
+          update: { count: input.count },
+          select: { id: true },
+        });
+      }
+      const sum = await tx.testRecord.aggregate({
+        where: { studentId: input.studentId, weekKey: input.weekKey },
+        _sum: { count: true },
+      });
+      const total = sum._sum.count ?? 0;
+      await tx.weeklyGoal.upsert({
+        where: {
+          studentId_weekKey: {
+            studentId: input.studentId,
+            weekKey: input.weekKey,
+          },
+        },
+        create: {
+          studentId: input.studentId,
+          weekKey: input.weekKey,
+          testsDone: total,
+          completedBlocks: [],
+        },
+        update: { testsDone: total },
+        select: { id: true },
+      });
+    });
+  }
+
   async listSubjectTests(input: {
     studentId: string;
     weekKey: string;

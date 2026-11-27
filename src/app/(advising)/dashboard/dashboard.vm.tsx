@@ -5,16 +5,12 @@ import { useRouter } from "next/navigation";
 
 import type { MealSlot } from "@/modules/advising/domain/energy";
 import type { DashboardReadModel } from "@/modules/advising/application/dashboard";
+import type { StudyBlock } from "@/modules/advising/domain/study-blocks";
+import { setHomeworkDoneAction, toggleMealSlotAction } from "./dashboard.actions";
 import {
-  type StudyBlock,
-  studyBlockKey,
-} from "@/modules/advising/domain/study-blocks";
-import {
-  addTestsAction,
-  setHomeworkDoneAction,
-  toggleMealSlotAction,
-  toggleStudyBlockAction,
-} from "./dashboard.actions";
+  setStudyMinutesAction,
+  setSubjectTestsAction,
+} from "../schedule/study-log.actions";
 import { DashboardView } from "./dashboard.view";
 
 interface DashboardWrapperProps {
@@ -58,23 +54,19 @@ export function DashboardWrapper({
     [homeworkMinutes],
   );
 
-  const onToggleBlock = useCallback(
-    async (block: StudyBlock) => {
+  const onSaveBlockMinutes = useCallback(
+    async (block: StudyBlock, minutes: number) => {
       setError(null);
-      const completed = !overview.goal?.completedBlocks.includes(
-        studyBlockKey(block),
-      );
-      const result = await toggleStudyBlockAction({
+      if (!block.entryId) return;
+      const result = await setStudyMinutesAction({
         dayKey: block.dayKey,
-        startMinute: block.startMinute,
-        minutes: block.minutes,
-        subject: block.subject,
-        completed,
+        entryId: block.entryId,
+        minutes,
       });
       if (result.ok) router.refresh();
       else setError(result.error.message);
     },
-    [overview.goal?.completedBlocks],
+    [router],
   );
 
   const onToggleMeal = useCallback(
@@ -88,10 +80,10 @@ export function DashboardWrapper({
     [overview.meal.plan?.eatenSlots],
   );
 
-  const onAddTests = useCallback(
-    async (delta: number) => {
+  const onSaveTests = useCallback(
+    async (subject: string, count: number) => {
       setError(null);
-      const result = await addTestsAction({ delta });
+      const result = await setSubjectTestsAction({ subject, count });
       if (result.ok) {
         setTestsDone(result.data.testsDone);
         router.refresh();
@@ -99,7 +91,7 @@ export function DashboardWrapper({
         setError(result.error.message);
       }
     },
-    [],
+    [router],
   );
 
   const studiedMinutes = overview.goal?.studiedMinutes ?? 0;
@@ -112,9 +104,9 @@ export function DashboardWrapper({
       testsDone={testsDone}
       onSetHomeworkMinutes={setHomeworkMinutes}
       onToggleHomework={onToggleHomework}
-      onToggleBlock={onToggleBlock}
+      onSaveBlockMinutes={onSaveBlockMinutes}
       onToggleMeal={onToggleMeal}
-      onAddTests={onAddTests}
+      onSaveTests={onSaveTests}
       error={error}
       labels={labels}
     />

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-27 — study-plan-execution
+
+### Added
+- `StudyPlanEntry.testsTarget` (migration `20261127071630_add_study_plan_entry_tests_target`) and counselor form/table columns for a per-row weekly test target; adding a row rejects subject totals above the week target.
+- Student execution on `/schedule`: per-row study-minutes logging (`${dayKey}:${entryId}:${minutes}`), exact per-subject weekly test counts, week navigation (previous/current only), and week totals (planned/studied minutes, target/done tests).
+- `SetStudyMinutesUseCase` and `SetSubjectTestsUseCase`; `WeeklyGoalRepositoryPort.setSubjectTests` recomputes `WeeklyGoal.testsDone` from the `TestRecord` sum in one transaction (set, lower, or clear).
+- Dashboard quick log for today: minutes per plan row, exact tests per counselor-scheduled subject, and a link to the full week.
+
+### Changed
+- `/schedule` is the main execution surface; the dashboard is a today-only shortcut. Test logging is scoped to subjects the counselor actually scheduled (was every catalog subject), and the `+10` button is replaced by an exact count.
+- Dashboard/study-plan reads use `loggedMinutesByEntry`; stale keys for deleted rows are ignored.
+
+### Removed
+- Fabricated proportional test distribution and the `+10` add flow.
+
 ## 2026-11-27 — rbac-feature-gating
 
 ### Added

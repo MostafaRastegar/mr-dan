@@ -65,6 +65,8 @@ import {
   GetWeeklyGoalUseCase,
   AddTestsDoneUseCase,
   ToggleStudyBlockUseCase,
+  SetStudyMinutesUseCase,
+  SetSubjectTestsUseCase,
 } from "@/modules/advising/application/weekly-goal";
 import {
   GetStudyProfileUseCase,
@@ -175,6 +177,8 @@ type Container = {
     getWeeklyGoal: GetWeeklyGoalUseCase;
     toggleStudyBlock: ToggleStudyBlockUseCase;
     addTestsDone: AddTestsDoneUseCase;
+    setStudyMinutes: SetStudyMinutesUseCase;
+    setSubjectTests: SetSubjectTestsUseCase;
     getStudyProfile: GetStudyProfileUseCase;
     updateStudyProfile: UpdateStudyProfileUseCase;
     saveExamResult: SaveExamResultUseCase;
@@ -350,7 +354,7 @@ function buildAdvising(): Container["advising"] {
     dashboardOverview: new GetDashboardOverviewUseCase(
       users,
       homework,
-      schedule,
+      schoolProgram,
       goals,
       studyPlans,
       budget,
@@ -361,6 +365,8 @@ function buildAdvising(): Container["advising"] {
     getWeeklyGoal: new GetWeeklyGoalUseCase(goals),
     toggleStudyBlock: new ToggleStudyBlockUseCase(goals),
     addTestsDone: new AddTestsDoneUseCase(goals),
+    setStudyMinutes: new SetStudyMinutesUseCase(goals),
+    setSubjectTests: new SetSubjectTestsUseCase(goals),
     getStudyProfile: new GetStudyProfileUseCase(users, catalogs, studentExamResults, supplementaryCourses),
     updateStudyProfile: new UpdateStudyProfileUseCase(users, catalogs),
     saveExamResult: new SaveExamResultUseCase(users, catalogs, studentExamResults),

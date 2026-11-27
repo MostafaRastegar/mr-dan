@@ -113,6 +113,7 @@ describe("GetStudentStudyPlanUseCase", () => {
       dayOfWeek: 1,
       subject: "riazi",
       minutes: 300,
+      testsTarget: 0,
       chapterIds: [],
       note: null,
     });
@@ -121,6 +122,7 @@ describe("GetStudentStudyPlanUseCase", () => {
       dayOfWeek: 2,
       subject: "fizik",
       minutes: 600,
+      testsTarget: 0,
       chapterIds: [],
       note: null,
     });
@@ -168,20 +170,16 @@ describe("GetStudentStudyPlanUseCase", () => {
     const goals = new FakeWeeklyGoalRepository();
 
     await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 100 });
-    await plans.upsertEntry({ studentId: "s1", dayOfWeek: 1, subject: "riazi", minutes: 300, chapterIds: [], note: null });
-    await plans.upsertEntry({ studentId: "s1", dayOfWeek: 2, subject: "fizik", minutes: 120, chapterIds: [], note: null });
-
     const dayKey = "2026-11-28";
     const weekday = persianDayOf(dayKey);
-    await schedule.create({ studentId: "s1", dayOfWeek: weekday, startMinute: 480, endMinute: 530, subject: "riazi" });
-    await schedule.create({ studentId: "s1", dayOfWeek: weekday, startMinute: 600, endMinute: 650, subject: "kimia" });
-
+    const riazi = await plans.upsertEntry({ studentId: "s1", dayOfWeek: weekday, subject: "riazi", minutes: 300, testsTarget: 0, chapterIds: [], note: null });
+    await plans.upsertEntry({ studentId: "s1", dayOfWeek: weekday, subject: "fizik", minutes: 120, testsTarget: 0, chapterIds: [], note: null });
     await goals.seed({
       id: "wg-1",
       studentId: "s1",
       weekKey: weekStartKey(dayKey),
       testsDone: 0,
-      completedBlocks: [`${dayKey}:480:350`, `${dayKey}:600:60`],
+      completedBlocks: [`${dayKey}:${riazi.id}`],
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -189,13 +187,14 @@ describe("GetStudentStudyPlanUseCase", () => {
     const useCase = new GetStudentStudyPlanUseCase(users, plans, school, schedule, goals);
     const view = await useCase.execute({ actor: counselor, studentId: "s1" });
 
-    expect(view.rows).toEqual([      { subject: "riazi", plannedMinutes: 300, studiedMinutes: 350, shortfallMinutes: 0, testsDone: 0 },
-      { subject: "fizik", plannedMinutes: 120, studiedMinutes: 0, shortfallMinutes: 120, testsDone: 0 },
+    expect(view.rows).toEqual([
+      { subject: "riazi", plannedMinutes: 300, studiedMinutes: 300, shortfallMinutes: 0, testsDone: 0, testsTarget: 0 },
+      { subject: "fizik", plannedMinutes: 120, studiedMinutes: 0, shortfallMinutes: 120, testsDone: 0, testsTarget: 0 },
     ]);
     expect(view.totals).toEqual({
       plannedMinutes: 420,
-      studiedMinutes: 410,
-      shortfallMinutes: 10,
+      studiedMinutes: 300,
+      shortfallMinutes: 120,
       testsDone: 0,
       testsTarget: 100,
     });
@@ -299,7 +298,7 @@ describe("AddStudyPlanEntryUseCase", () => {
     ).rejects.toMatchObject({ code: "invalid_input" });
   });
 
-  it("AC-45: chapter must match the student subject grade and field (chapter of another grade → rejected)", async () => {
+  it("AC-45: chapter of another grade is accepted (grade is catalog metadata)", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
@@ -308,17 +307,17 @@ describe("AddStudyPlanEntryUseCase", () => {
     const chapters = makeChapterCatalog();
 
     const useCase = new AddStudyPlanEntryUseCase(users, plans, chapters);
+    await plans.upsertHeader({ studentId: "s1", counselorId: counselor.id, testsTarget: 300 });
 
-    await expect(
-      useCase.execute({
-        actor: counselor,
-        studentId: "s1",
-        dayOfWeek: 1,
-        subject: "riazi",
-        minutes: 60,
-        chapterIds: ["ch-other-grade"],
-      }),
-    ).rejects.toMatchObject({ code: "invalid_input" });
+    const created = await useCase.execute({
+      actor: counselor,
+      studentId: "s1",
+      dayOfWeek: 1,
+      subject: "riazi",
+      minutes: 60,
+      chapterIds: ["ch-other-grade"],
+    });
+    expect(created.chapterIds).toEqual(["ch-other-grade"]);
   });
 
   it("AC-45: chapter must match the student subject grade and field (chapter of another field → rejected; field: '' accepted)", async () => {
@@ -556,14 +555,17 @@ describe("admin supervision of the study plan", () => {
     expect(view.canWrite).toBe(true);
   });
 
-  it("AC-8: student and operator may not read a study plan", async () => {
+  it("AC-8: student reads own plan read-only; operator may not read", async () => {
     const users = makeUsers();
     await seedCounselor(users, counselor.id);
     await seedStudent(users, "s1", counselor.id);
 
-    await expect(
-      makeUseCase(users).execute({ actor: student, studentId: "s1" }),
-    ).rejects.toMatchObject({ code: "forbidden" });
+    const own = await makeUseCase(users).execute({
+      actor: student,
+      studentId: "s1",
+    });
+    expect(own.canWrite).toBe(false);
+
     await expect(
       makeUseCase(users).execute({ actor: operator, studentId: "s1" }),
     ).rejects.toMatchObject({ code: "forbidden" });

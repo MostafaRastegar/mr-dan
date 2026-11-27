@@ -9,7 +9,6 @@ import type { Chapter } from "@/modules/advising/domain/models";
 import type { StudentStudyPlanView } from "@/modules/advising/application/study-plan";
 import { SubjectProgressView } from "./_components/subject-progress.view";
 import { SchoolProgramAccordionView } from "./_components/school-program-accordion.view";
-import { ScheduleEditor } from "./_components/schedule-editor.vm";
 import {
   SupervisionSectionsView,
   type SupervisionSections,
@@ -43,7 +42,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
         data-testid={TEST_IDS.COUNSELOR_PLAN.HEADER}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-bold">{studentId}</h1>
+          <h1 className="text-2xl font-bold">{view.student.fullName}</h1>
           {canWrite ? null : (
             <Tag color="gold" data-testid={TEST_IDS.SUPERVISION.READONLY}>
               نمایش نظارتی · فقط خواندنی
@@ -51,7 +50,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
           )}
         </div>
         <p className="text-sm text-slate-500" dir="ltr">
-          دانش‌آموز · برنامه مشاور
+          دانش‌آموز · برنامهٔ مطالعه
         </p>
       </section>
 
@@ -71,17 +70,6 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
         />
       </section>
 
-      <div data-testid={TEST_IDS.COUNSELOR_VIEW.WEEKLY_SCHEDULE}>
-        <ScheduleEditor
-          studentId={studentId}
-          entries={view.weeklySchedule}
-          canWrite={canWrite}
-          fieldOfStudy={view.student.fieldOfStudy}
-          subjects={subjects}
-          labels={labels}
-        />
-      </div>
-
       <SubjectProgressView
         entries={view.rows.map((row) => ({
           subject: row.subject,
@@ -89,6 +77,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
           plannedMinutes: row.plannedMinutes,
           studiedMinutes: row.studiedMinutes,
           testsDone: row.testsDone,
+          testsTarget: row.testsTarget,
         }))}
         testsTarget={view.totals.testsTarget}
         testsDone={view.totals.testsDone}
@@ -98,7 +87,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
         className="rounded-xl border border-slate-200 bg-white p-5"
         data-testid={TEST_IDS.COUNSELOR_PLAN.PLAN_EDITOR}
       >
-        <h2 className="mb-3 text-lg font-semibold">برنامهٔ هفتگی مشاور</h2>
+        <h2 className="mb-3 text-lg font-semibold">برنامهٔ مطالعهٔ دانش‌آموز</h2>
 
         {canWrite ? (
           <>
@@ -114,6 +103,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
                 studentId={studentId}
                 chapters={chapters}
                 subjectOptions={options}
+                fieldOfStudy={view.student.fieldOfStudy}
               />
             </div>
           </>

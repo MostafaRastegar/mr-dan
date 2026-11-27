@@ -17,6 +17,12 @@ export interface StudyBlock {
   startMinute: number;
   minutes: number;
   subject: string | null;
+  /** Set when the block is a whole study-plan entry (counselor-authored row). */
+  entryId?: string;
+  /** Minutes the student has logged for this entry this week. */
+  loggedMinutes?: number;
+  /** Per-entry weekly test target from the counselor plan. */
+  testsTarget?: number;
 }
 
 export function buildStudyBlocks(input: {
@@ -46,6 +52,7 @@ export function buildStudyBlocks(input: {
 }
 
 export function studyBlockKey(block: StudyBlock): string {
+  if (block.entryId) return `${block.dayKey}:${block.entryId}`;
   return `${block.dayKey}:${block.startMinute}:${block.minutes}`;
 }
 

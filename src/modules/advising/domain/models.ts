@@ -266,6 +266,7 @@ export interface StudyPlanEntry {
   dayOfWeek: number;
   subject: string;
   minutes: number;
+  testsTarget: number;
   chapterIds: string[];
   note: string | null;
   createdAt: Date;
@@ -325,6 +326,7 @@ export interface NewStudyPlanEntry {
   dayOfWeek: number;
   subject: string;
   minutes: number;
+  testsTarget: number;
   chapterIds: string[];
   note: string | null;
 }

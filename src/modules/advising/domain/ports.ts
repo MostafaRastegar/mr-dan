@@ -200,6 +200,13 @@ export interface WeeklyGoalRepositoryPort {
     studentId: string;
     weekKey: string;
   }): Promise<{ subject: string; count: number }[]>;
+  /** Absolute per-subject count; `testsDone` becomes the sum of all records. */
+  setSubjectTests(input: {
+    studentId: string;
+    weekKey: string;
+    subject: string;
+    count: number;
+  }): Promise<void>;
 }
 
 /** 1-based page query. Use cases clamp page/pageSize before calling a port. */

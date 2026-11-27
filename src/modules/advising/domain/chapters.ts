@@ -2,8 +2,9 @@
  * Chapter catalog validation (Decision 10).
  *
  * Pure domain: no external imports. A chapter applies to a student when it is
- * active, matches the subject, matches the grade, and either has an empty
- * field (عمومی — all fields) or matches the student's field.
+ * active, matches the subject, and either has an empty field (عمومی — all
+ * fields) or matches the student's field. Grade is catalog metadata only: the
+ * catalog may not carry chapters for every grade, so it never blocks a plan.
  */
 
 import type { Chapter } from "./models";
@@ -17,7 +18,6 @@ export type ChapterTarget = {
 export function chapterAppliesTo(chapter: Chapter, target: ChapterTarget): boolean {
   if (!chapter.active) return false;
   if (chapter.subject !== target.subject) return false;
-  if (target.grade === null || chapter.grade !== target.grade) return false;
   if (chapter.field !== "" && chapter.field !== target.field) return false;
   return true;
 }

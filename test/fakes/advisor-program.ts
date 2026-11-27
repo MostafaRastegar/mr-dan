@@ -241,6 +241,7 @@ export class FakeStudyPlanRepository implements StudyPlanRepositoryPort {
       dayOfWeek: input.dayOfWeek,
       subject: input.subject,
       minutes: input.minutes,
+      testsTarget: input.testsTarget,
       chapterIds: input.chapterIds,
       note: input.note,
       createdAt: now(),

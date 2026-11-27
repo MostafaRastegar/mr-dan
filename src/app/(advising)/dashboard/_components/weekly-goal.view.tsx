@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
-import { Button, Progress } from "antd";
+import { useState, type ReactNode } from "react";
+import { Button, InputNumber, Progress } from "antd";
 import { IconTargetArrow } from "@tabler/icons-react";
 import type { DashboardGoal } from "@/modules/advising/application/dashboard";
+import { labelOf } from "@/modules/advising/domain/catalog";
 import { formatNumber } from "@/modules/advising/presentation/planning-format";
 import { TEST_IDS } from "@/constants/test-ids";
 
@@ -10,7 +11,8 @@ interface WeeklyGoalViewProps {
   testsDone: number;
   studiedMinutes: number;
   needLabel: string;
-  onAddTests: (delta: number) => void;
+  labels: Record<string, string>;
+  onSaveTests: (subject: string, count: number) => void;
 }
 
 function percentOf(value: number, target: number): number {
@@ -18,8 +20,54 @@ function percentOf(value: number, target: number): number {
   return Math.min(100, Math.round((value / target) * 100));
 }
 
+function SubjectTestsRow({
+  subject,
+  count,
+  target,
+  label,
+  onSave,
+}: {
+  subject: string;
+  count: number;
+  target: number;
+  label: string;
+  onSave: (subject: string, count: number) => void;
+}): ReactNode {
+  const [value, setValue] = useState<number | null>(count);
+  return (
+    <li className="flex items-center justify-between gap-2 rounded border border-slate-200 p-2">
+      <span className="min-w-0 text-sm">
+        {label}
+        <span className="mr-1 text-xs text-slate-500">
+          ({formatNumber(count)} / {formatNumber(target)})
+        </span>
+      </span>
+      <span className="flex items-center gap-1">
+        <InputNumber
+          size="small"
+          min={0}
+          max={2000}
+          value={value}
+          onChange={setValue}
+          className="w-16"
+          aria-label={`تعداد تست ${label}`}
+          data-testid={TEST_IDS.DASHBOARD.GOAL_TESTS_INPUT(subject)}
+        />
+        <Button
+          size="small"
+          onClick={() => onSave(subject, value ?? 0)}
+          data-testid={TEST_IDS.DASHBOARD.GOAL_SAVE_TESTS(subject)}
+        >
+          ثبت
+        </Button>
+      </span>
+    </li>
+  );
+}
+
 export function WeeklyGoalView(props: WeeklyGoalViewProps): ReactNode {
-  const { goal, testsDone, studiedMinutes, needLabel, onAddTests } = props;
+  const { goal, testsDone, studiedMinutes, needLabel, labels, onSaveTests } =
+    props;
 
   const studyPercent = goal ? percentOf(studiedMinutes, goal.studyMinutesTarget) : 0;
   const testsPercent = goal ? percentOf(testsDone, goal.testsTarget) : 0;
@@ -66,15 +114,22 @@ export function WeeklyGoalView(props: WeeklyGoalViewProps): ReactNode {
             />
           </div>
 
-          <p className="mb-4 text-xs text-slate-500">{needLabel}</p>
+          <p className="mb-2 text-xs text-slate-500">
+            {needLabel} — فقط درس‌های برنامهٔ مشاور.
+          </p>
 
-          <Button
-            onClick={() => onAddTests(10)}
-            className="w-full"
-            data-testid={TEST_IDS.DASHBOARD.GOAL_ADD_TESTS}
-          >
-            +۱۰ تست
-          </Button>
+          <ul className="flex flex-col gap-2">
+            {goal.subjects.map((subject) => (
+              <SubjectTestsRow
+                key={`${subject}-${goal.testsBySubject[subject] ?? 0}`}
+                subject={subject}
+                count={goal.testsBySubject[subject] ?? 0}
+                target={goal.testsTargetBySubject[subject] ?? 0}
+                label={labelOf(labels, subject)}
+                onSave={onSaveTests}
+              />
+            ))}
+          </ul>
         </>
       )}
     </section>

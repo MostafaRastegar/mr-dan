@@ -75,6 +75,9 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
               <th className="text-left p-2 border-b border-slate-200 dir-ltr">
                 ساعت
               </th>
+              <th className="text-left p-2 border-b border-slate-200 dir-ltr">
+                هدف تست
+              </th>
               <th
                 className="text-left p-2 border-b border-slate-200"
                 data-testid={TEST_IDS.COUNSELOR_PLAN.CHAPTER_COLUMN}
@@ -98,6 +101,7 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
                 <td className="p-2">{dayLabel(entry.dayOfWeek)}</td>
                 <td className="p-2">{labelOf(labels, entry.subject)}</td>
                 <td className="p-2 dir-ltr">{formatDuration(entry.minutes)}</td>
+                <td className="p-2 dir-ltr">{persianDigits.format(entry.testsTarget)}</td>
                 <td className="p-2 text-sm">
                   {chapterList(entry.chapterIds, chapters)}
                 </td>

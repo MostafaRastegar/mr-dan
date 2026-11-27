@@ -125,6 +125,17 @@ export function StudyPlanEntryFormView(
             data-testid={TEST_IDS.FORM.INPUT("planHours")}
           />
         </Form.Item>
+
+        <Form.Item name="testsTarget" label="هدف تست این ردیف">
+          <InputNumber
+            min={0}
+            max={2000}
+            step={1}
+            dir="ltr"
+            className="w-full"
+            data-testid={TEST_IDS.FORM.INPUT("planTestsTarget")}
+          />
+        </Form.Item>
       </div>
 
       <Form.Item name="note" label="یادداشت">

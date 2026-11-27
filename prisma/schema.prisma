@@ -342,6 +342,7 @@ model StudyPlanEntry {
   dayOfWeek  Int
   subject    String
   minutes    Int
+  testsTarget Int @default(0)
   chapterIds String[] @default([])
   note       String?
   createdAt  DateTime @default(now())

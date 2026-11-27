@@ -36,6 +36,7 @@ export async function toggleStudyBlockAction(input: {
   startMinute: number;
   minutes: number;
   subject: string | null;
+  entryId?: string;
   completed: boolean;
 }): Promise<ActionState<{ completedBlocks: string[] }>> {
   const { user } = await requireSessionUser();
@@ -47,6 +48,7 @@ export async function toggleStudyBlockAction(input: {
         startMinute: z.number().int().nonnegative().max(1439),
         minutes: z.number().int().positive().max(1440),
         subject: z.string().nullable(),
+        entryId: z.string().uuid().optional(),
         completed: z.boolean(),
       })
       .parse(input);
@@ -55,6 +57,7 @@ export async function toggleStudyBlockAction(input: {
       dayKey: parsed.dayKey,
       startMinute: parsed.startMinute,
       minutes: parsed.minutes,
+      entryId: parsed.entryId,
       completed: parsed.completed,
     });
     return { completedBlocks: goal.completedBlocks };
@@ -63,6 +66,7 @@ export async function toggleStudyBlockAction(input: {
 
 export async function addTestsAction(input: {
   delta: number;
+  subject: string;
 }): Promise<ActionState<{ testsDone: number }>> {
   const { user } = await requireSessionUser();
 
@@ -70,11 +74,13 @@ export async function addTestsAction(input: {
     const parsed = z
       .object({
         delta: z.number().int().min(1).max(100),
+        subject: z.string().min(1).max(100),
       })
       .parse(input);
     const goal = await getContainer().advising.addTestsDone.execute({
       actor: { id: user.id, role: user.role },
       delta: parsed.delta,
+      subject: parsed.subject,
     });
     return { testsDone: goal.testsDone };
   });

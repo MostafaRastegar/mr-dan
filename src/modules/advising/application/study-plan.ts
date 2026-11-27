@@ -12,8 +12,12 @@ import {
   assertCounselorOfStudent,
   type Actor,
 } from "@/modules/advising/application/planning-access";
-import { goalProgress, type GoalTargets, subjectStudiedMinutes } from "@/modules/advising/domain/weekly-goal";
-import { planMinutesTotal } from "@/modules/advising/domain/study-plan";
+import { goalProgress, type GoalTargets } from "@/modules/advising/domain/weekly-goal";
+import {
+  loggedMinutesByEntry,
+  planMinutesTotal,
+  studiedMinutesBySubject,
+} from "@/modules/advising/domain/study-plan";
 import { chapterIdsAreValid, dedupeChapterIds } from "@/modules/advising/domain/chapters";
 import type {
   SchoolProgramEntry,
@@ -29,7 +33,7 @@ import type {
   UserRepositoryPort,
   WeeklyGoalRepositoryPort,
 } from "@/modules/advising/domain/ports";
-import { currentWeekKey } from "@/modules/advising/application/weekly-goal";
+import { resolveWeekKey } from "@/modules/advising/application/weekly-goal";
 
 const ENTRY_MINUTES_MIN = 15;
 const ENTRY_MINUTES_MAX = 720;
@@ -38,13 +42,20 @@ const CHAPTERS_MAX_PER_ENTRY = 10;
 
 export type StudentStudyPlanView = {
   plan: StudyPlan | null;
+  weekKey: string;
   entries: StudyPlanEntry[];
   schoolProgram: SchoolProgramEntry[];
   weeklySchedule: WeeklyScheduleEntry[];
   goalProgress: ReturnType<typeof goalProgress>;
+  loggedMinutesByEntry: Record<string, number>;
+  testsBySubject: Record<string, number>;
   rows: StudyPlanSubjectRow[];
   totals: StudyPlanTotals;
-  student: { grade: string | null; fieldOfStudy: string | null };
+  student: {
+    fullName: string;
+    grade: string | null;
+    fieldOfStudy: string | null;
+  };
   /** True for the counselor of record; false for the read-only supervisor. */
   canWrite: boolean;
 };
@@ -55,6 +66,7 @@ export type StudyPlanSubjectRow = {
   studiedMinutes: number;
   shortfallMinutes: number;
   testsDone: number;
+  testsTarget: number;
 };
 
 export type StudyPlanTotals = {
@@ -86,9 +98,12 @@ export class GetStudentStudyPlanUseCase {
       hasCapability(input.actor.role, "plan:write") &&
       owner.counselorId === input.actor.id;
     const canSupervise = hasCapability(input.actor.role, "supervise:read");
-    if (!canWrite && !canSupervise) throw new ForbiddenError();
+    // A student reads their own program (read-only); they execute it, never edit.
+    const canReadSelf =
+      input.actor.role === "student" && input.actor.id === input.studentId;
+    if (!canWrite && !canSupervise && !canReadSelf) throw new ForbiddenError();
 
-    const weekKey = input.weekKey ?? currentWeekKey();
+    const weekKey = resolveWeekKey(input.weekKey);
     const [plan, school, schedule, goal, subjectTests] = await Promise.all([
       this.plans.findForStudent(input.studentId),
       this.schoolProgram.listByStudent(input.studentId),
@@ -97,19 +112,41 @@ export class GetStudentStudyPlanUseCase {
       this.goals.listSubjectTests({ studentId: input.studentId, weekKey }),
     ]);
 
+    const entries = plan?.entries ?? [];
     const targets: GoalTargets = plan
-      ? { studyMinutesTarget: planMinutesTotal(plan.entries ?? []), testsTarget: plan.testsTarget }
+      ? { studyMinutesTarget: planMinutesTotal(entries), testsTarget: plan.testsTarget }
       : { studyMinutesTarget: 0, testsTarget: 0 };
 
-    const progress = goalProgress(goal, targets);
-    const studiedBySubject = subjectStudiedMinutes(goal?.completedBlocks ?? [], schedule);
-    const testsBySubject = Object.fromEntries(subjectTests.map((t) => [t.subject, t.count]));
+    // One source of truth: the student's ticks are plan-entry keys, so studied
+    // minutes per subject come from the same rows the counselor authored.
+    const studiedBySubject = studiedMinutesBySubject(
+      goal?.completedBlocks ?? [],
+      entries,
+    );
+    const loggedByEntry = loggedMinutesByEntry(
+      goal?.completedBlocks ?? [],
+      entries,
+    );
+    const studiedMinutes = Object.values(studiedBySubject).reduce(
+      (sum, minutes) => sum + minutes,
+      0,
+    );
+    const progress = goalProgress(goal, targets, studiedMinutes);
+    const testsBySubject = Object.fromEntries(
+      subjectTests.map((t) => [t.subject, t.count]),
+    );
 
     const plannedBySubject: Record<string, number> = {};
-    for (const entry of plan?.entries ?? []) {
-      plannedBySubject[entry.subject] = (plannedBySubject[entry.subject] ?? 0) + entry.minutes;
+    for (const entry of entries) {
+      plannedBySubject[entry.subject] =
+        (plannedBySubject[entry.subject] ?? 0) + entry.minutes;
     }
 
+    const testsTargetBySubject: Record<string, number> = {};
+    for (const entry of entries) {
+      testsTargetBySubject[entry.subject] =
+        (testsTargetBySubject[entry.subject] ?? 0) + entry.testsTarget;
+    }
     const rows: StudyPlanSubjectRow[] = Object.keys(plannedBySubject).map((subject) => {
       const plannedMinutes = plannedBySubject[subject];
       const studiedMinutes = studiedBySubject[subject] ?? 0;
@@ -119,6 +156,7 @@ export class GetStudentStudyPlanUseCase {
         studiedMinutes,
         shortfallMinutes: Math.max(0, plannedMinutes - studiedMinutes),
         testsDone: testsBySubject[subject] ?? 0,
+        testsTarget: testsTargetBySubject[subject] ?? 0,
       };
     });
 
@@ -133,13 +171,20 @@ export class GetStudentStudyPlanUseCase {
 
     return {
       plan,
-      entries: plan?.entries ?? [],
+      weekKey,
+      entries,
       schoolProgram: school,
       weeklySchedule: schedule,
       goalProgress: progress,
+      loggedMinutesByEntry: loggedByEntry,
+      testsBySubject,
       rows,
       totals,
-      student: { grade: owner.grade, fieldOfStudy: owner.fieldOfStudy },
+      student: {
+        fullName: owner.fullName,
+        grade: owner.grade,
+        fieldOfStudy: owner.fieldOfStudy,
+      },
       canWrite,
     };
   }
@@ -179,6 +224,7 @@ export type AddStudyPlanEntryInput = {
   dayOfWeek: number;
   subject: string;
   minutes: number;
+  testsTarget?: number;
   chapterIds?: string[];
   note?: string | null;
 };
@@ -228,11 +274,25 @@ export class AddStudyPlanEntryUseCase {
 
     const note = input.note ? input.note.trim() || null : null;
 
+    const testsTarget = input.testsTarget ?? 0;
+    if (testsTarget < 0 || testsTarget > 2000) {
+      throw new ValidationError("تعداد تست هدف باید بین ۰ تا ۲۰۰۰ باشد");
+    }
+
+    const plan = await this.plans.findForStudent(ownerId);
+    if (plan) {
+      const current = plan.entries.reduce((sum, e) => sum + e.testsTarget, 0);
+      if (current + testsTarget > plan.testsTarget) {
+        throw new ValidationError("جمع هدف تست به تفکیک درس از هدف کل هفته بیشتر است");
+      }
+    }
+
     return this.plans.upsertEntry({
       studentId: ownerId,
       dayOfWeek: input.dayOfWeek,
       subject: input.subject,
       minutes,
+      testsTarget,
       chapterIds,
       note,
     });

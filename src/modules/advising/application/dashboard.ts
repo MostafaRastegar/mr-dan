@@ -8,16 +8,12 @@
 
 import { type Actor } from "@/modules/advising/application/planning-access";
 import { NotFoundError } from "@/modules/advising/domain/errors";
-import {
-  buildStudyBlocks,
-  type StudyBlock,
-} from "@/modules/advising/domain/study-blocks";
+import type { StudyBlock } from "@/modules/advising/domain/study-blocks";
 import {
   computeEnergy,
   isPhysicalProfileComplete,
 } from "@/modules/advising/domain/energy";
 import {
-  classMinutesForDay,
   freeMinutesForDay,
   otherOccupiedMinutesForDay,
   wakingMinutes,
@@ -31,12 +27,15 @@ import {
 } from "@/modules/advising/domain/day-key";
 import { pickBookFrom } from "@/modules/advising/domain/catalog";
 import { suggestLeisure, type LeisureInputs } from "@/modules/advising/domain/leisure";
-import { planMinutesTotal } from "@/modules/advising/domain/study-plan";
+import {
+  loggedMinutesByEntry,
+  planMinutesTotal,
+  studiedMinutesBySubject,
+} from "@/modules/advising/domain/study-plan";
 import type {
   HomeworkItem,
   MealPlanRecord,
   Role,
-  WeeklyScheduleEntry,
 } from "@/modules/advising/domain/models";
 import type {
   CatalogRepositoryPort,
@@ -44,7 +43,7 @@ import type {
   HomeworkPlanRepositoryPort,
   HomeworkRepositoryPort,
   MealPlanRepositoryPort,
-  ScheduleRepositoryPort,
+  SchoolProgramRepositoryPort,
   StudyPlanRepositoryPort,
   UserRepositoryPort,
   WeeklyGoalRepositoryPort,
@@ -56,6 +55,10 @@ export interface DashboardGoal {
   testsTarget: number;
   testsDone: number;
   completedBlocks: string[];
+  testsBySubject: Record<string, number>;
+  /** Subjects the counselor actually scheduled this week (test logging scope). */
+  subjects: string[];
+  testsTargetBySubject: Record<string, number>;
 }
 
 export interface DashboardMeal {
@@ -73,7 +76,6 @@ export interface DashboardReadModel {
   greetingName: string;
   todayKey: string;
   homework: { today: HomeworkItem[]; tomorrow: HomeworkItem[] };
-  schedule: WeeklyScheduleEntry[];
   blocks: StudyBlock[];
   freeMinutes: number;
   freeTimeBreakdown: {
@@ -109,7 +111,7 @@ export class GetDashboardOverviewUseCase {
   constructor(
     private readonly users: UserRepositoryPort,
     private readonly homework: HomeworkRepositoryPort,
-    private readonly schedule: ScheduleRepositoryPort,
+    private readonly schoolProgram: SchoolProgramRepositoryPort,
     private readonly goals: WeeklyGoalRepositoryPort,
     private readonly plans: StudyPlanRepositoryPort,
     private readonly budgets: FreeTimeBudgetRepositoryPort,
@@ -139,20 +141,33 @@ export class GetDashboardOverviewUseCase {
       ),
     };
 
-    const schedule = (await this.schedule.listByStudent(input.actor.id)).filter(
-      (entry) => entry.dayOfWeek === dayOfWeek,
+    const weekKey = weekStartKey(todayKey);
+    const [schoolRows, goalRow, plan, subjectTests] = await Promise.all([
+      this.schoolProgram.listByStudent(input.actor.id),
+      this.goals.findByKey(input.actor.id, weekKey),
+      this.plans.findForStudent(input.actor.id),
+      this.goals.listSubjectTests({ studentId: input.actor.id, weekKey }),
+    ]);
+    const entries = plan?.entries ?? [];
+    const loggedByEntry = loggedMinutesByEntry(
+      goalRow?.completedBlocks ?? [],
+      entries,
     );
-    const blocks = schedule.flatMap((entry) =>
-      buildStudyBlocks({
+    const blocks: StudyBlock[] = entries
+      .filter((entry) => entry.dayOfWeek === dayOfWeek)
+      .map((entry) => ({
         dayKey: todayKey,
-        startMinute: entry.startMinute,
-        endMinute: entry.endMinute,
+        startMinute: 0,
+        minutes: entry.minutes,
         subject: entry.subject,
-      }),
-    );
+        entryId: entry.id,
+        loggedMinutes: loggedByEntry[entry.id] ?? 0,
+        testsTarget: entry.testsTarget,
+      }));
 
-    const todaySchedule = schedule;
-    const schoolMinutes = classMinutesForDay(todaySchedule, dayOfWeek);
+    const schoolMinutes = schoolRows
+      .filter((entry) => entry.dayOfWeek === dayOfWeek)
+      .reduce((sum, entry) => sum + entry.minutes, 0);
     const otherOccupied = otherOccupiedMinutesForDay(
       user.otherOccupiedMinutes ?? [],
       dayOfWeek,
@@ -166,24 +181,38 @@ export class GetDashboardOverviewUseCase {
       homeworkAverageMinutes: homeworkAverage,
     });
 
-    const weekKey = weekStartKey(todayKey);
-    const [goalRow, plan] = await Promise.all([
-      this.goals.findByKey(input.actor.id, weekKey),
-      this.plans.findForStudent(input.actor.id),
-    ]);
     const targets: GoalTargets = plan
       ? {
-          studyMinutesTarget: planMinutesTotal(plan.entries ?? []),
+          studyMinutesTarget: planMinutesTotal(entries),
           testsTarget: plan.testsTarget,
         }
       : { studyMinutesTarget: 0, testsTarget: 0 };
-    const progress = goalProgress(goalRow, targets);
+    const studiedBySubject = studiedMinutesBySubject(
+      goalRow?.completedBlocks ?? [],
+      entries,
+    );
+    const studiedMinutes = Object.values(studiedBySubject).reduce(
+      (sum, minutes) => sum + minutes,
+      0,
+    );
+    const progress = goalProgress(goalRow, targets, studiedMinutes);
     const goal: DashboardGoal | null = {
       studiedMinutes: progress.studyMinutes,
       studyMinutesTarget: progress.studyMinutesTarget,
       testsTarget: progress.testsTarget,
       testsDone: progress.testsDone,
       completedBlocks: goalRow?.completedBlocks ?? [],
+      testsBySubject: Object.fromEntries(
+        subjectTests.map((row) => [row.subject, row.count]),
+      ),
+      subjects: [...new Set(entries.map((entry) => entry.subject))],
+      testsTargetBySubject: entries.reduce<Record<string, number>>(
+        (sum, entry) => ({
+          ...sum,
+          [entry.subject]: (sum[entry.subject] ?? 0) + entry.testsTarget,
+        }),
+        {},
+      ),
     };
 
     const fromKey = shiftDayKey(todayKey, -6);
@@ -219,7 +248,6 @@ export class GetDashboardOverviewUseCase {
       greetingName: user.fullName,
       todayKey,
       homework,
-      schedule,
       blocks,
       freeMinutes,
       freeTimeBreakdown: {

@@ -34,14 +34,12 @@ describe("chapterAppliesTo", () => {
     ).toBe(false);
   });
 
-  it("rejects another grade", () => {
-    expect(
-      chapterAppliesTo({ ...chapter, grade: "یازدهم" }, target),
-    ).toBe(false);
+  it("accepts another grade (grade is catalog metadata)", () => {
+    expect(chapterAppliesTo({ ...chapter, grade: "یازدهم" }, target)).toBe(true);
   });
 
-  it("rejects missing grade", () => {
-    expect(chapterAppliesTo(chapter, { ...target, grade: null })).toBe(false);
+  it("accepts missing student grade", () => {
+    expect(chapterAppliesTo(chapter, { ...target, grade: null })).toBe(true);
   });
 
   it("rejects another non-empty field", () => {
@@ -90,9 +88,9 @@ describe("chapterIdsAreValid", () => {
     expect(chapterIdsAreValid([chapter.id], catalog, target)).toBe(false);
   });
 
-  it("rejects another grade chapter", () => {
+  it("accepts another grade chapter (grade is catalog metadata)", () => {
     const catalog = [{ ...chapter, grade: "یازدهم" }];
-    expect(chapterIdsAreValid([chapter.id], catalog, target)).toBe(false);
+    expect(chapterIdsAreValid([chapter.id], catalog, target)).toBe(true);
   });
 
   it("rejects another field chapter", () => {
