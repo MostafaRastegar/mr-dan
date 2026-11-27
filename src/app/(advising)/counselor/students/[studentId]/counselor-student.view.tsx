@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
+import { Tag } from "antd";
 
-import { DAYS_OF_WEEK, type SubjectRow } from "@/modules/advising/domain/models";
+import type { SubjectRow } from "@/modules/advising/domain/models";
 import { labelOf, subjectOptions } from "@/modules/advising/domain/catalog";
 
 import { TEST_IDS } from "@/constants/test-ids";
@@ -8,6 +9,11 @@ import type { Chapter } from "@/modules/advising/domain/models";
 import type { StudentStudyPlanView } from "@/modules/advising/application/study-plan";
 import { SubjectProgressView } from "./_components/subject-progress.view";
 import { SchoolProgramAccordionView } from "./_components/school-program-accordion.view";
+import { ScheduleEditor } from "./_components/schedule-editor.vm";
+import {
+  SupervisionSectionsView,
+  type SupervisionSections,
+} from "./_components/supervision-sections.view";
 import { StudyPlanHeaderForm } from "./_components/study-plan-header-form.vm";
 import { StudyPlanEntryForm } from "./_components/study-plan-entry-form.vm";
 import { StudyPlanTable } from "./_components/study-plan-table.vm";
@@ -15,20 +21,16 @@ import { StudyPlanTable } from "./_components/study-plan-table.vm";
 interface CounselorStudentViewProps {
   studentId: string;
   view: StudentStudyPlanView;
+  canWrite: boolean;
+  supervision: SupervisionSections | null;
   chapters: Chapter[];
   subjects: SubjectRow[];
   labels: Record<string, string>;
 }
 
-const persianDigits = new Intl.NumberFormat("fa-IR", { useGrouping: false });
-
-function dayLabel(dayOfWeek: number): string {
-  const day = DAYS_OF_WEEK.find((d) => d.day === dayOfWeek);
-  return day ? day.label : String(dayOfWeek);
-}
-
 export function CounselorStudentView(props: CounselorStudentViewProps): ReactNode {
-  const { studentId, view, chapters, subjects, labels } = props;
+  const { studentId, view, canWrite, supervision, chapters, subjects, labels } =
+    props;
   const options = subjectOptions(subjects, {
     field: view.student.fieldOfStudy,
     grade: view.student.grade,
@@ -40,11 +42,22 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
         className="rounded-xl border border-slate-200 bg-white p-6"
         data-testid={TEST_IDS.COUNSELOR_PLAN.HEADER}
       >
-        <h1 className="text-2xl font-bold">{studentId}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold">{studentId}</h1>
+          {canWrite ? null : (
+            <Tag color="gold" data-testid={TEST_IDS.SUPERVISION.READONLY}>
+              نمایش نظارتی · فقط خواندنی
+            </Tag>
+          )}
+        </div>
         <p className="text-sm text-slate-500" dir="ltr">
           دانش‌آموز · برنامه مشاور
         </p>
       </section>
+
+      {supervision ? (
+        <SupervisionSectionsView supervision={supervision} labels={labels} />
+      ) : null}
 
       <section className="rounded-xl border border-slate-200 bg-white p-5">
         <h2 className="mb-3 text-lg font-semibold">برنامهٔ مدرسه</h2>
@@ -58,44 +71,16 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
         />
       </section>
 
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-5"
-        data-testid={TEST_IDS.COUNSELOR_VIEW.WEEKLY_SCHEDULE}
-      >
-        <h2 className="mb-3 text-lg font-semibold">برنامه هفتگی دانش‌آموز</h2>
-        {view.weeklySchedule.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            دانش‌آموز برنامه زمانی هفتگی ثبت نکرده است.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2 text-sm">
-            {view.weeklySchedule.map((slot) => (
-              <li
-                key={slot.id}
-                className="flex justify-between px-3 py-2 border border-slate-100 rounded"
-              >
-                <span>{dayLabel(slot.dayOfWeek)}</span>
-                <span className="flex items-center gap-2">
-                  <span className="dir-ltr font-medium">
-                    {persianDigits.format(Math.floor(slot.startMinute / 60))}:
-                    {persianDigits
-                      .format(slot.startMinute % 60)
-                      .toString()
-                      .padStart(2, "۰")}
-                    –
-                    {persianDigits.format(Math.floor(slot.endMinute / 60))}:
-                    {persianDigits
-                      .format(slot.endMinute % 60)
-                      .toString()
-                      .padStart(2, "۰")}
-                  </span>
-                  <span>{labelOf(labels, slot.subject)}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <div data-testid={TEST_IDS.COUNSELOR_VIEW.WEEKLY_SCHEDULE}>
+        <ScheduleEditor
+          studentId={studentId}
+          entries={view.weeklySchedule}
+          canWrite={canWrite}
+          fieldOfStudy={view.student.fieldOfStudy}
+          subjects={subjects}
+          labels={labels}
+        />
+      </div>
 
       <SubjectProgressView
         entries={view.rows.map((row) => ({
@@ -106,6 +91,7 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
           testsDone: row.testsDone,
         }))}
         testsTarget={view.totals.testsTarget}
+        testsDone={view.totals.testsDone}
       />
 
       <section
@@ -114,26 +100,31 @@ export function CounselorStudentView(props: CounselorStudentViewProps): ReactNod
       >
         <h2 className="mb-3 text-lg font-semibold">برنامهٔ هفتگی مشاور</h2>
 
-        <div className="mb-6">
-          <StudyPlanHeaderForm
-            studentId={studentId}
-            testsTarget={view.totals.testsTarget}
-          />
-        </div>
+        {canWrite ? (
+          <>
+            <div className="mb-6">
+              <StudyPlanHeaderForm
+                studentId={studentId}
+                testsTarget={view.totals.testsTarget}
+              />
+            </div>
 
-        <div className="mb-6">
-          <StudyPlanEntryForm
-            studentId={studentId}
-            chapters={chapters}
-            subjectOptions={options}
-          />
-        </div>
+            <div className="mb-6">
+              <StudyPlanEntryForm
+                studentId={studentId}
+                chapters={chapters}
+                subjectOptions={options}
+              />
+            </div>
+          </>
+        ) : null}
 
         <StudyPlanTable
           studentId={studentId}
           entries={view.entries}
           chapters={chapters}
           labels={labels}
+          canWrite={canWrite}
         />
       </section>
     </div>

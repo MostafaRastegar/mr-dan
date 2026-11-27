@@ -17,7 +17,8 @@ import { TEST_IDS } from "@/constants/test-ids";
 interface ScheduleWeekViewProps {
   entries: WeeklyScheduleEntry[];
   schoolProgramEntries: SchoolProgramEntry[];
-  canWrite: boolean;
+  canWriteSchedule: boolean;
+  canWriteProgram: boolean;
   fieldOfStudy: string | null;
   subjects: SubjectRow[];
   labels: Record<string, string>;
@@ -30,7 +31,8 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
   const {
     entries,
     schoolProgramEntries,
-    canWrite,
+    canWriteSchedule,
+    canWriteProgram,
     fieldOfStudy,
     subjects,
     labels,
@@ -98,7 +100,7 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
         );
       },
     },
-    ...(canWrite
+    ...(canWriteSchedule
       ? [
           {
             title: "عملیات",
@@ -131,7 +133,7 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
         />
       )}
 
-      {canWrite && (
+      {canWriteSchedule && (
         <Button
           onClick={onOpenForm}
           data-testid={TEST_IDS.SCHEDULE.CREATE_FORM}
@@ -141,7 +143,7 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
       )}
 
       <ScheduleEntryForm
-        open={isFormOpen && canWrite}
+        open={isFormOpen && canWriteSchedule}
         fieldOfStudy={fieldOfStudy}
         subjects={subjects}
         onClose={onCloseForm}
@@ -149,6 +151,7 @@ export function ScheduleWeekView(props: ScheduleWeekViewProps): ReactNode {
 
       <SchoolProgramForm
         initialEntries={schoolProgramEntries}
+        canWrite={canWriteProgram}
         fieldOfStudy={fieldOfStudy}
         subjects={subjects}
         labels={labels}

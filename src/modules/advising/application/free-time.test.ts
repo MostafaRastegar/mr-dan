@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createPlanningFakes } from "../../../../test/fakes/planning";
+import { FakeUserRepository } from "../../../../test/fakes/advising";
 import {
   GetDayBudgetUseCase,
   SetFreeTimeBudgetUseCase,
@@ -13,7 +14,12 @@ const DAY = "2026-11-25"; // Wednesday → Persian weekday 4 (چهارشنبه)
 const WEDNESDAY = 4;
 
 function dayBudgetOf(fakes: ReturnType<typeof createPlanningFakes>) {
+  const users = new FakeUserRepository({
+    groupNames: new Map(),
+    groupCounts: new Map(),
+  });
   return new GetDayBudgetUseCase(
+    users,
     fakes.schedule,
     fakes.homework,
     fakes.budget,

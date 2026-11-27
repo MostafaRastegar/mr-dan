@@ -11,10 +11,12 @@ import type { Role } from "./models";
 export type Capability =
   | "profile:read"
   | "profile:write"
+  | "goal:write"
+  | "program:write"
   | "group:manage"
   | "student:assign"
+  | "plan:write"
   | "schedule:read"
-  | "schedule:write"
   | "homework:read"
   | "homework:write"
   | "budget:read"
@@ -22,23 +24,28 @@ export type Capability =
   | "nutrition:read"
   | "nutrition:write"
   | "leisure:read"
-  | "plan:write"
+  | "supervise:read"
   | "rag:manage"
   | "user:read"
   | "user:support"
   | "user:manage"
   | "catalog:manage";
 
-// Admin deliberately contains the full counselor set plus the admin-only
-// capabilities — no inheritance mechanism; the plain table is the point.
+// Weekly schedule authoring is NOT a capability: it is `plan:write` plus
+// counselor-of-record (assertCounselorOfStudent), so no role holds a
+// self-serve schedule write. Homework, nutrition, budget, weekly goal and the
+// school program are student self-features. Admin deliberately holds only the
+// counselor-set writes plus `supervise:read`: supervision happens inside the
+// student-detail surface, never through a student self-page.
 // `operator` is a limited support login: user directory + support edits, never
 // `rag:manage` or `user:manage` (role changes stay admin-only).
 export const CAPABILITIES: Record<Role, readonly Capability[]> = {
   student: [
     "profile:read",
     "profile:write",
+    "goal:write",
+    "program:write",
     "schedule:read",
-    "schedule:write",
     "homework:read",
     "homework:write",
     "budget:read",
@@ -52,15 +59,6 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "profile:write",
     "group:manage",
     "student:assign",
-    "schedule:read",
-    "schedule:write",
-    "homework:read",
-    "homework:write",
-    "budget:read",
-    "budget:write",
-    "nutrition:read",
-    "nutrition:write",
-    "leisure:read",
     "plan:write",
   ],
   admin: [
@@ -68,16 +66,8 @@ export const CAPABILITIES: Record<Role, readonly Capability[]> = {
     "profile:write",
     "group:manage",
     "student:assign",
-    "schedule:read",
-    "schedule:write",
-    "homework:read",
-    "homework:write",
-    "budget:read",
-    "budget:write",
-    "nutrition:read",
-    "nutrition:write",
-    "leisure:read",
     "plan:write",
+    "supervise:read",
     "rag:manage",
     "user:read",
     "user:support",

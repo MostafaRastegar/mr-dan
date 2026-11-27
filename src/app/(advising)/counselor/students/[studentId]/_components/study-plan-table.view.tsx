@@ -28,13 +28,15 @@ interface StudyPlanTableViewProps {
   entries: StudyPlanEntry[];
   chapters: Chapter[];
   labels: Record<string, string>;
+  canWrite: boolean;
   pending: boolean;
   formError: string | null;
   onDelete: (entryId: string) => void;
 }
 
 export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
-  const { entries, chapters, labels, pending, formError, onDelete } = props;
+  const { entries, chapters, labels, canWrite, pending, formError, onDelete } =
+    props;
 
   const weeklyTotal = entries.reduce((sum, entry) => sum + entry.minutes, 0);
   const subjectTotals: Record<string, number> = {};
@@ -86,7 +88,7 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
                 یادداشت
               </th>
               <th className="text-right p-2 border-b border-slate-200">
-                عملیات
+                {canWrite ? "عملیات" : "وضعیت"}
               </th>
             </tr>
           </thead>
@@ -101,15 +103,19 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
                 </td>
                 <td className="p-2 text-sm">{entry.note ?? "—"}</td>
                 <td className="p-2 text-right">
-                  <Button
-                    size="small"
-                    danger
-                    loading={pending}
-                    onClick={() => onDelete(entry.id)}
-                    data-testid={TEST_IDS.COUNSELOR_PLAN.PLAN_ROW_DELETE}
-                  >
-                    حذف
-                  </Button>
+                  {canWrite ? (
+                    <Button
+                      size="small"
+                      danger
+                      loading={pending}
+                      onClick={() => onDelete(entry.id)}
+                      data-testid={TEST_IDS.COUNSELOR_PLAN.PLAN_ROW_DELETE}
+                    >
+                      حذف
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-slate-500">فقط خواندنی</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -160,17 +166,19 @@ export function StudyPlanTableView(props: StudyPlanTableViewProps): ReactNode {
                 </dd>
               </div>
             </dl>
-            <div className="mt-3 border-t border-slate-200/70 pt-2 text-left">
-              <Button
-                size="small"
-                danger
-                loading={pending}
-                onClick={() => onDelete(entry.id)}
-                data-testid={TEST_IDS.COUNSELOR_PLAN.PLAN_ROW_DELETE}
-              >
-                حذف
-              </Button>
-            </div>
+            {canWrite ? (
+              <div className="mt-3 border-t border-slate-200/70 pt-2 text-left">
+                <Button
+                  size="small"
+                  danger
+                  loading={pending}
+                  onClick={() => onDelete(entry.id)}
+                  data-testid={TEST_IDS.COUNSELOR_PLAN.PLAN_ROW_DELETE}
+                >
+                  حذف
+                </Button>
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

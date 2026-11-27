@@ -497,3 +497,103 @@ describe("AddStudyPlanEntryUseCase", () => {
     expect(plan.testsTarget).toBe(200);
   });
 });
+
+describe("admin supervision of the study plan", () => {
+  const admin: Actor = { id: "a1", role: "admin" };
+  const operator: Actor = { id: "o1", role: "operator" };
+
+  async function seedAdmin(users: FakeUserRepository) {
+    await users.create({
+      id: admin.id,
+      username: admin.id,
+      email: null,
+      role: "admin",
+      fullName: admin.id,
+      grade: null,
+      fieldOfStudy: null,
+      schoolName: null,
+      groupId: null,
+      counselorId: null,
+      passwordHash: "x",
+    });
+  }
+
+  function makeUseCase(users: FakeUserRepository) {
+    return new GetStudentStudyPlanUseCase(
+      users,
+      new FakeStudyPlanRepository(),
+      new FakeSchoolProgramRepository(),
+      new FakeScheduleRepository(),
+      new FakeWeeklyGoalRepository(),
+    );
+  }
+
+  it("AC-8: admin reads a student's plan read-only (canWrite:false)", async () => {
+    const users = makeUsers();
+    await seedCounselor(users, counselor.id);
+    await seedStudent(users, "s1", counselor.id);
+    await seedAdmin(users);
+
+    const view = await makeUseCase(users).execute({
+      actor: admin,
+      studentId: "s1",
+    });
+
+    expect(view.canWrite).toBe(false);
+    expect(view.student.grade).toBe("دهم");
+  });
+
+  it("AC-8: counselor-of-record read keeps canWrite:true", async () => {
+    const users = makeUsers();
+    await seedCounselor(users, counselor.id);
+    await seedStudent(users, "s1", counselor.id);
+
+    const view = await makeUseCase(users).execute({
+      actor: counselor,
+      studentId: "s1",
+    });
+
+    expect(view.canWrite).toBe(true);
+  });
+
+  it("AC-8: student and operator may not read a study plan", async () => {
+    const users = makeUsers();
+    await seedCounselor(users, counselor.id);
+    await seedStudent(users, "s1", counselor.id);
+
+    await expect(
+      makeUseCase(users).execute({ actor: student, studentId: "s1" }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+    await expect(
+      makeUseCase(users).execute({ actor: operator, studentId: "s1" }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+  });
+
+  it("AC-8: admin study-plan writes are forbidden", async () => {
+    const users = makeUsers();
+    await seedCounselor(users, counselor.id);
+    await seedStudent(users, "s1", counselor.id);
+    await seedAdmin(users);
+
+    const plans = new FakeStudyPlanRepository();
+    const header = new SaveStudyPlanHeaderUseCase(users, plans);
+    const addEntry = new AddStudyPlanEntryUseCase(
+      users,
+      plans,
+      new FakeChapterRepository(),
+    );
+
+    await expect(
+      header.execute({ actor: admin, studentId: "s1", testsTarget: 100 }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+    await expect(
+      addEntry.execute({
+        actor: admin,
+        studentId: "s1",
+        dayOfWeek: 1,
+        subject: "riazi",
+        minutes: 60,
+      }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+  });
+});

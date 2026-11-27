@@ -59,7 +59,15 @@ export function makeScheduleSchemas(subjects: readonly string[]) {
       { path: ["endTime"], message: "پایان باید بعد از شروع باشد" },
     );
 
-  return { scheduleEntrySchema };
+  // Authoring is counselor-of-record by student id: the create action must
+  // always name the student whose schedule is being written.
+  const createScheduleEntrySchema = scheduleEntrySchema.and(
+    z.object({
+      studentId: z.string().trim().min(1, "شناسهٔ دانش‌آموز الزامی است"),
+    }),
+  );
+
+  return { scheduleEntrySchema, createScheduleEntrySchema };
 }
 
 export type ScheduleSchemas = ReturnType<typeof makeScheduleSchemas>;

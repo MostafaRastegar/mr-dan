@@ -8,6 +8,8 @@ export const metadata = { title: "داشبورد — mr-dan" };
 export default async function DashboardPage() {
   const { user } = await requireSessionUser();
   if (user.role === "counselor") redirect("/counselor/students");
+  // Operators have no planning surface; the dashboard would render empty data.
+  if (user.role === "operator") redirect("/profile");
 
   const container = getContainer();
   const [overview, catalog] = await Promise.all([

@@ -18,6 +18,7 @@ interface SubjectProgressRow {
 interface SubjectProgressViewProps {
   entries: SubjectProgressRow[];
   testsTarget: number;
+  testsDone?: number;
 }
 
 function shortfallLabel(studiedMinutes: number, plannedMinutes: number): string {
@@ -38,12 +39,12 @@ function sortRows(entries: SubjectProgressRow[]): SubjectProgressRow[] {
 }
 
 export function SubjectProgressView(props: SubjectProgressViewProps): ReactNode {
-  const { entries, testsTarget } = props;
+  const { entries, testsTarget, testsDone } = props;
   const sorted = sortRows(entries);
 
   const totalPlannedMinutes = entries.reduce((sum, e) => sum + e.plannedMinutes, 0);
   const totalStudiedMinutes = entries.reduce((sum, e) => sum + e.studiedMinutes, 0);
-  const totalTestsDone = entries.reduce((sum, e) => sum + e.testsDone, 0);
+  const totalTestsDone = testsDone ?? entries.reduce((sum, e) => sum + e.testsDone, 0);
 
   if (entries.length === 0) {
     return (

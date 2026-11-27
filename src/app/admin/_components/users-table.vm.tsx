@@ -36,6 +36,7 @@ interface UsersTableWrapperProps {
   counselorOptionsFailed: boolean;
   canManageRole: boolean;
   canSupport: boolean;
+  canSupervise: boolean;
   readFailed?: boolean;
 }
 
@@ -52,6 +53,7 @@ export function UsersTableWrapper(
     counselorOptionsFailed,
     canManageRole,
     canSupport,
+    canSupervise,
     readFailed = false,
   } = props;
   const router = useRouter();
@@ -156,6 +158,7 @@ export function UsersTableWrapper(
       readFailed={readFailed}
       canManageRole={canManageRole}
       canSupport={canSupport}
+      canSupervise={canSupervise}
       roleTarget={roleTarget}
       onOpenRole={openRole}
       onConfirmRole={confirmRole}

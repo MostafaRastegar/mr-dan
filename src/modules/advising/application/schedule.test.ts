@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  createPlanningFakes,
-} from "../../../../test/fakes/planning";
+import { createPlanningFakes } from "../../../../test/fakes/planning";
 import { FakeUserRepository } from "../../../../test/fakes/advising";
 import {
   CreateScheduleEntryUseCase,
@@ -12,150 +10,181 @@ import {
 } from "@/modules/advising/application/schedule";
 import { ScheduleConflictError } from "@/modules/advising/domain/errors";
 import type { Actor } from "@/modules/advising/application/planning-access";
+import type { Role } from "@/modules/advising/domain/models";
 
-const counselor = { id: "c1", role: "counselor" as const };
-const student = { id: "s1", role: "student" as const };
-const otherCounselor = { id: "c2", role: "counselor" as const };
+const counselor: Actor = { id: "c1", role: "counselor" };
+const foreignCounselor: Actor = { id: "c2", role: "counselor" };
+const student: Actor = { id: "s1", role: "student" };
+const admin: Actor = { id: "a1", role: "admin" };
 
-function actorOf(user: { id: string; role: "student" | "counselor" }): Actor {
-  return { id: user.id, role: user.role };
-}
-
-function studentOfCounselor(counselorId: string) {
-  return { id: `student-of-${counselorId}`, role: "student" as const, counselorId };
-}
-
-describe("schedule use cases", () => {
-  it("counselor writes own plan", async () => {
-    const fakes = createPlanningFakes();
-    const users = new FakeUserRepository({ groupNames: new Map(), groupCounts: new Map() });
+async function makeUsers() {
+  const users = new FakeUserRepository({
+    groupNames: new Map(),
+    groupCounts: new Map(),
+  });
+  const seed = async (
+    id: string,
+    role: Role,
+    counselorId: string | null = null,
+  ) => {
     await users.create({
-      id: counselor.id,
-      username: "counselor",
+      id,
+      username: id,
       email: null,
-      role: "counselor",
-      fullName: "مشاور",
-      grade: null,
-      fieldOfStudy: null,
+      role,
+      fullName: id,
+      grade: role === "student" ? "دهم" : null,
+      fieldOfStudy: role === "student" ? "ریاضی فیزیک" : null,
       schoolName: null,
       groupId: null,
-      counselorId: null,
+      counselorId,
       passwordHash: "x",
     });
+  };
+  await seed("c1", "counselor");
+  await seed("c2", "counselor");
+  await seed("a1", "admin");
+  await seed("s1", "student", "c1");
+  await seed("s2", "student", "c2");
+  return users;
+}
 
-    const list = new ListWeeklyScheduleUseCase(users, fakes.schedule);
-    const create = new CreateScheduleEntryUseCase(fakes.schedule);
+const entryInput = {
+  dayOfWeek: 0 as const,
+  startMinute: 480,
+  endMinute: 540,
+  subject: "riazi",
+};
 
-    const entry = await create.execute({
-      actor: actorOf(counselor),
-      dayOfWeek: 0,
-      startMinute: 480,
-      endMinute: 540,
-      subject: "riazi",
+describe("schedule authoring is counselor-of-record only", () => {
+  it("AC-2: student create/update/delete → forbidden, nothing written", async () => {
+    const users = await makeUsers();
+    const fakes = createPlanningFakes();
+    const create = new CreateScheduleEntryUseCase(users, fakes.schedule);
+    const update = new UpdateScheduleEntryUseCase(users, fakes.schedule);
+    const remove = new DeleteScheduleEntryUseCase(users, fakes.schedule);
+
+    await expect(
+      create.execute({ actor: student, studentId: student.id, ...entryInput }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+
+    const existing = await create.execute({
+      actor: counselor,
+      studentId: student.id,
+      ...entryInput,
     });
+    const writesAfterCounselor = fakes.schedule.writes;
 
-    expect(entry.studentId).toBe(counselor.id);
-    const listed = await list.execute({ actor: actorOf(counselor) });
-    expect(listed).toHaveLength(1);
-    expect(listed[0].id).toBe(entry.id);
+    await expect(
+      update.execute({ actor: student, entryId: existing.id, ...entryInput }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+    await expect(
+      remove.execute({ actor: student, entryId: existing.id }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+
+    expect(fakes.schedule.writes).toBe(writesAfterCounselor);
   });
 
-  it("counselor cannot write others", async () => {
+  it("AC-2: counselor-of-record create/update/delete succeeds", async () => {
+    const users = await makeUsers();
     const fakes = createPlanningFakes();
-    const create = new CreateScheduleEntryUseCase(fakes.schedule);
+    const create = new CreateScheduleEntryUseCase(users, fakes.schedule);
+    const update = new UpdateScheduleEntryUseCase(users, fakes.schedule);
+    const remove = new DeleteScheduleEntryUseCase(users, fakes.schedule);
+
+    const entry = await create.execute({
+      actor: counselor,
+      studentId: student.id,
+      ...entryInput,
+    });
+    expect(entry.studentId).toBe(student.id);
+
+    const changed = await update.execute({
+      actor: counselor,
+      entryId: entry.id,
+      ...entryInput,
+      subject: "fizik",
+      startMinute: 600,
+      endMinute: 660,
+    });
+    expect(changed.subject).toBe("fizik");
+
+    await remove.execute({ actor: counselor, entryId: entry.id });
+    expect(await fakes.schedule.listByStudent(student.id)).toEqual([]);
+  });
+
+  it("AC-3: foreign counselor and admin → forbidden, nothing written", async () => {
+    const users = await makeUsers();
+    const fakes = createPlanningFakes();
+    const create = new CreateScheduleEntryUseCase(users, fakes.schedule);
 
     await expect(
       create.execute({
-        actor: actorOf(counselor),
-        studentId: "someone-else",
-        dayOfWeek: 0,
-        startMinute: 480,
-        endMinute: 540,
-        subject: "riazi",
+        actor: foreignCounselor,
+        studentId: student.id,
+        ...entryInput,
       }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+
+    await expect(
+      create.execute({ actor: admin, studentId: student.id, ...entryInput }),
     ).rejects.toMatchObject({ code: "forbidden" });
 
     expect(fakes.schedule.writes).toBe(0);
   });
 
-  it("another counselor's student", async () => {
+  it("AC-3: counselor passing their own id is not counselor-of-record of self", async () => {
+    const users = await makeUsers();
     const fakes = createPlanningFakes();
-    const users = new FakeUserRepository({ groupNames: new Map(), groupCounts: new Map() });
-    const foreign = studentOfCounselor(otherCounselor.id);
-    await users.create({
-      id: counselor.id,
-      username: "counselor",
-      email: null,
-      role: "counselor",
-      fullName: "مشاور",
-      grade: null,
-      fieldOfStudy: null,
-      schoolName: null,
-      groupId: null,
-      counselorId: null,
-      passwordHash: "x",
-    });
-    await users.create({
-      id: foreign.id,
-      username: foreign.id,
-      email: null,
-      role: "student",
-      fullName: "دانش‌آموز دیگر",
-      grade: null,
-      fieldOfStudy: null,
-      schoolName: null,
-      groupId: null,
-      counselorId: otherCounselor.id,
-      passwordHash: "x",
-    });
-
-    const list = new ListWeeklyScheduleUseCase(users, fakes.schedule);
+    const create = new CreateScheduleEntryUseCase(users, fakes.schedule);
 
     await expect(
-      list.execute({ actor: actorOf(counselor), studentId: foreign.id }),
+      create.execute({ actor: counselor, studentId: counselor.id, ...entryInput }),
     ).rejects.toMatchObject({ code: "forbidden" });
+    expect(fakes.schedule.writes).toBe(0);
   });
 
-  it("duplicate weekly slot", async () => {
+  it("AC-3: unknown entry → not_found", async () => {
+    const users = await makeUsers();
     const fakes = createPlanningFakes();
-    const create = new CreateScheduleEntryUseCase(fakes.schedule);
-
-    await create.execute({
-      actor: actorOf(student),
-      dayOfWeek: 0,
-      startMinute: 480,
-      endMinute: 540,
-      subject: "riazi",
-    });
+    const update = new UpdateScheduleEntryUseCase(users, fakes.schedule);
+    const remove = new DeleteScheduleEntryUseCase(users, fakes.schedule);
 
     await expect(
+      update.execute({ actor: counselor, entryId: "no-such-id", ...entryInput }),
+    ).rejects.toMatchObject({ code: "not_found" });
+
+    await expect(
+      remove.execute({ actor: counselor, entryId: "no-such-id" }),
+    ).rejects.toMatchObject({ code: "not_found" });
+  });
+
+  it("AC-3: overlap conflict is checked after authorization", async () => {
+    const users = await makeUsers();
+    const fakes = createPlanningFakes();
+    const create = new CreateScheduleEntryUseCase(users, fakes.schedule);
+
+    await create.execute({
+      actor: counselor,
+      studentId: student.id,
+      ...entryInput,
+    });
+
+    // A student cannot even reach the conflict check: authorization wins.
+    await expect(
       create.execute({
-        actor: actorOf(student),
+        actor: student,
         studentId: student.id,
         dayOfWeek: 0,
-        startMinute: 480,
-        endMinute: 540,
+        startMinute: 500,
+        endMinute: 560,
         subject: "fizik",
       }),
-    ).rejects.toMatchObject({ code: "schedule_conflict" });
-  });
-
-  it("overlapping entry", async () => {
-    const fakes = createPlanningFakes();
-    const create = new CreateScheduleEntryUseCase(fakes.schedule);
-
-    await create.execute({
-      actor: actorOf(student),
-      studentId: student.id,
-      dayOfWeek: 0,
-      startMinute: 480,
-      endMinute: 540,
-      subject: "riazi",
-    });
+    ).rejects.toMatchObject({ code: "forbidden" });
 
     await expect(
       create.execute({
-        actor: actorOf(student),
+        actor: counselor,
         studentId: student.id,
         dayOfWeek: 0,
         startMinute: 500,
@@ -164,58 +193,65 @@ describe("schedule use cases", () => {
       }),
     ).rejects.toMatchObject({ code: "schedule_conflict" });
 
-    expect(fakes.schedule.writes).toBe(1);
-  });
-
-  it("touching intervals", async () => {
-    const fakes = createPlanningFakes();
-    const create = new CreateScheduleEntryUseCase(fakes.schedule);
-
-    await create.execute({
-      actor: actorOf(student),
-      studentId: student.id,
-      dayOfWeek: 0,
-      startMinute: 480,
-      endMinute: 540,
-      subject: "riazi",
-    });
-
-    const second = await create.execute({
-      actor: actorOf(student),
+    const touching = await create.execute({
+      actor: counselor,
       studentId: student.id,
       dayOfWeek: 0,
       startMinute: 540,
       endMinute: 600,
       subject: "fizik",
     });
-
-    expect(second.endMinute).toBe(600);
+    expect(touching.endMinute).toBe(600);
+    expect(fakes.schedule.writes).toBe(2);
   });
 
-  it("unknown entry", async () => {
+  it("AC-3: update excludes the edited row from the overlap check", async () => {
+    const users = await makeUsers();
     const fakes = createPlanningFakes();
-    const update = new UpdateScheduleEntryUseCase(fakes.schedule);
-    const del = new DeleteScheduleEntryUseCase(fakes.schedule);
+    const create = new CreateScheduleEntryUseCase(users, fakes.schedule);
+    const update = new UpdateScheduleEntryUseCase(users, fakes.schedule);
 
-    await expect(
-      update.execute({
-        actor: actorOf(student),
-        entryId: "no-such-id",
-        dayOfWeek: 0,
-        startMinute: 480,
-        endMinute: 540,
-        subject: "riazi",
-      }),
-    ).rejects.toMatchObject({ code: "not_found" });
+    const entry = await create.execute({
+      actor: counselor,
+      studentId: student.id,
+      ...entryInput,
+    });
 
-    await expect(
-      del.execute({ actor: actorOf(student), entryId: "no-such-id" }),
-    ).rejects.toMatchObject({ code: "not_found" });
+    const changed = await update.execute({
+      actor: counselor,
+      entryId: entry.id,
+      dayOfWeek: 0,
+      startMinute: 500,
+      endMinute: 560,
+      subject: "riazi",
+    });
+    expect(changed.startMinute).toBe(500);
   });
 
-  it("schedule conflict is a domain error", () => {
+  it("AC-3: schedule conflict stays a 409 domain error", () => {
     const err = new ScheduleConflictError();
     expect(err.code).toBe("schedule_conflict");
     expect(err.status).toBe(409);
+  });
+
+  it("reads: own student for counselor, self for student, supervision for admin", async () => {
+    const users = await makeUsers();
+    const fakes = createPlanningFakes();
+    const create = new CreateScheduleEntryUseCase(users, fakes.schedule);
+    const list = new ListWeeklyScheduleUseCase(users, fakes.schedule);
+
+    await create.execute({ actor: counselor, studentId: student.id, ...entryInput });
+
+    expect(
+      await list.execute({ actor: counselor, studentId: student.id }),
+    ).toHaveLength(1);
+    expect(await list.execute({ actor: student })).toHaveLength(1);
+    expect(
+      await list.execute({ actor: admin, studentId: student.id }),
+    ).toHaveLength(1);
+
+    await expect(
+      list.execute({ actor: foreignCounselor, studentId: student.id }),
+    ).rejects.toMatchObject({ code: "forbidden" });
   });
 });

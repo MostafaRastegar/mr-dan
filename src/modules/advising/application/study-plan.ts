@@ -6,7 +6,8 @@
  * write their plan.
  */
 
-import { NotFoundError, ValidationError } from "@/modules/advising/domain/errors";
+import { ForbiddenError, NotFoundError, ValidationError } from "@/modules/advising/domain/errors";
+import { hasCapability } from "@/modules/advising/domain/capabilities";
 import {
   assertCounselorOfStudent,
   type Actor,
@@ -44,6 +45,8 @@ export type StudentStudyPlanView = {
   rows: StudyPlanSubjectRow[];
   totals: StudyPlanTotals;
   student: { grade: string | null; fieldOfStudy: string | null };
+  /** True for the counselor of record; false for the read-only supervisor. */
+  canWrite: boolean;
 };
 
 export type StudyPlanSubjectRow = {
@@ -76,11 +79,14 @@ export class GetStudentStudyPlanUseCase {
     studentId: string;
     weekKey?: string;
   }): Promise<StudentStudyPlanView> {
-    const owner = await assertCounselorOfStudent(
-      this.users,
-      input.actor,
-      input.studentId,
-    );
+    const owner = await this.users.findById(input.studentId);
+    if (!owner || owner.role !== "student") throw new ForbiddenError();
+
+    const canWrite =
+      hasCapability(input.actor.role, "plan:write") &&
+      owner.counselorId === input.actor.id;
+    const canSupervise = hasCapability(input.actor.role, "supervise:read");
+    if (!canWrite && !canSupervise) throw new ForbiddenError();
 
     const weekKey = input.weekKey ?? currentWeekKey();
     const [plan, school, schedule, goal, subjectTests] = await Promise.all([
@@ -134,6 +140,7 @@ export class GetStudentStudyPlanUseCase {
       rows,
       totals,
       student: { grade: owner.grade, fieldOfStudy: owner.fieldOfStudy },
+      canWrite,
     };
   }
 }

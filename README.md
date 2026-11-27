@@ -127,8 +127,9 @@ curl localhost:3000/api/health
 | `GET /api/health`, `GET /api/metrics` | 200 | 200 | 200 | 200 | 200 |
 | `/`, `/login`, `/register` | 200 | 200 | 200 | 200 | 200 |
 | `/chat`, `/profile` | به `/login` | 200 | 200 | 200 | 200 |
-| `/schedule`, `/homework` | به `/login` | ۲۰۰ | ۲۰۰ | ۲۰۰ | به `/profile` |
-| `/nutrition`, `/leisure` | به `/login` | ۲۰۰ | ۲۰۰ | ۲۰۰ | به `/profile` |
+| `/dashboard` | به `/login` | 200 | به `/counselor/students` | 200 | به `/profile` |
+| `/schedule`, `/homework`, `/nutrition`, `/budget`, `/leisure` | به `/login` | ۲۰۰ | به `/profile` | به `/profile` | به `/profile` |
+| `/counselor/students`, `/counselor/students/[studentId]` | به `/login` | به `/profile` | 200 | 200 (read-only supervision) | به `/profile` |
 | `/admin/knowledge`, `/api-docs` | به `/login` | به `/profile` | به `/profile` | 200 | به `/profile` |
 | `/admin`, `/admin/users` | به `/login` | به `/profile` | به `/profile` | 200 | 200 (بدون کنترل نقش) |
 | `/admin/catalog/*` | به `/login` | به `/profile` | به `/profile` | 200 | به `/profile` |
@@ -136,9 +137,11 @@ curl localhost:3000/api/health
 | `GET /api/openapi` | ۴۰۱ | ۴۰۳ | ۴۰۳ | ۲۰۰ | ۴۰۳ |
 | ۵ مسیر API مدیریت | ۴۰۱ | ۴۰۳ | ۴۰۳ | ۲۰۰ | ۴۰۳ |
 
-قاعدهٔ کانونیک: **capability فعل را می‌بندد، مالکیت سطر را.** ادمین مجموعهٔ کامل capabilityهای مشاور را دارد، اما رابطهٔ مشاورِ ثبت‌شده را نه: `assertCounselorOfStudent` برای ادمین هم `student.counselorId === actor.id` می‌خواهد. اپراتور فقط `user:read` (دیدن فهرست کاربران) و `user:support` (ویرایش پروفایل/تماس و بازنشانی اعتبارنامه) دارد؛ تغییر نقش (`user:manage`)، مدیریت کاتالوگ (`catalog:manage`) و مدیریت RAG (`rag:manage`) فقط ادمین.
+قاعدهٔ کانونیک: **capability فعل را می‌بندد، مالکیت سطر را.** ادمین مجموعهٔ capabilityهای مشاور را دارد (`plan:write`)، اما رابطهٔ مشاورِ ثبت‌شده را نه: `assertCounselorOfStudent` برای ادمین هم `student.counselorId === actor.id` می‌خواهد. اپراتور فقط `user:read` (دیدن فهرست کاربران) و `user:support` (ویرایش پروفایل/تماس و بازنشانی اعتبارنامه) دارد؛ تغییر نقش (`user:manage`)، مدیریت کاتالوگ (`catalog:manage`) و مدیریت RAG (`rag:manage`) فقط ادمین.
 
-مشاور فقط سطرهای برنامه‌نویسیٔ خویش را می‌نویسد (هیچ سطر دانش‌آموز یا دانش‌آموزانِ خویش را نمی‌نویسد); خواندن سطرهای دانش‌آموزان خود در لایه استفاده است، بدون صفحهٔ UI تا فاز ۵.۴.
+صفحه‌های شخصی دانش‌آموز فقط مال خود اوست: برنامهٔ هفتگی (خواندن)، تکالیف، بودجهٔ فراغت، تغذیه و فراغت (`homework:*`، `budget:*`، `nutrition:*`، `leisure:read`)، و نوشتن هدف هفته و برنامهٔ مدرسه (`goal:write`، `program:write`). مشاور و ادمین هیچ‌کدام این capabilityها را ندارند و مستقیم به `/profile` می‌روند. نوشتن برنامهٔ هفتگی حتی capability جدا ندارد: counselor-of-record بودن شرط است، پس نه دانش‌آموز، نه ادمین و نه مشاورِ دیگر نمی‌تواند برنامه بنویسد.
+
+ادمین برای مشاهدهٔ دانش‌آموز `supervise:read` دارد: از `/admin/users` به صفحهٔ جزئیات دانش‌آموز می‌رود و همان داده‌ها (برنامهٔ هفتگی، برنامهٔ مدرسه، برنامهٔ مطالعه، تکالیف، تغذیه، بودجه) را بدون هیچ کنترل نوشتن می‌بیند. supervision فقط خواندنی است؛ اکشن‌های نوشتن همان `ForbiddenError` را برمی‌گردانند. مشاور صفحهٔ جزئیات دانش‌آموزِ خودش را با دسترسی نوشتن می‌بیند (`canWrite: true`).
 
 APIهای محدود پاسخ JSON `{error:{code,message,requestId}}` برمی‌گردند (۴۰۱ یا ۴۰۳). صفحات غیرمجاز به `/login` یا `/profile` ریدایرکت می‌شوند.
 

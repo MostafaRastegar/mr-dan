@@ -1,0 +1,49 @@
+{
+  "feature": "rbac-feature-gating",
+  "phase": "done",
+  "plan": ".opencode/plans/rbac-feature-gating.md",
+  "plan_sha256": "6a03077b0f5a6a2e27791b82b5bfd2dacbb7e663",
+  "review_level": "reviewed",
+  "review": ".opencode/reviews/rbac-feature-gating.md",
+  "test_log": ".opencode/reviews/rbac-feature-gating.tests.log",
+  "readme": { "path": "README.md", "state": "updated" },
+  "changelog": { "path": "CHANGELOG.md", "state": "updated" },
+  "skills": [
+    "mro-project-stack",
+    "mro-data-model",
+    "mr-dan-architecture",
+    "mr-dan-feature-workflow",
+    "mr-dan-frontend",
+    "mro-code-review-checklist"
+  ],
+  "sessions": {
+    "architect": "ses_de4e92efaffe2wf5DM28ar6DG7",
+    "implementer": "ses_de4b00aaaffed11NZx2zvNaZBs",
+    "reviewer": "ses_de46aace6ffesU8ibKNsYXmHGk",
+    "test": null
+  },
+  "acceptance": { "total": 13, "confirmed": 13, "pending": 0, "deferred": 0 },
+  "changed_files": [],
+  "test_exit_codes": [
+    { "command": "pnpm typecheck", "exit": 0 },
+    { "command": "pnpm lint", "exit": 0 },
+    { "command": "pnpm test", "exit": 0 },
+    { "command": "pnpm build", "exit": 0 },
+    { "command": "E2E_ENABLED=true pnpm exec playwright test tests/e2e/access-control.spec.ts -g \"admin supervision\"", "exit": 0 },
+    { "command": "server-side smoke (counselor create + read + student deny + read + cleanup)", "exit": 0 },
+    { "command": "operator smoke (login + /dashboard -> /profile)", "exit": 0 }
+  ],
+  "review_round": 1,
+  "severity_history": [
+    { "round": 1, "critical": 0, "high": 0, "medium": 0, "low": 0 }
+  ],
+  "approvals": {
+    "plan": "2026-11-27T04:40:43Z",
+    "ui": "2026-11-27T05:10:00Z",
+    "manual_smoke": "2026-11-27T05:58:00Z",
+    "final": "2026-11-27T06:15:04Z"
+  },
+  "budget": { "turns_per_phase": 20, "review_rounds": 2 },
+  "log": ".opencode/plans/rbac-feature-gating.log.jsonl",
+  "blockers": "none"
+}

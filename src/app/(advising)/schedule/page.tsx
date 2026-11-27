@@ -27,7 +27,10 @@ export default async function SchedulePage() {
     <ScheduleWeekWrapper
       entries={weeklyEntries}
       schoolProgramEntries={schoolProgramEntries}
-      canWrite={hasCapability(user.role, "schedule:write")}
+      // Weekly schedule is counselor-authored per student; this page is the
+      // student's read-only view. The school program stays student-owned.
+      canWriteSchedule={false}
+      canWriteProgram={hasCapability(user.role, "program:write")}
       fieldOfStudy={user.fieldOfStudy}
       subjects={catalog.subjects}
       labels={catalog.subjectLabels}

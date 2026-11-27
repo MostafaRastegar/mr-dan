@@ -105,3 +105,25 @@ describe("AddSchoolProgramEntryUseCase", () => {
     expect(rows).toEqual([]);
   });
 });
+
+describe("school program is a student self-feature", () => {
+  it("AC-7: counselor and admin writes are forbidden", async () => {
+    const users = makeUsers();
+    await seedUser(users, actor.id, "student");
+    await seedUser(users, "c1", "counselor");
+    const program = new FakeSchoolProgramRepository();
+    const add = new AddSchoolProgramEntryUseCase(users, program);
+
+    for (const role of ["counselor", "admin"] as const) {
+      await expect(
+        add.execute({
+          actor: { id: role === "counselor" ? "c1" : "a1", role },
+          dayOfWeek: 1,
+          subject: "riazi",
+          hours: 3,
+        }),
+      ).rejects.toMatchObject({ code: "forbidden" });
+    }
+    expect(await program.listByStudent(actor.id)).toEqual([]);
+  });
+});

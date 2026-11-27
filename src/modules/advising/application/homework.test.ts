@@ -294,3 +294,48 @@ describe("homework use cases", () => {
     expect(undone.spentMinutes).toBeNull();
   });
 });
+
+describe("homework is a student self-feature", () => {
+  it("AC-7: counselor and admin self-create are forbidden", async () => {
+    const fakes = createPlanningFakes();
+    const create = new CreateHomeworkUseCase(fakes.homework);
+
+    for (const actor of [
+      { id: "c1", role: "counselor" as const },
+      { id: "a1", role: "admin" as const },
+    ]) {
+      await expect(
+        create.execute({
+          actor,
+          title: "تکلیف",
+          subject: null,
+          priority: 2,
+          deadline: new Date("2026-11-25T20:30:00Z"),
+        }),
+      ).rejects.toMatchObject({ code: "forbidden" });
+    }
+    expect(fakes.homework.writes).toBe(0);
+  });
+
+  it("AC-7: admin reads a student's homework through the supervision branch", async () => {
+    const users = makeUsers();
+    await seedUser(users, student.id, "student");
+    const fakes = createPlanningFakes();
+    const create = new CreateHomeworkUseCase(fakes.homework);
+    const list = new ListHomeworkUseCase(users, fakes.homework);
+
+    await create.execute({
+      actor: actorOf(student),
+      title: "تکلیف",
+      subject: null,
+      priority: 2,
+      deadline: new Date("2026-11-25T20:30:00Z"),
+    });
+
+    const page = await list.execute({
+      actor: { id: "a1", role: "admin" },
+      studentId: student.id,
+    });
+    expect(page.items).toHaveLength(1);
+  });
+});

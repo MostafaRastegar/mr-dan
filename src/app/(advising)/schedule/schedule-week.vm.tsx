@@ -10,7 +10,8 @@ import type { SchoolProgramEntry } from "./_components/school-program-form.view"
 interface ScheduleWeekVMProps {
   entries: WeeklyScheduleEntry[];
   schoolProgramEntries: SchoolProgramEntry[];
-  canWrite: boolean;
+  canWriteSchedule: boolean;
+  canWriteProgram: boolean;
   fieldOfStudy: string | null;
   subjects: SubjectRow[];
   labels: Record<string, string>;
@@ -19,7 +20,8 @@ interface ScheduleWeekVMProps {
 export function ScheduleWeekWrapper({
   entries,
   schoolProgramEntries,
-  canWrite,
+  canWriteSchedule,
+  canWriteProgram,
   fieldOfStudy,
   subjects,
   labels,
@@ -30,7 +32,8 @@ export function ScheduleWeekWrapper({
     <ScheduleWeekView
       entries={entries}
       schoolProgramEntries={schoolProgramEntries}
-      canWrite={canWrite}
+      canWriteSchedule={canWriteSchedule}
+      canWriteProgram={canWriteProgram}
       fieldOfStudy={fieldOfStudy}
       subjects={subjects}
       labels={labels}

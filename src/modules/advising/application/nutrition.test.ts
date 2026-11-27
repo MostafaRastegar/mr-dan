@@ -87,10 +87,12 @@ describe("nutrition use cases", () => {
     ).rejects.toMatchObject({ code: "forbidden" });
     expect(fakes.mealPlans.writes).toBe(0);
 
-    // A counselor can write their own profile.
-    const own = await update.execute({ actor: counselor, patch: maintainProfile });
-    expect(own.heightCm).toBe(180);
-    expect(fakes.users.physicalWrites).toBe(1);
+    // A counselor cannot write their own physical profile either: nutrition is
+    // a student self-feature.
+    await expect(
+      update.execute({ actor: counselor, patch: maintainProfile }),
+    ).rejects.toMatchObject({ code: "forbidden" });
+    expect(fakes.users.physicalWrites).toBe(0);
 
     // A counselor can read their own student's profile.
     const read = await overview.execute({ actor: counselor, studentId: student.id });

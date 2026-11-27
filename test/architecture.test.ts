@@ -2,6 +2,10 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, dirname, normalize, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
+import { NAV_GROUPS } from "@/app/(advising)/advising-nav.config";
+import { CAPABILITIES } from "@/modules/advising/domain/capabilities";
+import type { Role } from "@/modules/advising/domain/models";
+
 const SRC = join(process.cwd(), "src");
 
 type SourceFile = { path: string; imports: string[] };
@@ -280,6 +284,28 @@ describe("architecture", () => {
       }))
       .filter(({ lines }) => lines > 40);
     expect(fat).toEqual([]);
+  });
+
+  it("keeps nav roles in sync with capability holders", () => {
+    const roles: Role[] = ["student", "counselor", "admin", "operator"];
+    const violations: string[] = [];
+
+    for (const group of NAV_GROUPS) {
+      for (const link of group.links) {
+        if (!link.capability) continue;
+        const holders = roles.filter((role) =>
+          CAPABILITIES[role].includes(link.capability!),
+        );
+        const declared = [...(link.roles ?? [])].sort();
+        if (JSON.stringify(declared) !== JSON.stringify([...holders].sort())) {
+          violations.push(
+            `${link.href}: roles [${declared}] ≠ holders [${holders}]`,
+          );
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 
   it("gates every page exactly as classified in the page matrix", () => {

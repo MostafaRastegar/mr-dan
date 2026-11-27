@@ -76,6 +76,7 @@ test.describe("counselor roster separation", () => {
     const password = stdout.trim().split("\n").pop() ?? "";
     expect(password.length).toBeGreaterThan(0);
 
+    await page.context().clearCookies();
     await page.goto("/login");
     await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
     await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
@@ -125,6 +126,7 @@ test.describe("admin panel access control", () => {
     const password = stdout.trim().split("\n").pop() ?? "";
     expect(password.length).toBeGreaterThan(0);
 
+    await page.context().clearCookies();
     await page.goto("/login");
     await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
     await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
@@ -134,5 +136,83 @@ test.describe("admin panel access control", () => {
     await page.goto("/admin/users");
     await expect(page.getByTestId(TEST_IDS.ADMIN.USERS_TABLE)).toBeVisible();
     await expect(page.getByTestId(TEST_IDS.ADMIN.ROLE_SELECT)).toHaveCount(0);
+  });
+});
+
+test.describe("role×feature gating", () => {
+  test.skip(!e2eEnabled, "E2E tests disabled. Set E2E_ENABLED=true and start services.");
+
+  const STUDENT_PAGES = ["/homework", "/schedule", "/nutrition", "/budget", "/leisure"];
+
+  async function provisionAndLogin(
+    page: import("@playwright/test").Page,
+    role: "counselor" | "admin" | "operator",
+  ) {
+    const username = `e2e_${role}_${Date.now()}`;
+    const stdout = execFileSync(
+      "pnpm",
+      ["exec", "tsx", "scripts/create-user.ts", username, "--role", role],
+      { cwd: process.cwd(), encoding: "utf8" },
+    );
+    const password = stdout.trim().split("\n").pop() ?? "";
+    expect(password.length).toBeGreaterThan(0);
+
+    await page.context().clearCookies();
+    await page.goto("/login");
+    await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
+    await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
+    await page.getByTestId(TEST_IDS.FORM.SUBMIT("login")).click();
+    await expect(page).toHaveURL(/\/profile$/);
+    return username;
+  }
+
+  async function registerStudent(page: import("@playwright/test").Page) {
+    const username = `e2e_student_${Date.now()}`;
+    const password = `e2e-pass-${Date.now()}`;
+    await page.goto("/register");
+    await page.getByTestId(TEST_IDS.FORM.INPUT("fullName")).fill("دانش‌آموز گیت");
+    await page.getByTestId(TEST_IDS.FORM.INPUT("username")).fill(username);
+    await page.getByTestId(TEST_IDS.FORM.INPUT("password")).fill(password);
+    await page.getByTestId(TEST_IDS.FORM.SUBMIT("register")).click();
+    await expect(page).toHaveURL(/\/profile/);
+    return username;
+  }
+
+  for (const role of ["counselor", "admin"] as const) {
+    test(`student pages denied — ${role} direct nav lands on /profile`, async ({ page }) => {
+      await provisionAndLogin(page, role);
+      for (const path of STUDENT_PAGES) {
+        await page.goto(path);
+        await expect(page).toHaveURL(/\/profile$/);
+      }
+    });
+  }
+
+  test("student schedule readonly", async ({ page }) => {
+    await registerStudent(page);
+    await page.goto("/schedule");
+    await expect(page.getByTestId(TEST_IDS.SCHEDULE.CREATE_FORM)).toHaveCount(0);
+    await expect(
+      page.getByTestId(TEST_IDS.SCHOOL_PROGRAM.OPEN_FORM),
+    ).toBeVisible();
+  });
+
+  test("admin supervision of a student is read-only", async ({ page }) => {
+    const studentUsername = await registerStudent(page);
+    await provisionAndLogin(page, "admin");
+
+    await page.goto(`/admin/users?q=${studentUsername}`);
+    const link = page.locator('a[data-testid^="admin-users-supervise-"]').first();
+    await expect(link).toBeVisible();
+    await link.click();
+
+    await expect(page).toHaveURL(/\/counselor\/students\//);
+    await expect(page.getByTestId(TEST_IDS.SUPERVISION.READONLY)).toBeVisible();
+    await expect(page.getByTestId(TEST_IDS.SUPERVISION.HOMEWORK)).toBeVisible();
+    await expect(
+      page.getByTestId(TEST_IDS.SCHEDULE_EDITOR.CREATE_DAY(0)),
+    ).toHaveCount(0);
+    await expect(page.getByTestId(TEST_IDS.SUPERVISION.NUTRITION)).toBeVisible();
+    await expect(page.getByTestId(TEST_IDS.SUPERVISION.BUDGET)).toBeVisible();
   });
 });

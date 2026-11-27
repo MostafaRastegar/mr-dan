@@ -22,6 +22,7 @@ interface SchoolProgramFormViewProps {
   isAddOpen: boolean;
   onOpenAdd: () => void;
   onCloseAdd: () => void;
+  canWrite: boolean;
   form: FormInstance;
   entries: SchoolProgramEntry[];
   fieldOfStudy: string | null;
@@ -44,6 +45,7 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
     isAddOpen,
     onOpenAdd,
     onCloseAdd,
+    canWrite,
     form,
     entries,
     fieldOfStudy,
@@ -68,21 +70,24 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
             روز + درس + ساعت (بدون محدوده زمانی).
           </p>
         </div>
-        <Button
-          icon={<IconPlus size={16} stroke={2} aria-hidden="true" />}
-          onClick={onOpenAdd}
-          data-testid={TEST_IDS.SCHOOL_PROGRAM.OPEN_FORM}
-        >
-          افزودن ردیف
-        </Button>
+        {canWrite ? (
+          <Button
+            icon={<IconPlus size={16} stroke={2} aria-hidden="true" />}
+            onClick={onOpenAdd}
+            data-testid={TEST_IDS.SCHOOL_PROGRAM.OPEN_FORM}
+          >
+            افزودن ردیف
+          </Button>
+        ) : null}
       </div>
 
-      <FormSheet
-        open={isAddOpen}
-        onClose={onCloseAdd}
-        title="افزودن ردیف برنامهٔ مدرسه"
-        testId={TEST_IDS.SCHOOL_PROGRAM.FORM}
-      >
+      {canWrite ? (
+        <FormSheet
+          open={isAddOpen}
+          onClose={onCloseAdd}
+          title="افزودن ردیف برنامهٔ مدرسه"
+          testId={TEST_IDS.SCHOOL_PROGRAM.FORM}
+        >
         <Form
           form={form}
           layout="vertical"
@@ -173,10 +178,12 @@ export function SchoolProgramFormView(props: SchoolProgramFormViewProps): ReactN
             </Button>
           </Form.Item>
         </Form>
-      </FormSheet>
+        </FormSheet>
+      ) : null}
 
       <SchoolProgramTableView
         entries={entries}
+        canWrite={canWrite}
         onDelete={handleDelete}
         formatDuration={formatDuration}
         dayLabel={dayLabel}

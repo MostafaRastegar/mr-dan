@@ -1,6 +1,6 @@
 ---
-last_verified: 2026-11-26
-source_files: src/server/advising-guards.ts, src/modules/advising/domain/models.ts, src/modules/advising/domain/capabilities.ts, scripts/create-user.ts, src/modules/advising/application/planning-access.ts, src/app/(advising)/schedule/page.tsx, src/app/(advising)/homework/page.tsx, src/app/(advising)/nutrition/page.tsx, src/app/(advising)/leisure/page.tsx, src/app/(advising)/layout.tsx
+last_verified: 2026-11-27
+source_files: src/server/advising-guards.ts, src/modules/advising/domain/models.ts, src/modules/advising/domain/capabilities.ts, scripts/create-user.ts, src/modules/advising/application/planning-access.ts, src/modules/advising/application/schedule.ts, src/app/(advising)/schedule/page.tsx, src/app/(advising)/homework/page.tsx, src/app/(advising)/nutrition/page.tsx, src/app/(advising)/leisure/page.tsx, src/app/(advising)/layout.tsx
 ---
 
 # Behavior — access-control baseline
@@ -24,8 +24,8 @@ that predate that change.
 | `/`, `/login`, `/register` | 200 | 200 | 200 | 200 |
 | `/chat`, `/profile` | → `/login` | 200 | 200 | 200 |
 | `/counselor/students` | → `/login` | → `/profile` | 200 | 200 |
-| `/schedule`, `/homework` | → `/login` | 200 | 200 | 200 |
-| `/nutrition`, `/leisure` | → `/login` | 200 | 200 | 200 |
+| `/schedule`, `/homework` | → `/login` | 200 | → `/profile` | → `/profile` |
+| `/nutrition`, `/leisure` | → `/login` | 200 | → `/profile` | → `/profile` |
 | `/admin/knowledge`, `/api-docs` (pages) | → `/login` | → `/profile` | → `/profile` | 200 |
 | 9 RAG data routes | 401 | 200 | 200 | 200 |
 | `GET /api/openapi` | 401 | 403 | 403 | 200 |
@@ -40,17 +40,15 @@ that predate that change.
 
 ### Planning pages
 
-`/schedule` and `/homework` are readable by students, counselors and admins
-(200) and redirect anonymous users to `/login`. A counselor can write only their own
-planning rows (`schedule:write`, `homework:write`, self-scoped); a
-counselor cannot write any student's row, including their own students', and gets
-`ForbiddenError` (403) with zero writes. Read of own students' rows is enforced at
-the use-case layer with no UI until 5.4.
+`/schedule` and `/homework` are readable by students; counselors and admins are
+redirected to `/profile`. A student writes only their own planning rows
+(`homework:write`, self-scoped); the weekly schedule has no student write at all
+and is authored by the counselor-of-record.
 
 ### Nutrition and leisure pages
 
-`/nutrition` and `/leisure` are readable by students, counselors and admins (200) and
-redirect anonymous users to `/login`. `nutrition:read` and `leisure:read` gate the pages;
+`/nutrition` and `/leisure` are readable by students; counselors and admins are
+redirected to `/profile`. `nutrition:read` and `leisure:read` gate the pages;
 `nutrition:write` gates the physical profile and the meal plan and is self-scoped only.
 A counselor cannot write a student's physical profile or save a meal plan for them
 (`ForbiddenError`, 403, zero writes). There is no `leisure:write`: the leisure page renders

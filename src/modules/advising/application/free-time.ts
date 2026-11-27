@@ -2,12 +2,14 @@
  * Daily free-time budget use cases.
  *
  * Write: assertPlanWrite (capability + ownership) → repository guard, so the
- * used-minutes check and the write share one transaction. Read: `actor.id`
- * only, no user lookup. The pure math lives in `domain/free-time.ts`.
+ * used-minutes check and the write share one transaction. Read: assertPlanRead
+ * on the target student (self, counselor-of-record or read-only supervisor).
+ * The pure math lives in `domain/free-time.ts`.
  */
 
 import { FreeTimeBelowPlannedError } from "@/modules/advising/domain/errors";
 import {
+  assertPlanRead,
   assertPlanWrite,
   type Actor,
 } from "@/modules/advising/application/planning-access";
@@ -22,6 +24,7 @@ import type {
   HomeworkPlanRepositoryPort,
   HomeworkRepositoryPort,
   ScheduleRepositoryPort,
+  UserRepositoryPort,
 } from "@/modules/advising/domain/ports";
 
 /** An incomplete homework still eligible for planning on the requested day. */
@@ -78,6 +81,7 @@ export class SetFreeTimeBudgetUseCase {
 
 export class GetDayBudgetUseCase {
   constructor(
+    private readonly users: UserRepositoryPort,
     private readonly schedule: ScheduleRepositoryPort,
     private readonly homework: HomeworkRepositoryPort,
     private readonly budget: FreeTimeBudgetRepositoryPort,
@@ -85,8 +89,14 @@ export class GetDayBudgetUseCase {
   ) {}
 
   /** `today` lets a caller pass a stable clock; nothing here depends on the current time. */
-  async execute(input: { actor: Actor; dayKey: string; today?: Date }): Promise<DayBudget> {
-    const studentId = input.actor.id;
+  async execute(input: {
+    actor: Actor;
+    studentId?: string;
+    dayKey: string;
+    today?: Date;
+  }): Promise<DayBudget> {
+    const studentId = input.studentId ?? input.actor.id;
+    await assertPlanRead(this.users, input.actor, studentId);
 
     const entries = await this.schedule.listByStudent(studentId);
     const suggestedMinutes = suggestFreeMinutes(entries, persianDayOf(input.dayKey));

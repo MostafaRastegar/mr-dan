@@ -2,9 +2,13 @@
  * Planning access control (D-1).
  *
  * A write is gated twice: the `<area>:write` capability AND row ownership
- * (`actor.id === ownerId`). A counselor therefore keeps their own plan and can
- * never write a student's row — including their own students'. Read allows self
- * or the owner's current counselor.
+ * (`actor.id === ownerId`). Homework, nutrition, budget, weekly goal and the
+ * school program are therefore student self-features — a counselor or admin
+ * self-write is rejected. Read allows self or the owner's current counselor,
+ * plus the read-only supervision override (`supervise:read`, admin).
+ *
+ * Weekly schedule authoring does not use this helper: it is
+ * counselor-of-record only (`assertCounselorOfStudent`).
  */
 
 import { ForbiddenError } from "@/modules/advising/domain/errors";
@@ -16,7 +20,8 @@ export type Actor = { id: string; role: Role };
 
 export type PlanCapability =
   | "profile:write"
-  | "schedule:write"
+  | "goal:write"
+  | "program:write"
   | "homework:write"
   | "budget:write"
   | "nutrition:write";
@@ -42,13 +47,15 @@ export async function assertPlanRead(
   if (ownerId === actor.id) return;
 
   const owner = await users.findById(ownerId);
-  if (
-    !owner ||
-    owner.role !== "student" ||
-    owner.counselorId !== actor.id
-  ) {
-    throw new ForbiddenError();
+  if (owner && owner.role === "student" && owner.counselorId === actor.id) {
+    return;
   }
+
+  // Admin supervision: any user's planning rows, read-only. The write guards
+  // above stay untouched, so this branch can never mutate.
+  if (hasCapability(actor.role, "supervise:read")) return;
+
+  throw new ForbiddenError();
 }
 
 /** A counselor may only touch their own students' plans. */

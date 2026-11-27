@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-11-27 — rbac-feature-gating
+
+### Added
+- Role×feature enforcement: capability map is the single source of truth; `schedule:write` removed entirely, schedule authoring = `plan:write` + counselor-of-record (`assertCounselorOfStudent`). New capabilities: `goal:write`, `program:write` (student-only), `supervise:read` (admin-only, read-only supervision).
+- Counselor student detail page: schedule editor (`schedule-editor.{vm,view}.tsx`) for authoring a student's weekly schedule; admin supervision view reuses the same surface read-only via `supervise:read`.
+- Nav↔capability sync test in `test/architecture.test.ts` locks the matrix to the UI.
+- `docs/behaviors/rbac-feature-gating.md` behavior doc.
+
+### Changed
+- `assertPlanRead` gains a final `supervise:read` branch (admin read-only).
+- `GetStudentStudyPlanUseCase`: `canWrite` = counselor-of-record; `canSupervise` = `supervise:read`; admin write → `ForbiddenError`.
+- Schedule Create/Update/Delete: load-first → `NotFoundError` → authorize against `existing.studentId` → mutate; conflict check after authorization.
+- `weekly-goal.ts` → `goal:write`; `school-program.ts` → `program:write` (self-writes).
+- `/dashboard`: counselor → `/counselor/students`, operator → `/profile`.
+- `/schedule` (student surface): weekly grid read-only; school-program editor stays usable. Counselor/admin direct nav to student self-pages → `/profile`.
+- `README.md` §«دسترسی و نقش‌ها»: weekly schedule is counselor-authored per student; homework/nutrition/budget/leisure are student-only; admin supervises read-only.
+- `docs/behaviors/roles-and-access.md` capability table updated.
+
+### Fixed
+- Counselors could access `/schedule`, `/homework`, `/nutrition`, `/budget`, `/leisure` (self-surfaces) and write weekly schedules for themselves.
+- Admin had demo access to student self-pages; replaced with read-only supervision via `/admin/users`.
+
 ## 2026-11-26 — admin-panel-catalog
 
 ### Added

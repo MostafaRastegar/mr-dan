@@ -1,8 +1,7 @@
 import { IconLogout } from "@tabler/icons-react";
 
 import { TEST_IDS } from "@/constants/test-ids";
-import { hasCapability, type Capability } from "@/modules/advising/domain/capabilities";
-import type { Role } from "@/modules/advising/domain/models";
+import { hasCapability } from "@/modules/advising/domain/capabilities";
 import { logoutAction } from "./advising.actions";
 import { requireSessionUser } from "@/server/advising-guards";
 import {
@@ -10,98 +9,12 @@ import {
 } from "./advising-bottom-bar.view";
 import { AdvisingRail } from "./advising-nav.view";
 import type { AdvisingNavGroup } from "./advising-nav.vm";
-
-type NavLink = {
-  href: string;
-  label: string;
-  testId: string;
-  capability?: Capability;
-  roles?: Role[];
-};
-
-type NavGroup = { heading: string | null; links: NavLink[] };
+import { NAV_GROUPS, type NavGroup } from "./advising-nav.config";
 
 export default async function AdvisingLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const { user } = await requireSessionUser();
-
-  const navGroups: NavGroup[] = [
-    {
-      heading: "داشبورد",
-      links: [
-        {
-          href: "/dashboard",
-          label: "داشبورد",
-          testId: TEST_IDS.NAV.DASHBOARD,
-          roles: ["student", "admin"],
-        },
-      ],
-    },
-    {
-      heading: "تنظیمات",
-      links: [
-        {
-          href: "/schedule",
-          label: "برنامه هفتگی",
-          testId: TEST_IDS.NAV.SCHEDULE,
-          capability: "schedule:read",
-          roles: ["student", "admin"],
-        },
-        {
-          href: "/nutrition",
-          label: "تغذیه",
-          testId: TEST_IDS.NAV.NUTRITION,
-          capability: "nutrition:read",
-          roles: ["student", "admin"],
-        },
-        {
-          href: "/homework",
-          label: "همهٔ تکالیف",
-          testId: TEST_IDS.NAV.HOMEWORK,
-          capability: "homework:read",
-          roles: ["student", "admin"],
-        },
-        {
-          href: "/profile",
-          label: "پروفایل",
-          testId: TEST_IDS.NAV.PROFILE,
-          capability: "profile:read",
-          roles: ["student", "counselor", "admin", "operator"],
-        },
-        {
-          href: "/chat",
-          label: "مشاور هوشمند",
-          testId: TEST_IDS.NAV.CHAT,
-          roles: ["student", "counselor", "admin", "operator"],
-        },
-      ],
-    },
-    {
-      heading: "مشاور",
-      links: [
-        {
-          href: "/counselor/students",
-          label: "دانش‌آموزان من",
-          testId: TEST_IDS.NAV.STUDENTS,
-          capability: "group:manage",
-          roles: ["counselor", "admin"],
-        },
-      ],
-    },
-    {
-      heading: "مدیریت",
-      links: [
-        {
-          href: "/admin",
-          label: "مدیریت",
-          testId: TEST_IDS.NAV.ADMIN,
-          capability: "user:read",
-          roles: ["admin", "operator"],
-        },
-      ],
-    },
-  ];
 
   const activeLinks = (group: NavGroup) =>
     group.links.filter(
@@ -110,7 +23,7 @@ export default async function AdvisingLayout({
         (!link.capability || hasCapability(user.role, link.capability)),
     );
 
-  const filteredGroups: AdvisingNavGroup[] = navGroups.map((group) => ({
+  const filteredGroups: AdvisingNavGroup[] = NAV_GROUPS.map((group) => ({
     heading: group.heading,
     links: activeLinks(group).map(({ href, label, testId }) => ({
       href,

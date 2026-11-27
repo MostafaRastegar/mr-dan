@@ -45,7 +45,7 @@ export class AddSchoolProgramEntryUseCase {
 
   async execute(input: AddSchoolProgramEntryInput): Promise<SchoolProgramEntry> {
     const ownerId = input.actor.id;
-    await assertPlanWrite(input.actor, "schedule:write", ownerId);
+    await assertPlanWrite(input.actor, "program:write", ownerId);
 
     const minutes = Math.round(input.hours * 60);
     if (minutes < ENTRY_MINUTES_MIN || minutes > ENTRY_MINUTES_MAX) {
@@ -77,7 +77,7 @@ export class DeleteSchoolProgramEntryUseCase {
 
   async execute(input: DeleteSchoolProgramEntryInput): Promise<void> {
     const ownerId = input.actor.id;
-    await assertPlanWrite(input.actor, "schedule:write", ownerId);
+    await assertPlanWrite(input.actor, "program:write", ownerId);
     await this.program.delete({ id: input.entryId, studentId: ownerId });
   }
 }

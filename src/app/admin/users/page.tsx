@@ -21,9 +21,7 @@ export default async function AdminUsersPage({
       q: sp.q,
     }),
   );
-  const counselors = await readAdminOptions(() =>
-    admin.listCounselors.execute(),
-  );
+  const counselors = await readAdminOptions(() => admin.listCounselors.execute());
   return (
     <UsersTableWrapper
       page={data}
@@ -34,6 +32,7 @@ export default async function AdminUsersPage({
       readFailed={readFailed}
       canManageRole={hasCapability(user.role, "user:manage")}
       canSupport={hasCapability(user.role, "user:support")}
+      canSupervise={hasCapability(user.role, "supervise:read")}
     />
   );
 }

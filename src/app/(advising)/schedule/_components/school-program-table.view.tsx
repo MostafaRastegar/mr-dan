@@ -18,6 +18,7 @@ function groupByDay(entries: SchoolProgramEntry[]): Map<number, SchoolProgramEnt
 
 interface SchoolProgramTableViewProps {
   entries: SchoolProgramEntry[];
+  canWrite: boolean;
   onDelete: (id: string) => void;
   formatDuration: (minutes: number) => string;
   dayLabel: (dayOfWeek: number) => string;
@@ -25,7 +26,8 @@ interface SchoolProgramTableViewProps {
 }
 
 export function SchoolProgramTableView(props: SchoolProgramTableViewProps): ReactNode {
-  const { entries, onDelete, formatDuration, dayLabel, subjectLabel } = props;
+  const { entries, canWrite, onDelete, formatDuration, dayLabel, subjectLabel } =
+    props;
   const { Panel: CollapsePanel } = Collapse;
 
   if (entries.length === 0) {
@@ -61,13 +63,15 @@ export function SchoolProgramTableView(props: SchoolProgramTableViewProps): Reac
                 <tr className="bg-slate-50">
                   <th className="text-left p-2 border-b border-slate-200 font-medium">درس</th>
                   <th className="text-left p-2 border-b border-slate-200 font-medium dir-ltr">ساعت</th>
-                  <th className="text-right p-2 border-b border-slate-200 font-medium">عملیات</th>
+                  {canWrite ? (
+                    <th className="text-right p-2 border-b border-slate-200 font-medium">عملیات</th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
                 {dayEntries.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="p-2 text-center text-slate-400 text-sm">
+                    <td colSpan={canWrite ? 3 : 2} className="p-2 text-center text-slate-400 text-sm">
                       برنامه‌ای ثبت نشده
                     </td>
                   </tr>
@@ -76,17 +80,19 @@ export function SchoolProgramTableView(props: SchoolProgramTableViewProps): Reac
                     <tr key={entry.id} className="border-b border-slate-100">
                       <td className="p-2">{subjectLabel(entry.subject)}</td>
                       <td className="p-2 dir-ltr">{formatDuration(entry.hours * 60)}</td>
-                      <td className="p-2 text-right">
-                        <button
-                          type="button"
-                          onClick={() => onDelete(entry.id)}
-                          className="text-xs text-red-600 hover:underline"
-                          aria-label="حذف"
-                          data-testid={TEST_IDS.SCHOOL_PROGRAM.DELETE_ROW}
-                        >
-                          حذف
-                        </button>
-                      </td>
+                      {canWrite ? (
+                        <td className="p-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => onDelete(entry.id)}
+                            className="text-xs text-red-600 hover:underline"
+                            aria-label="حذف"
+                            data-testid={TEST_IDS.SCHOOL_PROGRAM.DELETE_ROW}
+                          >
+                            حذف
+                          </button>
+                        </td>
+                      ) : null}
                     </tr>
                   ))
                 )}

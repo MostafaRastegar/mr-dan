@@ -121,3 +121,44 @@ describe("weekly goal use cases", () => {
     ).rejects.toMatchObject({ code: "forbidden" });
   });
 });
+
+describe("weekly goal is a student self-feature", () => {
+  it("AC-7: counselor and admin toggles are forbidden", async () => {
+    const repo = repoWith({
+      studentId: "s1",
+      weekKey: "2026-11-21",
+      completedBlocks: [],
+    });
+    const useCase = new ToggleStudyBlockUseCase(repo);
+
+    for (const actor of [
+      { id: "c1", role: "counselor" as const },
+      { id: "a1", role: "admin" as const },
+    ]) {
+      await expect(
+        useCase.execute({
+          actor,
+          studentId: "s1",
+          dayKey: "2026-11-21",
+          startMinute: 480,
+          minutes: 50,
+          completed: true,
+        }),
+      ).rejects.toMatchObject({ code: "forbidden" });
+    }
+  });
+
+  it("AC-7: counselor and admin test increments are forbidden", async () => {
+    const repo = repoWith({ studentId: "s1", weekKey: "2026-11-21" });
+    const useCase = new AddTestsDoneUseCase(repo);
+
+    for (const actor of [
+      { id: "c1", role: "counselor" as const },
+      { id: "a1", role: "admin" as const },
+    ]) {
+      await expect(
+        useCase.execute({ actor, studentId: "s1", delta: 5 }),
+      ).rejects.toMatchObject({ code: "forbidden" });
+    }
+  });
+});

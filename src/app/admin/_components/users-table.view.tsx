@@ -70,6 +70,7 @@ interface UsersTableViewProps {
   readFailed: boolean;
   canManageRole: boolean;
   canSupport: boolean;
+  canSupervise: boolean;
   roleTarget: RoleTarget | null;
   onOpenRole: (row: AdminUserRow, role: Role) => void;
   onConfirmRole: () => void;
@@ -107,6 +108,7 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
     readFailed,
     canManageRole,
     canSupport,
+    canSupervise,
     roleTarget,
     onOpenRole,
     onConfirmRole,
@@ -180,6 +182,26 @@ export function UsersTableView(props: UsersTableViewProps): ReactNode {
           "—"
         ),
     },
+    ...(canSupervise
+      ? [
+          {
+            key: "supervise",
+            title: "پرونده",
+            render: (_: unknown, row: AdminUserRow) =>
+              row.role === "student" ? (
+                <Link
+                  href={`/counselor/students/${row.id}`}
+                  className="whitespace-nowrap text-teal-700 underline"
+                  data-testid={TEST_IDS.ADMIN.SUPERVISION_LINK(row.id)}
+                >
+                  مشاهده
+                </Link>
+              ) : (
+                "—"
+              ),
+          },
+        ]
+      : []),
     {
       key: "createdAt",
       title: "تاریخ ایجاد",

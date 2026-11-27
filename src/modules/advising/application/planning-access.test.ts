@@ -82,11 +82,11 @@ describe("assertCounselorOfStudent", () => {
 
 describe("assertPlanWrite", () => {
   it("passes for the owner", () => {
-    expect(() => assertPlanWrite(student, "schedule:write", "s1")).not.toThrow();
+    expect(() => assertPlanWrite(student, "goal:write", "s1")).not.toThrow();
   });
 
   it("rejects a non-owner even with the capability", () => {
-    expect(() => assertPlanWrite(student, "schedule:write", "s2")).toThrow(
+    expect(() => assertPlanWrite(student, "goal:write", "s2")).toThrow(
       ForbiddenError,
     );
     expect(() => assertPlanWrite(counselor, "profile:write", "s1")).toThrow(
@@ -94,8 +94,8 @@ describe("assertPlanWrite", () => {
     );
   });
 
-  it("passes for an admin on its own row", () => {
-    expect(() => assertPlanWrite(admin, "schedule:write", "a1")).not.toThrow();
+  it("passes for an admin on its own profile row", () => {
+    expect(() => assertPlanWrite(admin, "profile:write", "a1")).not.toThrow();
   });
 });
 
@@ -114,13 +114,20 @@ describe("assertPlanRead", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("rejects a non-owner non-counselor", async () => {
+  it("rejects a student who is neither owner nor counselor", async () => {
     const users = await makeUsers();
     await expect(
       assertPlanRead(users, student, "s2"),
     ).rejects.toBeInstanceOf(ForbiddenError);
     await expect(
-      assertPlanRead(users, admin, "s2"),
+      assertPlanRead(users, operator, "s2"),
     ).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("passes for a supervisor (admin) on any student", async () => {
+    const users = await makeUsers();
+    await expect(
+      assertPlanRead(users, admin, "s2"),
+    ).resolves.toBeUndefined();
   });
 });

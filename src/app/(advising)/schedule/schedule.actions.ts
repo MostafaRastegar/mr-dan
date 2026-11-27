@@ -16,10 +16,10 @@ export async function createScheduleEntryAction(
   return runAction(async () => {
     const { subjects } =
       await getContainer().advising.catalogOptions.execute();
-    const { scheduleEntrySchema } = makeScheduleSchemas(
+    const { createScheduleEntrySchema } = makeScheduleSchemas(
       subjects.map((row) => row.slug),
     );
-    const input = scheduleEntrySchema.parse(formValues(formData));
+    const input = createScheduleEntrySchema.parse(formValues(formData));
     const entry = await getContainer().advising.createScheduleEntry.execute({
       actor: { id: user.id, role: user.role },
       ...input,

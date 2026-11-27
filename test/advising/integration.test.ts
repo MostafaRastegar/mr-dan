@@ -71,7 +71,7 @@ describe("advising integration (real Postgres)", () => {
     const second = account("unique-b", "student", sharedEmail);
     await users.create(first);
 
-    await expect(users.create({ ...first })).rejects.toMatchObject({
+    await expect(users.create({ ...first, email: null })).rejects.toMatchObject({
       code: "username_taken",
     });
     await expect(users.create(second)).rejects.toMatchObject({

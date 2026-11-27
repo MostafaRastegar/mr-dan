@@ -64,7 +64,7 @@ export class ToggleStudyBlockUseCase {
 
   async execute(input: ToggleStudyBlockInput): Promise<WeeklyGoal> {
     const ownerId = ownerIdOf(input, input.actor);
-    assertPlanWrite(input.actor, "schedule:write", ownerId);
+    assertPlanWrite(input.actor, "goal:write", ownerId);
 
     const weekKey = input.weekKey ?? currentWeekKey();
     const key = `${input.dayKey}:${input.startMinute}:${input.minutes}`;
@@ -86,7 +86,7 @@ export class AddTestsDoneUseCase {
 
   async execute(input: AddTestsDoneInput): Promise<WeeklyGoal> {
     const ownerId = ownerIdOf(input, input.actor);
-    assertPlanWrite(input.actor, "schedule:write", ownerId);
+    assertPlanWrite(input.actor, "goal:write", ownerId);
 
     const delta = input.delta;
     if (delta < 1 || delta > 100) {

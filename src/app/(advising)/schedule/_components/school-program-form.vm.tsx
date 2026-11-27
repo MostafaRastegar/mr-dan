@@ -21,6 +21,7 @@ import type { SchoolProgramEntry } from "./school-program-form.view";
 
 interface SchoolProgramFormVMProps {
   initialEntries: SchoolProgramEntry[];
+  canWrite: boolean;
   fieldOfStudy: string | null;
   subjects: SubjectRow[];
   labels: Record<string, string>;
@@ -28,6 +29,7 @@ interface SchoolProgramFormVMProps {
 
 export function SchoolProgramForm({
   initialEntries,
+  canWrite,
   fieldOfStudy,
   subjects,
   labels,
@@ -70,6 +72,7 @@ export function SchoolProgramForm({
       isAddOpen={isAddOpen}
       onOpenAdd={() => setIsAddOpen(true)}
       onCloseAdd={() => setIsAddOpen(false)}
+      canWrite={canWrite}
       form={form}
       entries={initialEntries}
       fieldOfStudy={fieldOfStudy}

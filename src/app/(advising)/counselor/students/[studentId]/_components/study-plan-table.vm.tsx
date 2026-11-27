@@ -14,11 +14,13 @@ export function StudyPlanTable({
   entries,
   chapters,
   labels,
+  canWrite,
 }: {
   studentId: string;
   entries: StudyPlanEntry[];
   chapters: Chapter[];
   labels: Record<string, string>;
+  canWrite: boolean;
 }) {
   const router = useRouter();
   const { state, run, pending } = useActionMutation(deleteStudyPlanEntryAction);
@@ -35,6 +37,7 @@ export function StudyPlanTable({
       entries={entries}
       chapters={chapters}
       labels={labels}
+      canWrite={canWrite}
       pending={pending}
       formError={formError}
       onDelete={(entryId) => run({ studentId, entryId })}

@@ -1,129 +1,117 @@
 import { describe, expect, it } from "vitest";
 
 import { CAPABILITIES, hasCapability, type Capability } from "./capabilities";
+import type { Role } from "./models";
 
-describe("CAPABILITIES.admin", () => {
-  it("contains every counselor capability", () => {
-    for (const cap of CAPABILITIES.counselor) {
-      expect(CAPABILITIES.admin).toContain(cap as Capability);
+const ROLES: Role[] = ["student", "counselor", "admin", "operator"];
+
+function holders(capability: string): Role[] {
+  return ROLES.filter((role) =>
+    (CAPABILITIES[role] as readonly string[]).includes(capability),
+  );
+}
+
+describe("role×feature capability matrix", () => {
+  it("schedule:write no longer exists on any role", () => {
+    for (const role of ROLES) {
+      expect(CAPABILITIES[role] as readonly string[]).not.toContain(
+        "schedule:write",
+      );
     }
   });
 
-  it("contains the admin-only capabilities", () => {
-    expect(CAPABILITIES.admin).toContain("rag:manage");
-    expect(CAPABILITIES.admin).toContain("user:manage");
-  });
-});
-
-describe("hasCapability", () => {
-  it("counselor lacks rag:manage", () => {
-    expect(hasCapability("counselor", "rag:manage")).toBe(false);
-  });
-
-  it("student lacks rag:manage", () => {
-    expect(hasCapability("student", "rag:manage")).toBe(false);
+  it("counselor holds only profile + group + assign + plan", () => {
+    expect([...CAPABILITIES.counselor].sort()).toEqual(
+      [
+        "profile:read",
+        "profile:write",
+        "group:manage",
+        "student:assign",
+        "plan:write",
+      ].sort(),
+    );
   });
 
-  it("admin keeps student:assign", () => {
-    expect(hasCapability("admin", "student:assign")).toBe(true);
-  });
-});
-
-describe("CAPABILITIES student write", () => {
-  const writeCaps = [
-    "schedule:write",
-    "homework:write",
-    "budget:write",
-  ] as const;
-
-  it("student has all planning write capabilities", () => {
-    for (const cap of writeCaps) {
-      expect(hasCapability("student", cap)).toBe(true);
-    }
+  it("goal:write and program:write are student-only self-writes", () => {
+    expect(holders("goal:write")).toEqual(["student"]);
+    expect(holders("program:write")).toEqual(["student"]);
   });
 
-  it("counselor has planning read and write capabilities", () => {
-    for (const cap of [
+  it("student keeps the student self-features and not plan:write", () => {
+    const studentCaps: Capability[] = [
       "schedule:read",
-      "schedule:write",
       "homework:read",
       "homework:write",
       "budget:read",
       "budget:write",
-    ] as const) {
-      expect(hasCapability("counselor", cap)).toBe(true);
+      "nutrition:read",
+      "nutrition:write",
+      "leisure:read",
+    ];
+    for (const capability of studentCaps) {
+      expect(hasCapability("student", capability)).toBe(true);
+    }
+    expect(hasCapability("student", "plan:write")).toBe(false);
+  });
+
+  it("admin loses every student-feature self capability", () => {
+    const removed: Capability[] = [
+      "schedule:read",
+      "homework:read",
+      "homework:write",
+      "budget:read",
+      "budget:write",
+      "nutrition:read",
+      "nutrition:write",
+      "leisure:read",
+      "goal:write",
+      "program:write",
+    ];
+    for (const capability of removed) {
+      expect(hasCapability("admin", capability)).toBe(false);
     }
   });
 
-  it("admin is a superset of counselor", () => {
-    for (const cap of CAPABILITIES.counselor) {
-      expect(CAPABILITIES.admin).toContain(cap);
-    }
-  });
-});
-
-describe("CAPABILITIES nutrition and leisure", () => {
-  const nutritionLeisure = [
-    "nutrition:read",
-    "nutrition:write",
-    "leisure:read",
-  ] as const;
-
-  it("student has nutrition and leisure capabilities", () => {
-    for (const cap of nutritionLeisure) {
-      expect(hasCapability("student", cap)).toBe(true);
-    }
+  it("admin gains supervise:read, admin-only", () => {
+    expect(holders("supervise:read")).toEqual(["admin"]);
   });
 
-  it("counselor has nutrition and leisure capabilities", () => {
-    for (const cap of nutritionLeisure) {
-      expect(hasCapability("counselor", cap)).toBe(true);
+  it("admin keeps the counselor-set writes and admin-only capabilities", () => {
+    const kept: Capability[] = [
+      "profile:read",
+      "profile:write",
+      "group:manage",
+      "student:assign",
+      "plan:write",
+      "rag:manage",
+      "user:read",
+      "user:support",
+      "user:manage",
+      "catalog:manage",
+    ];
+    for (const capability of kept) {
+      expect(hasCapability("admin", capability)).toBe(true);
     }
   });
 
-  it("admin has nutrition and leisure capabilities", () => {
-    for (const cap of nutritionLeisure) {
-      expect(hasCapability("admin", cap)).toBe(true);
+  it("operator cannot write planning rows or supervise", () => {
+    const denied: Capability[] = [
+      "group:manage",
+      "plan:write",
+      "supervise:read",
+      "homework:write",
+      "goal:write",
+      "program:write",
+    ];
+    for (const capability of denied) {
+      expect(hasCapability("operator", capability)).toBe(false);
     }
   });
-});
 
-describe("plan:write", () => {
-  it("is held only by counselor and admin", () => {
-    const roles = ["student", "counselor", "admin", "operator"] as const;
-    expect(roles.filter((role) => hasCapability(role, "plan:write"))).toEqual([
-      "counselor",
-      "admin",
-    ]);
-  });
-});
-
-describe("catalog:manage", () => {
-  it("is held only by admin", () => {
-    const roles = ["student", "counselor", "admin", "operator"] as const;
-    expect(roles.filter((role) => hasCapability(role, "catalog:manage"))).toEqual([
-      "admin",
-    ]);
-  });
-});
-
-describe("CAPABILITIES operator", () => {
-  it("holds user:read and user:support but never user:manage or rag:manage", () => {
+  it("operator holds user:read and user:support only, never user:manage/rag:manage", () => {
     expect(hasCapability("operator", "user:read")).toBe(true);
     expect(hasCapability("operator", "user:support")).toBe(true);
     expect(hasCapability("operator", "user:manage")).toBe(false);
     expect(hasCapability("operator", "rag:manage")).toBe(false);
-  });
-
-  it("is a subset of admin", () => {
-    for (const cap of CAPABILITIES.operator) {
-      expect(CAPABILITIES.admin).toContain(cap);
-    }
-  });
-
-  it("cannot write planning rows", () => {
-    for (const cap of ["group:manage", "plan:write", "schedule:write"] as const) {
-      expect(hasCapability("operator", cap)).toBe(false);
-    }
   });
 });
